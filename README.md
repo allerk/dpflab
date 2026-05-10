@@ -1,13 +1,13 @@
 # DPFLAB — SvelteKit
 
-Landing page for DPFLAB, a DPF filter cleaning service in Estonia. Built with SvelteKit and vanilla CSS. Supports Russian and Estonian (EE) locales.
+Landing page for DPFLAB, a DPF filter cleaning service in Estonia. Built with SvelteKit and Tailwind CSS v4. Supports Russian and Estonian (EE) locales.
 
 ## Project structure
 
 ```
 src/
-  app.html              ← HTML shell with data-* theme attributes
-  app.css               ← base styles + section styles (CSS variables)
+  app.html              ← HTML shell with data-theme="dark"
+  app.css               ← Tailwind import + @theme tokens + @layer base/components
   lib/
     types.ts            ← content types (ContentBundle, Locale)
     content.ts          ← all copy for RU + EE locales
@@ -49,4 +49,8 @@ npm run dev
 
 ## Design system
 
-Everything is controlled via CSS variables in `app.css`. Theme, accent colour, button style, card style, and spacing density are all toggled via `data-*` attributes on `<html>` (see `app.html`).
+Tokens live in the `@theme` block in `src/app.css` (colors, radii, spacing, custom breakpoints). Tailwind generates utilities from them (`bg-accent`, `rounded-card`, etc.). Light theme is toggled via `data-theme="light"` on `<html>`.
+
+Custom breakpoints replace Tailwind defaults: `xs: 480 / sm: 600 / md: 900 / lg: 1060 / xl: 1180`.
+
+Custom CSS belongs in `@layer base` (elements) or `@layer components` (helper classes) so Tailwind utilities can still override them — un-layered CSS beats every layer in the cascade.
