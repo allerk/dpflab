@@ -14,13 +14,11 @@
   };
   const onDown = (e: MouseEvent | TouchEvent) => {
     dragging = true;
-    const x = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    update(x);
+    update('touches' in e ? e.touches[0].clientX : e.clientX);
   };
   const onMove = (e: MouseEvent | TouchEvent) => {
     if (!dragging) return;
-    const x = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    update(x);
+    update('touches' in e ? e.touches[0].clientX : e.clientX);
   };
   const onUp = () => (dragging = false);
 </script>
@@ -28,18 +26,9 @@
 <div
   bind:this={card}
   class="ba-card"
-  on:mousedown={onDown}
-  on:mousemove={onMove}
-  on:mouseup={onUp}
-  on:mouseleave={onUp}
-  on:touchstart={onDown}
-  on:touchmove={onMove}
-  on:touchend={onUp}
-  role="slider"
-  aria-valuemin="0"
-  aria-valuemax="100"
-  aria-valuenow={Math.round(pos)}
-  tabindex="0"
+  on:mousedown={onDown} on:mousemove={onMove} on:mouseup={onUp} on:mouseleave={onUp}
+  on:touchstart={onDown} on:touchmove={onMove} on:touchend={onUp}
+  role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(pos)} tabindex="0"
 >
   <div class="ba-img ba-after placeholder">[ {after} ]</div>
   <div class="ba-img ba-before placeholder" style="clip-path: inset(0 {100 - pos}% 0 0)">[ {before} ]</div>

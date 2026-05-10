@@ -2,6 +2,7 @@
 /build
 /dist
 .idea
+.wrangler
 
 node_modules
 
