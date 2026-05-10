@@ -62,7 +62,7 @@
 
 <header
   class="fixed top-0 left-0 right-0 z-50 border-b border-transparent transition-[background,border-color,box-shadow] duration-250
-    {scrolled ? 'bg-bg/92 backdrop-blur-md border-border shadow-[0_2px_16px_rgba(0,0,0,.3)]' : ''}"
+    {scrolled ? 'bg-bg/75 backdrop-blur-md border-white/10 shadow-[0_2px_16px_rgba(0,0,0,.3)]' : ''}"
 >
   <!-- Desktop bar -->
   <div class="container flex items-center gap-5 py-3.5 px-6 max-xs:py-5 max-xs:px-4">
