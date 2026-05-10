@@ -25,10 +25,10 @@
 </script>
 
 <section id="contacts" class="section bg-bg pb-10">
-  <div class="container grid grid-cols-[1.05fr_1fr] gap-12 items-start max-sm:grid-cols-1 max-sm:gap-7">
+  <div class="container grid grid-cols-[1.05fr_1fr] gap-12 items-start max-md:grid-cols-1 max-md:gap-7">
 
     <div>
-      <h2 class="text-[clamp(24px,2.6vw,32px)] font-black tracking-wide mb-1.5">{t.contact.title}</h2>
+      <h2 class="text-[clamp(24px,2.6vw,32px)] font-extrabold tracking-[0.02em] mb-1.5">{t.contact.title}</h2>
       <p class="text-[14px] text-fg-muted mb-5">{t.contact.subtitle}</p>
 
       {#if submitted}
@@ -37,7 +37,7 @@
           <p class="m-0">{t.contact.success}</p>
         </div>
       {:else}
-        <form class="flex flex-col gap-3 max-w-[460px] max-sm:max-w-none" on:submit={onSubmit} novalidate>
+        <form class="flex flex-col gap-3 max-w-[460px] max-md:max-w-none" on:submit={onSubmit} novalidate>
           <div class="flex flex-col gap-1">
             <input type="text" placeholder={t.contact.fields.name} bind:value={form.name}
                    class="{inputBase} {errors.name ? inputError : ''}"/>
@@ -53,7 +53,7 @@
                       class={inputBase}></textarea>
           </div>
           <button type="submit"
-                  class="self-start inline-flex items-center gap-2 bg-accent text-accent-fg font-semibold text-[15px] px-6 py-3.5 rounded-btn hover:bg-accent-h hover:-translate-y-px transition-[background,transform]">
+                  class="self-start inline-flex items-center gap-2 bg-accent text-accent-fg font-semibold text-[15px] px-6 py-3.5 rounded-btn whitespace-nowrap hover:bg-accent-h hover:-translate-y-px transition-[background,transform]">
             {t.contact.fields.submit}
           </button>
         </form>
@@ -61,7 +61,7 @@
     </div>
 
     <div class="bg-bg-card rounded-card shadow-[0_2px_8px_rgba(0,0,0,.3)] p-7 flex flex-col gap-[18px]">
-      <h3 class="text-[18px] font-black tracking-wide m-0">{t.contact.contactsTitle}</h3>
+      <h3 class="text-[18px] font-extrabold tracking-[0.04em] m-0">{t.contact.contactsTitle}</h3>
       <ul class="list-none p-0 m-0 flex flex-col gap-3">
         <li class="flex gap-3 items-center text-[14px]">
           <Icon name="phone" size={18} /><a href={t.contacts.phoneHref} class="hover:text-accent transition-colors">{t.contacts.phone}</a>

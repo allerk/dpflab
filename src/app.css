@@ -24,6 +24,15 @@
   --spacing-header:    64px;
   --spacing-section:   80px;
   --spacing-container: 1180px;
+
+  /* Custom breakpoints — match the original CSS exactly.
+     Replaces Tailwind's defaults (640/768/1024/1280/1536). */
+  --breakpoint-*:  initial;
+  --breakpoint-xs: 480px;
+  --breakpoint-sm: 600px;
+  --breakpoint-md: 900px;
+  --breakpoint-lg: 1060px;
+  --breakpoint-xl: 1180px;
 }
 
 /* ── Light-theme overrides ─────────────────────────────── */

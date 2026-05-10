@@ -7,12 +7,12 @@
 
 <section id="certificates" class="section bg-[#0a0a0a]">
   <div class="container">
-    <h2 class="text-[clamp(28px,3.5vw,42px)] font-black text-center tracking-wide mb-10">
+    <h2 class="text-[clamp(28px,3.5vw,42px)] font-extrabold text-center tracking-[0.02em] mb-10 max-sm:text-[clamp(22px,6vw,28px)]">
       {t.certificates.title} <span class="text-accent">{t.certificates.titleAccent}</span>
     </h2>
-    <div class="grid grid-cols-4 gap-5 max-sm:grid-cols-2">
+    <div class="grid grid-cols-4 gap-5 max-md:grid-cols-2 max-xs:grid-cols-1">
       {#each t.certificates.items as c, i}
-        <div class="bg-bg-card rounded-card shadow-[0_2px_8px_rgba(0,0,0,.3)] hover:shadow-[0_8px_28px_rgba(0,0,0,.4)] hover:-translate-y-0.5 transition-[transform,box-shadow] duration-200 p-6 flex flex-col items-center text-center gap-2.5">
+        <div class="bg-bg-card rounded-card shadow-[0_2px_8px_rgba(0,0,0,.3)] hover:shadow-[0_8px_28px_rgba(0,0,0,.4)] hover:-translate-y-[3px] transition-[transform,box-shadow] duration-200 px-5 py-6 flex flex-col items-center text-center gap-2.5">
           <div class="w-[52px] h-[52px] rounded-full bg-accent/10 text-accent flex items-center justify-center">
             <Icon name={icons[i % icons.length]} size={28}/>
           </div>

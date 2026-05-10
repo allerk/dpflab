@@ -65,16 +65,16 @@
     {scrolled ? 'bg-bg/92 backdrop-blur-md border-border shadow-[0_2px_16px_rgba(0,0,0,.3)]' : ''}"
 >
   <!-- Desktop bar -->
-  <div class="container flex items-center gap-5 py-3.5 px-6">
+  <div class="container flex items-center gap-5 py-3.5 px-6 max-xs:py-5 max-xs:px-4">
     <a href="#hero" class="flex flex-col leading-[1.05] shrink-0" on:click={closeMenu}>
-      <span class="font-black text-[22px] tracking-wide after:content-['.'] after:text-accent">{t.brand.name}</span>
+      <span class="font-black text-[22px] tracking-[0.02em] after:content-['.'] after:text-accent">{t.brand.name}</span>
       <span class="text-[9px] tracking-[0.18em] text-fg-muted uppercase mt-0.5">{t.brand.tagline}</span>
     </a>
 
-    <nav class="hidden lg:flex gap-[18px] shrink-0" aria-label="Main">
+    <nav class="hidden lg:flex gap-[18px] shrink-0 max-xl:gap-[14px]" aria-label="Main">
       {#each navItems as it}
         <a href={it.href}
-           class="text-[14px] text-fg-muted hover:text-fg transition-colors relative
+           class="text-[14px] max-xl:text-[12.5px] whitespace-nowrap text-fg-muted hover:text-fg transition-colors relative
                   after:absolute after:left-0 after:-bottom-1.5 after:h-0.5 after:w-0 after:bg-accent after:transition-[width]
                   hover:after:w-full">
           {it.label}
@@ -82,7 +82,7 @@
       {/each}
     </nav>
 
-    <div class="hidden lg:flex items-center gap-3.5 ml-auto shrink-0">
+    <div class="hidden lg:flex items-center gap-3.5 max-xl:gap-2.5 ml-auto shrink-0">
       <!-- Lang dropdown -->
       <div class="relative" bind:this={langRef}>
         <button
@@ -112,9 +112,9 @@
         {/if}
       </div>
 
-      <a href={t.contacts.phoneHref} class="text-[14px] font-semibold whitespace-nowrap">{t.contacts.phone}</a>
+      <a href={t.contacts.phoneHref} class="text-[14px] max-xl:text-[13px] font-semibold whitespace-nowrap">{t.contacts.phone}</a>
       <a href={t.contacts.whatsapp} target="_blank" rel="noreferrer"
-         class="inline-flex items-center gap-2 bg-accent text-accent-fg font-semibold text-[13px] px-3.5 py-2.5 rounded-btn hover:bg-accent-h transition-colors">
+         class="inline-flex items-center gap-2 bg-accent text-accent-fg font-semibold text-[13px] px-3.5 py-[9px] rounded-btn whitespace-nowrap hover:bg-accent-h transition-colors">
         <Icon name="whatsapp" size={16}/> {t.nav.cta}
       </a>
     </div>

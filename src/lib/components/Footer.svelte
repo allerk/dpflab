@@ -5,10 +5,10 @@
 </script>
 
 <footer class="bg-[#0a0a0a] border-t border-border py-7">
-  <div class="container grid grid-cols-[auto_1fr_auto_auto] gap-8 items-start max-sm:grid-cols-1 max-sm:gap-[18px] max-sm:text-center max-sm:justify-items-center">
+  <div class="container grid grid-cols-[auto_1fr_auto_auto] gap-8 items-start max-md:grid-cols-1 max-md:gap-[18px] max-md:text-center max-md:justify-items-center">
 
     <div class="flex flex-col leading-[1.05] self-center">
-      <span class="font-black text-[22px] tracking-wide after:content-['.'] after:text-accent">{t.brand.name}</span>
+      <span class="font-black text-[22px] tracking-[0.02em] after:content-['.'] after:text-accent">{t.brand.name}</span>
       <span class="text-[9px] tracking-[0.18em] text-fg-muted uppercase mt-0.5">{t.brand.tagline}</span>
     </div>
 

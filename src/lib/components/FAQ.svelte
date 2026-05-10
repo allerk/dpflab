@@ -11,7 +11,7 @@
 
 <section id="faq" class="section bg-bg">
   <div class="container max-w-[820px]">
-    <h2 class="text-[clamp(28px,3.5vw,42px)] font-black text-center tracking-wide mb-10">
+    <h2 class="text-[clamp(28px,3.5vw,42px)] font-extrabold text-center tracking-[0.02em] mb-10 max-sm:text-[clamp(22px,6vw,28px)]">
       {t.faq.title} <span class="text-accent">{t.faq.titleAccent}</span>
     </h2>
     <div class="flex flex-col gap-2.5">

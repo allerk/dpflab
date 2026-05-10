@@ -6,13 +6,13 @@
 
 <section id="process" class="section bg-[#0a0a0a]">
   <div class="container">
-    <h2 class="text-[clamp(28px,3.5vw,42px)] font-black text-center tracking-wide mb-10 text-white">
+    <h2 class="text-[clamp(28px,3.5vw,42px)] font-extrabold text-center tracking-[0.02em] mb-10 text-white max-sm:text-[clamp(22px,6vw,28px)]">
       {t.process.title} <span class="text-accent">{t.process.titleAccent}</span>
     </h2>
 
-    <div class="grid grid-cols-5 gap-5 relative pt-2 max-sm:grid-cols-2 max-sm:gap-7 max-[480px]:grid-cols-1">
+    <div class="grid grid-cols-5 gap-5 relative pt-2 max-md:grid-cols-2 max-md:gap-y-7 max-md:gap-x-4 max-xs:grid-cols-1">
       <!-- connector line (desktop only) -->
-      <div class="absolute top-9 left-[10%] right-[10%] h-0.5 max-sm:hidden"
+      <div class="absolute top-9 left-[10%] right-[10%] h-0.5 max-md:hidden"
            aria-hidden="true"
            style="background-image: repeating-linear-gradient(to right, #7ED321 0, #7ED321 6px, transparent 6px, transparent 12px);">
       </div>
