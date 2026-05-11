@@ -1,24 +1,9 @@
 # TODO
 
-## Persist language selection
-The `lang` store in `src/lib/stores.ts` is in-memory only — switching to EE and
-refreshing the page resets it to RU.
+## Preserve scroll position on language switch
 
-Fix: read/write the chosen locale to `localStorage` in the store so the
-selection survives page reloads.
+When the user switches language the page reloads (full navigation via
+`window.location.href`) and the browser scrolls back to the top instead
+of staying at the same scroll position.
 
-```ts
-// src/lib/stores.ts
-import { writable } from 'svelte/store';
-import type { Locale } from './types';
-
-const stored = (typeof localStorage !== 'undefined'
-  ? localStorage.getItem('lang')
-  : null) as Locale | null;
-
-export const lang = writable<Locale>(stored ?? 'ru');
-
-lang.subscribe((value) => {
-  if (typeof localStorage !== 'undefined') localStorage.setItem('lang', value);
-});
-```
+Expected: scroll position is maintained after language change.

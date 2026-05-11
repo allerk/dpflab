@@ -1,17 +1,28 @@
 <script lang="ts">
-  import type { ContentBundle } from '$lib/types';
+  import {
+    pricing_title, pricing_title_accent, pricing_footer,
+    pricing_item_1_title, pricing_item_1_price, pricing_item_1_cta,
+    pricing_item_2_title, pricing_item_2_price, pricing_item_2_cta,
+    pricing_item_3_title, pricing_item_3_price, pricing_item_3_cta
+  } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
-  export let t: ContentBundle;
+
+  const itemIcons = ['filter', 'scope', 'bolt'];
+  $: items = [
+    { icon: itemIcons[0], title: pricing_item_1_title(), price: pricing_item_1_price(), cta: pricing_item_1_cta() },
+    { icon: itemIcons[1], title: pricing_item_2_title(), price: pricing_item_2_price(), cta: pricing_item_2_cta() },
+    { icon: itemIcons[2], title: pricing_item_3_title(), price: pricing_item_3_price(), cta: pricing_item_3_cta() }
+  ];
 </script>
 
 <section id="pricing" class="section bg-bg">
   <div class="container">
     <h2 class="text-[clamp(28px,3.5vw,42px)] font-extrabold text-center tracking-[0.02em] mb-10 max-sm:text-[clamp(22px,6vw,28px)]">
-      {t.pricing.title} <span class="text-accent">{t.pricing.titleAccent}</span>
+      {pricing_title()} <span class="text-accent">{pricing_title_accent()}</span>
     </h2>
 
     <div class="grid grid-cols-3 gap-6 max-md:grid-cols-1">
-      {#each t.pricing.items as it}
+      {#each items as it}
         <div class="bg-bg-card rounded-card shadow-[0_2px_8px_rgba(0,0,0,.3)] hover:shadow-[0_8px_28px_rgba(0,0,0,.4)] hover:-translate-y-[3px] transition-[transform,box-shadow] duration-200 px-7 py-8 flex flex-col items-center text-center">
           <div class="w-14 h-14 rounded-full border border-border text-accent flex items-center justify-center mb-4">
             <Icon name={it.icon} size={32}/>
@@ -26,6 +37,6 @@
       {/each}
     </div>
 
-    <p class="text-center text-[13px] text-fg-muted mt-8">{t.pricing.footer}</p>
+    <p class="text-center text-[13px] text-fg-muted mt-8">{pricing_footer()}</p>
   </div>
 </section>

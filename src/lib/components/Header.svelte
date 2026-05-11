@@ -1,15 +1,17 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { lang } from '$lib/stores';
-  import type { ContentBundle, Locale } from '$lib/types';
+  import { page } from '$app/stores';
+  import { getLocaleForUrl, localizeHref, deLocalizeHref } from '$lib/paraglide/runtime';
+  import {
+    nav_home, nav_process, nav_pricing, nav_benefits, nav_faq, nav_contacts, nav_cta,
+    brand_tagline, contacts_phone, contacts_phone_href, contacts_whatsapp
+  } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
 
-  export let t: ContentBundle;
-
-  const LANGUAGES: { code: Locale; label: string; short: string }[] = [
+  const LANGUAGES = [
     { code: 'ru', label: 'Русский', short: 'RU' },
     { code: 'ee', label: 'Eesti',   short: 'EE' }
-  ];
+  ] as const;
 
   let scrolled = false;
   let menuOpen = false;
@@ -17,15 +19,22 @@
   let langRef: HTMLDivElement;
   let langRefMobile: HTMLDivElement;
 
-  $: current = LANGUAGES.find((l) => l.code === $lang) || LANGUAGES[0];
+  $: currentLocale = getLocaleForUrl($page.url.href);
+  $: current = LANGUAGES.find((l) => l.code === currentLocale) ?? LANGUAGES[0];
   $: navItems = [
-    { href: '#hero',     label: t.nav.home },
-    { href: '#process',  label: t.nav.process },
-    { href: '#pricing',  label: t.nav.pricing },
-    { href: '#benefits', label: t.nav.benefits },
-    { href: '#faq',      label: 'FAQ' },
-    { href: '#contacts', label: t.nav.contacts }
+    { href: '#hero',     label: nav_home() },
+    { href: '#process',  label: nav_process() },
+    { href: '#pricing',  label: nav_pricing() },
+    { href: '#benefits', label: nav_benefits() },
+    { href: '#faq',      label: nav_faq() },
+    { href: '#contacts', label: nav_contacts() }
   ];
+
+  const setLang = (code: 'ru' | 'ee') => {
+    langOpen = false;
+    menuOpen = false;
+    window.location.href = localizeHref(deLocalizeHref($page.url.pathname), { locale: code });
+  };
 
   onMount(() => {
     const onScroll = () => (scrolled = window.scrollY > 12);
@@ -43,8 +52,8 @@
     let wasMobile = window.innerWidth <= 1060;
     const onResize = () => {
       const isMobile = window.innerWidth <= 1060;
-      if (wasMobile && !isMobile)       { wasMenuOpen = menuOpen; menuOpen = false; }
-      else if (!wasMobile && isMobile)  { menuOpen = wasMenuOpen; }
+      if (wasMobile && !isMobile)      { wasMenuOpen = menuOpen; menuOpen = false; }
+      else if (!wasMobile && isMobile) { menuOpen = wasMenuOpen; }
       wasMobile = isMobile;
     };
     window.addEventListener('resize', onResize, { passive: true });
@@ -57,7 +66,6 @@
   });
 
   const closeMenu = () => (menuOpen = false);
-  const setLang = (code: Locale) => { lang.set(code); langOpen = false; };
 </script>
 
 <header
@@ -66,9 +74,9 @@
 >
   <!-- Desktop bar -->
   <div class="container flex items-center gap-5 py-3.5 px-6 max-xs:py-5 max-xs:px-4">
-    <a href="#hero" class="flex flex-col leading-[1.05] shrink-0" on:click={closeMenu}>
-      <span class="font-black text-[22px] tracking-[0.02em] after:content-['.'] after:text-accent">{t.brand.name}</span>
-      <span class="text-[9px] tracking-[0.18em] text-fg-muted uppercase mt-0.5">{t.brand.tagline}</span>
+    <a href="/" class="flex flex-col leading-[1.05] shrink-0" on:click={closeMenu}>
+      <span class="font-black text-[22px] tracking-[0.02em] after:content-['.'] after:text-accent">DPFLAB</span>
+      <span class="text-[9px] tracking-[0.18em] text-fg-muted uppercase mt-0.5">{brand_tagline()}</span>
     </a>
 
     <nav class="hidden lg:flex gap-[18px] shrink-0 max-xl:gap-[14px]" aria-label="Main">
@@ -98,13 +106,13 @@
             {#each LANGUAGES as l}
               <li>
                 <button class="w-full flex items-center gap-2.5 bg-transparent border-0 text-fg px-2.5 py-2 text-[13px] text-left rounded-md transition-colors hover:bg-white/[.06]"
-                        class:text-accent={l.code === $lang}
-                        on:click={() => setLang(l.code)} role="option" aria-selected={l.code === $lang}>
+                        class:text-accent={l.code === currentLocale}
+                        on:click={() => setLang(l.code)} role="option" aria-selected={l.code === currentLocale}>
                   <span class="font-bold text-[11px] tracking-widest bg-white/[.08] px-1.5 py-0.5 rounded min-w-[28px] text-center"
-                        class:bg-accent={l.code === $lang}
-                        class:text-accent-fg={l.code === $lang}>{l.short}</span>
+                        class:bg-accent={l.code === currentLocale}
+                        class:text-accent-fg={l.code === currentLocale}>{l.short}</span>
                   <span class="flex-1">{l.label}</span>
-                  {#if l.code === $lang}<Icon name="check" size={14}/>{/if}
+                  {#if l.code === currentLocale}<Icon name="check" size={14}/>{/if}
                 </button>
               </li>
             {/each}
@@ -112,10 +120,10 @@
         {/if}
       </div>
 
-      <a href={t.contacts.phoneHref} class="text-[14px] max-xl:text-[13px] font-semibold whitespace-nowrap">{t.contacts.phone}</a>
-      <a href={t.contacts.whatsapp} target="_blank" rel="noreferrer"
+      <a href={contacts_phone_href()} class="text-[14px] max-xl:text-[13px] font-semibold whitespace-nowrap">{contacts_phone()}</a>
+      <a href={contacts_whatsapp()} target="_blank" rel="noreferrer"
          class="inline-flex items-center gap-2 bg-accent text-accent-fg font-semibold text-[13px] px-3.5 py-[9px] rounded-btn whitespace-nowrap hover:bg-accent-h transition-colors">
-        <Icon name="whatsapp" size={16}/> {t.nav.cta}
+        <Icon name="whatsapp" size={16}/> {nav_cta()}
       </a>
     </div>
 
@@ -128,6 +136,7 @@
   <!-- Mobile drawer -->
   {#if menuOpen}
     <div class="lg:hidden flex flex-col bg-bg-elev border-t border-border px-6 pt-4 pb-6 gap-4">
+      <!-- svelte-ignore a11y_no_noninteractive_element_interactions a11y_click_events_have_key_events -->
       <nav class="flex flex-col" on:click={closeMenu}>
         {#each navItems as it}
           <a href={it.href} class="py-3 border-b border-border text-[16px]">{it.label}</a>
@@ -149,24 +158,24 @@
                 {#each LANGUAGES as l}
                   <li>
                     <button class="w-full flex items-center gap-2.5 bg-transparent border-0 text-fg px-2.5 py-2 text-[13px] text-left rounded-md transition-colors hover:bg-white/[.06]"
-                            class:text-accent={l.code === $lang}
-                            on:click={() => setLang(l.code)} role="option" aria-selected={l.code === $lang}>
+                            class:text-accent={l.code === currentLocale}
+                            on:click={() => setLang(l.code)} role="option" aria-selected={l.code === currentLocale}>
                       <span class="font-bold text-[11px] tracking-widest bg-white/[.08] px-1.5 py-0.5 rounded min-w-[28px] text-center"
-                            class:bg-accent={l.code === $lang}
-                            class:text-accent-fg={l.code === $lang}>{l.short}</span>
+                            class:bg-accent={l.code === currentLocale}
+                            class:text-accent-fg={l.code === currentLocale}>{l.short}</span>
                       <span class="flex-1">{l.label}</span>
-                      {#if l.code === $lang}<Icon name="check" size={14}/>{/if}
+                      {#if l.code === currentLocale}<Icon name="check" size={14}/>{/if}
                     </button>
                   </li>
                 {/each}
               </ul>
             {/if}
           </div>
-          <a href={t.contacts.phoneHref} class="text-[14px] font-semibold">{t.contacts.phone}</a>
+          <a href={contacts_phone_href()} class="text-[14px] font-semibold">{contacts_phone()}</a>
         </div>
-        <a href={t.contacts.whatsapp} target="_blank" rel="noreferrer"
+        <a href={contacts_whatsapp()} target="_blank" rel="noreferrer"
            class="flex items-center justify-center gap-2 w-full bg-accent text-accent-fg font-semibold text-[15px] px-6 py-3.5 rounded-btn hover:bg-accent-h transition-colors">
-          <Icon name="whatsapp" size={16}/> {t.nav.cta}
+          <Icon name="whatsapp" size={16}/> {nav_cta()}
         </a>
       </div>
     </div>

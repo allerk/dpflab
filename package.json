@@ -23,6 +23,7 @@
     "cookie": "^0.7.0"
   },
   "dependencies": {
+    "@inlang/paraglide-js": "^2.18.0",
     "@tailwindcss/vite": "^4.3.0",
     "tailwindcss": "^4.3.0"
   }

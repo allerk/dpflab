@@ -1,7 +1,12 @@
 <script lang="ts">
-  import type { ContentBundle } from '$lib/types';
+  import {
+    contact_title, contact_subtitle, contact_contacts_title,
+    contact_field_name, contact_field_phone, contact_field_comment, contact_field_submit,
+    contact_success, contact_valid_name, contact_valid_phone,
+    contacts_phone_href, contacts_phone, contacts_email, contacts_address,
+    contacts_hours_week, contacts_hours_sat
+  } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
-  export let t: ContentBundle;
 
   let form = { name: '', phone: '', comment: '' };
   let errors: { name?: string; phone?: string } = {};
@@ -9,8 +14,8 @@
 
   const validate = () => {
     const e: typeof errors = {};
-    if (!form.name.trim()) e.name = t.contact.validation.name;
-    if (!/^[\+\d\s\-()]{6,}$/.test(form.phone.trim())) e.phone = t.contact.validation.phone;
+    if (!form.name.trim()) e.name = contact_valid_name();
+    if (!/^[\+\d\s\-()]{6,}$/.test(form.phone.trim())) e.phone = contact_valid_phone();
     return e;
   };
 
@@ -28,55 +33,55 @@
   <div class="container grid grid-cols-[1.05fr_1fr] gap-12 items-start max-md:grid-cols-1 max-md:gap-7">
 
     <div>
-      <h2 class="text-[clamp(24px,2.6vw,32px)] font-extrabold tracking-[0.02em] mb-1.5">{t.contact.title}</h2>
-      <p class="text-[14px] text-fg-muted mb-5">{t.contact.subtitle}</p>
+      <h2 class="text-[clamp(24px,2.6vw,32px)] font-extrabold tracking-[0.02em] mb-1.5">{contact_title()}</h2>
+      <p class="text-[14px] text-fg-muted mb-5">{contact_subtitle()}</p>
 
       {#if submitted}
         <div class="flex gap-3 items-center bg-accent/10 border border-accent rounded-card p-5 text-accent max-w-[460px]">
           <Icon name="check" size={28}/>
-          <p class="m-0">{t.contact.success}</p>
+          <p class="m-0">{contact_success()}</p>
         </div>
       {:else}
         <form class="flex flex-col gap-3 max-w-[460px] max-md:max-w-none" on:submit={onSubmit} novalidate>
           <div class="flex flex-col gap-1">
-            <input type="text" placeholder={t.contact.fields.name} bind:value={form.name}
+            <input type="text" placeholder={contact_field_name()} bind:value={form.name}
                    class="{inputBase} {errors.name ? inputError : ''}"/>
             {#if errors.name}<span class="text-[12px] text-danger">{errors.name}</span>{/if}
           </div>
           <div class="flex flex-col gap-1">
-            <input type="tel" placeholder={t.contact.fields.phone} bind:value={form.phone}
+            <input type="tel" placeholder={contact_field_phone()} bind:value={form.phone}
                    class="{inputBase} {errors.phone ? inputError : ''}"/>
             {#if errors.phone}<span class="text-[12px] text-danger">{errors.phone}</span>{/if}
           </div>
           <div class="flex flex-col gap-1">
-            <textarea placeholder={t.contact.fields.comment} bind:value={form.comment} rows="3"
+            <textarea placeholder={contact_field_comment()} bind:value={form.comment} rows="3"
                       class={inputBase}></textarea>
           </div>
           <button type="submit"
                   class="self-start inline-flex items-center gap-2 bg-accent text-accent-fg font-semibold text-[15px] px-6 py-3.5 rounded-btn whitespace-nowrap hover:bg-accent-h hover:-translate-y-px transition-[background,transform]">
-            {t.contact.fields.submit}
+            {contact_field_submit()}
           </button>
         </form>
       {/if}
     </div>
 
     <div class="bg-bg-card rounded-card shadow-[0_2px_8px_rgba(0,0,0,.3)] p-7 flex flex-col gap-[18px]">
-      <h3 class="text-[18px] font-extrabold tracking-[0.04em] m-0">{t.contact.contactsTitle}</h3>
+      <h3 class="text-[18px] font-extrabold tracking-[0.04em] m-0">{contact_contacts_title()}</h3>
       <ul class="list-none p-0 m-0 flex flex-col gap-3">
         <li class="flex gap-3 items-center text-[14px]">
-          <Icon name="phone" size={18} /><a href={t.contacts.phoneHref} class="hover:text-accent transition-colors">{t.contacts.phone}</a>
+          <Icon name="phone" size={18}/><a href={contacts_phone_href()} class="hover:text-accent transition-colors">{contacts_phone()}</a>
         </li>
         <li class="flex gap-3 items-center text-[14px]">
-          <Icon name="mail" size={18}/><a href="mailto:{t.contacts.email}" class="hover:text-accent transition-colors">{t.contacts.email}</a>
+          <Icon name="mail" size={18}/><a href="mailto:{contacts_email()}" class="hover:text-accent transition-colors">{contacts_email()}</a>
         </li>
         <li class="flex gap-3 items-center text-[14px]">
-          <Icon name="map" size={18}/><span>{t.contacts.address}</span>
+          <Icon name="map" size={18}/><span>{contacts_address()}</span>
         </li>
         <li class="flex gap-3 items-start text-[13px] font-mono">
           <span class="w-[18px] shrink-0 text-accent"><Icon name="clock" size={18}/></span>
           <div>
-            <div>{t.contacts.hoursWeek}</div>
-            <div>{t.contacts.hoursSat}</div>
+            <div>{contacts_hours_week()}</div>
+            <div>{contacts_hours_sat()}</div>
           </div>
         </li>
       </ul>

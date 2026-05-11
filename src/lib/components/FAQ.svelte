@@ -1,7 +1,18 @@
 <script lang="ts">
-  import type { ContentBundle } from '$lib/types';
+  import {
+    faq_title, faq_title_accent,
+    faq_1_q, faq_1_a, faq_2_q, faq_2_a, faq_3_q, faq_3_a, faq_4_q, faq_4_a, faq_5_q, faq_5_a
+  } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
-  export let t: ContentBundle;
+
+  $: items = [
+    { q: faq_1_q(), a: faq_1_a() },
+    { q: faq_2_q(), a: faq_2_a() },
+    { q: faq_3_q(), a: faq_3_a() },
+    { q: faq_4_q(), a: faq_4_a() },
+    { q: faq_5_q(), a: faq_5_a() }
+  ];
+
   let openSet = new Set<number>([0]);
   const toggle = (i: number) => {
     openSet.has(i) ? openSet.delete(i) : openSet.add(i);
@@ -12,10 +23,10 @@
 <section id="faq" class="section bg-bg">
   <div class="container max-w-[820px]">
     <h2 class="text-[clamp(28px,3.5vw,42px)] font-extrabold text-center tracking-[0.02em] mb-10 max-sm:text-[clamp(22px,6vw,28px)]">
-      {t.faq.title} <span class="text-accent">{t.faq.titleAccent}</span>
+      {faq_title()} <span class="text-accent">{faq_title_accent()}</span>
     </h2>
     <div class="flex flex-col gap-2.5">
-      {#each t.faq.items as it, i}
+      {#each items as it, i}
         {@const isOpen = openSet.has(i)}
         <div class="faq-item bg-bg-card rounded-card shadow-[0_2px_8px_rgba(0,0,0,.3)] overflow-hidden transition-[border-color] border border-transparent"
              class:border-accent={isOpen} class:open={isOpen}>
