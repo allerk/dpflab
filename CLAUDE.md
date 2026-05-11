@@ -22,15 +22,37 @@ Node version is pinned in `.nvmrc` (24.15.0).
 ## Architecture
 
 Single-page SvelteKit landing site with `@sveltejs/adapter-node`. All page sections are assembled in `src/routes/+page.svelte` as a flat list of section components. There is no routing beyond the single page.
- All page sections are assembled in `src/routes/+page.svelte` as a flat list of section components. There is no routing beyond the single page.
 
-### Content & i18n
+### i18n: Paraglide JS v2
 
-All copy for both locales lives in **`src/lib/content.ts`** as two typed `ContentBundle` objects (`ru`, `ee`), exported as `CONTENT: Record<Locale, ContentBundle>`.
+Locale is URL-based: `/` → Russian (default), `/ee` → Estonian. Switching language triggers a full page reload (`window.location.href`) so the server sets the locale correctly via middleware.
 
-The active locale is a Svelte writable store (`src/lib/stores.ts` → `lang`). `+page.svelte` derives `t = CONTENT[$lang]` and passes it down as a prop to every section component. No locale is persisted across page reloads.
+**Key files:**
+- `messages/ru.json`, `messages/ee.json` — all translatable strings as flat JSON. Edit these to change copy.
+- `src/lib/paraglide/` — **generated at build time, gitignored.** Never edit manually.
+- `src/hooks.server.ts` — `paraglideMiddleware` reads locale from URL, injects `%lang%`/`%dir%` into `app.html`.
+- `src/hooks.ts` — `deLocalizeUrl` maps `/ee/` → `/` so SvelteKit routes it to `+page.svelte`.
 
-To add a locale: add it to the `Locale` union in `types.ts`, create a new `ContentBundle` in `content.ts`, and add an entry to the `LANGUAGES` array in `Header.svelte`.
+**Using messages in components** — named imports only, no namespace import:
+```ts
+import { nav_home, hero_subtitle } from '$lib/paraglide/messages';
+// then call as nav_home(), hero_subtitle() in template or $: blocks
+```
+
+**Detecting current locale reactively** (e.g. in Header):
+```ts
+import { page } from '$app/stores';
+import { getLocaleForUrl } from '$lib/paraglide/runtime';
+$: currentLocale = getLocaleForUrl($page.url.href); // reactive to navigation
+```
+
+**Language switching** — use `localizeHref` + `deLocalizeHref` from `$lib/paraglide/runtime`, then `window.location.href` for a full reload:
+```ts
+import { localizeHref, deLocalizeHref } from '$lib/paraglide/runtime';
+window.location.href = localizeHref(deLocalizeHref($page.url.pathname), { locale: 'ee' });
+```
+
+**To add a locale:** add the tag to `project.inlang/settings.json` → `languageTags`, create `messages/{tag}.json`, add an entry to `LANGUAGES` in `Header.svelte`.
 
 ### Styling: Tailwind CSS v4
 
@@ -68,4 +90,4 @@ So `max-md:grid-cols-1` triggers below 900px, `lg:hidden` hides ≥1060px, etc. 
 
 ### Placeholder content
 
-Image slots are `<div class="placeholder">` elements (the `.placeholder` class lives in `app.css` `@layer components`). Replace with `<img src="...">` pointing to files in `static/images/`. The contact form `onSubmit` currently fakes success — it needs a real `fetch` or SvelteKit form action wired up.
+Image slots are `<div class="placeholder">` elements (the `.placeholder` class lives in `app.css` `@layer components`). Replace with `<img src="...">` pointing to files in `static/images/`. The contact form `onSubmit` currently fakes success — it needs a SvelteKit form action wired up (see TODO.md).
