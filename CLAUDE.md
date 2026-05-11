@@ -6,24 +6,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm run dev        # dev server (hot reload)
-npm run build      # production build → .svelte-kit/cloudflare/
+npm run build      # production build → build/
 npm run check      # TypeScript + Svelte type-check (no separate lint step)
 ```
 
-### Deploying to Cloudflare Pages
-
-There is no CI/CD git connection — every deploy is manual:
+### Running in production (zone.ee / any Node host)
 
 ```bash
 npm run build
-npx wrangler pages deploy .svelte-kit/cloudflare --project-name dpflab --commit-dirty=true
+node build/index.js   # starts the HTTP server (PORT env var, default 3000)
 ```
 
-Config lives in `wrangler.jsonc`. Node version is pinned in `.nvmrc` (24.15.0).
+Node version is pinned in `.nvmrc` (24.15.0).
 
 ## Architecture
 
-Single-page SvelteKit landing site with `@sveltejs/adapter-cloudflare`. All page sections are assembled in `src/routes/+page.svelte` as a flat list of section components. There is no routing beyond the single page.
+Single-page SvelteKit landing site with `@sveltejs/adapter-node`. All page sections are assembled in `src/routes/+page.svelte` as a flat list of section components. There is no routing beyond the single page.
+ All page sections are assembled in `src/routes/+page.svelte` as a flat list of section components. There is no routing beyond the single page.
 
 ### Content & i18n
 
