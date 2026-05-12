@@ -8,7 +8,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm run dev        # dev server (hot reload)
 npm run build      # production build → build/
 npm run check      # TypeScript + Svelte type-check (no separate lint step)
+npm test           # run repository unit tests (vitest)
 ```
+
+### Database
+
+```bash
+npm run db:generate   # generate a new migration file after schema changes
+npm run db:migrate    # apply pending migrations to data/dpflab.db
+npm run db:seed       # (re)seed all content tables from seed.ts — idempotent
+```
+
+Migrations run automatically on server startup via `src/lib/db/index.ts` (top-level `await migrate()`). The `drizzle/` folder must be present in `process.cwd()` at runtime.
 
 ### Running in production (zone.ee / any Node host)
 
@@ -17,23 +28,33 @@ npm run build
 node build/index.js   # starts the HTTP server (PORT env var, default 3000)
 ```
 
+Deploy alongside `build/`: the `drizzle/` folder (migrations) and `data/` directory (SQLite file). Set `DATABASE_URL=file:/absolute/path/to/dpflab.db` if the working directory differs from the project root.
+
 Node version is pinned in `.nvmrc` (24.15.0).
 
 ## Architecture
 
 Single-page SvelteKit landing site with `@sveltejs/adapter-node`. All page sections are assembled in `src/routes/+page.svelte` as a flat list of section components. There is no routing beyond the single page.
 
-### i18n: Paraglide JS v2
+### i18n: Paraglide JS v2 + SQLite (hybrid)
 
-Locale is URL-based: `/` → Russian (default), `/ee` → Estonian. Switching language triggers a full page reload (`window.location.href`) so the server sets the locale correctly via middleware.
+Two layers — see **`wiki/translation-strategy.md`** for the full design.
+
+- **Paraglide** owns static UI chrome: nav labels, button text, headings, form placeholders, validation messages.
+- **SQLite** owns editable business content: FAQ, reviews, pricing, certificates, contact details.
+
+Locale is URL-based: `/` → Russian (default), `/ee` → Estonian. Switching language triggers a full page reload (`window.location.href`) so the server sets the locale correctly via middleware. The active locale is available in server load functions as `event.locals.locale`.
 
 **Key files:**
-- `messages/ru.json`, `messages/ee.json` — all translatable strings as flat JSON. Edit these to change copy.
+- `messages/ru.json`, `messages/ee.json` — Paraglide strings as flat JSON. Edit these to change static copy.
 - `src/lib/paraglide/` — **generated at build time, gitignored.** Never edit manually.
-- `src/hooks.server.ts` — `paraglideMiddleware` reads locale from URL, injects `%lang%`/`%dir%` into `app.html`.
+- `src/hooks.server.ts` — `paraglideMiddleware` reads locale from URL, sets `event.locals.locale`, injects `%lang%`/`%dir%` into `app.html`.
 - `src/hooks.ts` — `deLocalizeUrl` maps `/ee/` → `/` so SvelteKit routes it to `+page.svelte`.
+- `src/lib/db/schema.ts` — Drizzle table definitions (single source of truth for DB shape).
+- `src/lib/db/repositories/` — one file per table, each function accepts `db` as a parameter for testability.
+- `src/routes/+page.server.ts` — load function queries all DB tables in parallel by locale; `actions.default` handles contact form submission.
 
-**Using messages in components** — named imports only, no namespace import:
+**Using Paraglide messages in components** — named imports only, no namespace import:
 ```ts
 import { nav_home, hero_subtitle } from '$lib/paraglide/messages';
 // then call as nav_home(), hero_subtitle() in template or $: blocks
@@ -52,7 +73,7 @@ import { localizeHref, deLocalizeHref } from '$lib/paraglide/runtime';
 window.location.href = localizeHref(deLocalizeHref($page.url.pathname), { locale: 'ee' });
 ```
 
-**To add a locale:** add the tag to `project.inlang/settings.json` → `languageTags`, create `messages/{tag}.json`, add an entry to `LANGUAGES` in `Header.svelte`.
+**To add a locale:** add the tag to `project.inlang/settings.json` → `languageTags`, create `messages/{tag}.json`, add an entry to `LANGUAGES` in `Header.svelte`, and insert rows for the new locale in every DB content table.
 
 ### Styling: Tailwind CSS v4
 
@@ -90,4 +111,10 @@ So `max-md:grid-cols-1` triggers below 900px, `lg:hidden` hides ≥1060px, etc. 
 
 ### Placeholder content
 
-Image slots are `<div class="placeholder">` elements (the `.placeholder` class lives in `app.css` `@layer components`). Replace with `<img src="...">` pointing to files in `static/images/`. The contact form `onSubmit` currently fakes success — it needs a SvelteKit form action wired up (see TODO.md).
+Image slots are `<div class="placeholder">` elements (the `.placeholder` class lives in `app.css` `@layer components`). Replace with `<img src="...">` pointing to files in `static/images/`.
+
+## Wiki
+
+Project decision docs live in `wiki/`:
+
+- [`wiki/translation-strategy.md`](wiki/translation-strategy.md) — two-layer i18n design (Paraglide vs SQLite), data model rationale, request flow diagram, how to add a locale.
