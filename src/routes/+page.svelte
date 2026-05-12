@@ -11,6 +11,10 @@
   import Certificates from '$lib/components/Certificates.svelte';
   import ContactForm from '$lib/components/ContactForm.svelte';
   import Footer from '$lib/components/Footer.svelte';
+  import type { PageData, ActionData } from './$types';
+
+  export let data: PageData;
+  export let form: ActionData;
 </script>
 
 <svelte:head>
@@ -22,12 +26,12 @@
   <Hero />
   <WhyImportant />
   <Process />
-  <Pricing />
+  <Pricing items={data.pricingItems} />
   <Benefits />
   <BeforeAfter />
-  <Reviews />
-  <FAQ />
-  <Certificates />
-  <ContactForm />
+  <Reviews items={data.reviewItems} />
+  <FAQ items={data.faqItems} />
+  <Certificates items={data.certificateItems} />
+  <ContactForm contactsRow={data.contactsRow} {form} />
 </main>
 <Footer />

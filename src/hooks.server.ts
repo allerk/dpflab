@@ -5,6 +5,7 @@ import { getTextDirection } from '$lib/paraglide/runtime';
 const paraglideHandle: Handle = ({ event, resolve }) =>
   paraglideMiddleware(event.request, ({ request: localizedRequest, locale }) => {
     event.request = localizedRequest;
+    event.locals.locale = locale;
     return resolve(event, {
       transformPageChunk: ({ html }) =>
         html.replace('%lang%', locale).replace('%dir%', getTextDirection(locale))

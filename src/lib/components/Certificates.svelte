@@ -1,18 +1,11 @@
 <script lang="ts">
-  import {
-    cert_title, cert_title_accent,
-    cert_1_title, cert_1_text, cert_2_title, cert_2_text,
-    cert_3_title, cert_3_text, cert_4_title, cert_4_text
-  } from '$lib/paraglide/messages';
+  import { cert_title, cert_title_accent } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
+  import type { CertificateItem } from '$lib/db/repositories/certificates';
+
+  export let items: CertificateItem[] = [];
 
   const icons = ['award', 'shield', 'check', 'report'];
-  $: items = [
-    { title: cert_1_title(), text: cert_1_text() },
-    { title: cert_2_title(), text: cert_2_text() },
-    { title: cert_3_title(), text: cert_3_text() },
-    { title: cert_4_title(), text: cert_4_text() }
-  ];
 </script>
 
 <section id="certificates" class="section bg-[#0a0a0a]">

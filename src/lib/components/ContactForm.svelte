@@ -2,27 +2,27 @@
   import {
     contact_title, contact_subtitle, contact_contacts_title,
     contact_field_name, contact_field_phone, contact_field_comment, contact_field_submit,
-    contact_success, contact_valid_name, contact_valid_phone,
-    contacts_phone_href, contacts_phone, contacts_email, contacts_address,
-    contacts_hours_week, contacts_hours_sat
+    contact_success, contact_valid_name, contact_valid_phone
   } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
+  import { enhance } from '$app/forms';
+  import type { ContactsRow } from '$lib/db/repositories/contacts';
 
-  let form = { name: '', phone: '', comment: '' };
-  let errors: { name?: string; phone?: string } = {};
+  export let contactsRow: ContactsRow | null = null;
+  export let form: { errors?: Record<string, string>; name?: string; phone?: string; comment?: string; success?: boolean } | null = null;
+
+  let clientErrors: Record<string, string> = {};
   let submitted = false;
 
-  const validate = () => {
-    const e: typeof errors = {};
-    if (!form.name.trim()) e.name = contact_valid_name();
-    if (!/^[\+\d\s\-()]{6,}$/.test(form.phone.trim())) e.phone = contact_valid_phone();
-    return e;
-  };
+  $: if (form?.success) submitted = true;
+  $: nameError = clientErrors.name ?? (form?.errors?.name ? contact_valid_name() : '');
+  $: phoneError = clientErrors.phone ?? (form?.errors?.phone ? contact_valid_phone() : '');
 
-  const onSubmit = (ev: Event) => {
-    ev.preventDefault();
-    errors = validate();
-    if (Object.keys(errors).length === 0) submitted = true;
+  const validate = (name: string, phone: string) => {
+    const e: Record<string, string> = {};
+    if (!name.trim()) e.name = contact_valid_name();
+    if (!/^[\+\d\s\-()]{6,}$/.test(phone.trim())) e.phone = contact_valid_phone();
+    return e;
   };
 
   const inputBase = 'bg-bg-card border border-border rounded-input text-fg px-3.5 py-3 text-[14px] outline-none transition-[border-color] focus:border-accent w-full resize-y';
@@ -42,20 +42,32 @@
           <p class="m-0">{contact_success()}</p>
         </div>
       {:else}
-        <form class="flex flex-col gap-3 max-w-[460px] max-md:max-w-none" on:submit={onSubmit} novalidate>
+        <form
+          class="flex flex-col gap-3 max-w-[460px] max-md:max-w-none"
+          method="POST"
+          novalidate
+          use:enhance={({ formData, cancel }) => {
+            const name = formData.get('name') as string ?? '';
+            const phone = formData.get('phone') as string ?? '';
+            clientErrors = validate(name, phone);
+            if (Object.keys(clientErrors).length > 0) cancel();
+          }}
+        >
           <div class="flex flex-col gap-1">
-            <input type="text" placeholder={contact_field_name()} bind:value={form.name}
-                   class="{inputBase} {errors.name ? inputError : ''}"/>
-            {#if errors.name}<span class="text-[12px] text-danger">{errors.name}</span>{/if}
+            <input type="text" name="name" placeholder={contact_field_name()}
+                   value={form?.name ?? ''}
+                   class="{inputBase} {nameError ? inputError : ''}"/>
+            {#if nameError}<span class="text-[12px] text-danger">{nameError}</span>{/if}
           </div>
           <div class="flex flex-col gap-1">
-            <input type="tel" placeholder={contact_field_phone()} bind:value={form.phone}
-                   class="{inputBase} {errors.phone ? inputError : ''}"/>
-            {#if errors.phone}<span class="text-[12px] text-danger">{errors.phone}</span>{/if}
+            <input type="tel" name="phone" placeholder={contact_field_phone()}
+                   value={form?.phone ?? ''}
+                   class="{inputBase} {phoneError ? inputError : ''}"/>
+            {#if phoneError}<span class="text-[12px] text-danger">{phoneError}</span>{/if}
           </div>
           <div class="flex flex-col gap-1">
-            <textarea placeholder={contact_field_comment()} bind:value={form.comment} rows="3"
-                      class={inputBase}></textarea>
+            <textarea name="comment" placeholder={contact_field_comment()} rows="3"
+                      class={inputBase}>{form?.comment ?? ''}</textarea>
           </div>
           <button type="submit"
                   class="self-start inline-flex items-center gap-2 bg-accent text-accent-fg font-semibold text-[15px] px-6 py-3.5 rounded-btn whitespace-nowrap hover:bg-accent-h hover:-translate-y-px transition-[background,transform]">
@@ -67,24 +79,26 @@
 
     <div class="bg-bg-card rounded-card shadow-[0_2px_8px_rgba(0,0,0,.3)] p-7 flex flex-col gap-[18px]">
       <h3 class="text-[18px] font-extrabold tracking-[0.04em] m-0">{contact_contacts_title()}</h3>
-      <ul class="list-none p-0 m-0 flex flex-col gap-3">
-        <li class="flex gap-3 items-center text-[14px]">
-          <Icon name="phone" size={18}/><a href={contacts_phone_href()} class="hover:text-accent transition-colors">{contacts_phone()}</a>
-        </li>
-        <li class="flex gap-3 items-center text-[14px]">
-          <Icon name="mail" size={18}/><a href="mailto:{contacts_email()}" class="hover:text-accent transition-colors">{contacts_email()}</a>
-        </li>
-        <li class="flex gap-3 items-center text-[14px]">
-          <Icon name="map" size={18}/><span>{contacts_address()}</span>
-        </li>
-        <li class="flex gap-3 items-start text-[13px] font-mono">
-          <span class="w-[18px] shrink-0 text-accent"><Icon name="clock" size={18}/></span>
-          <div>
-            <div>{contacts_hours_week()}</div>
-            <div>{contacts_hours_sat()}</div>
-          </div>
-        </li>
-      </ul>
+      {#if contactsRow}
+        <ul class="list-none p-0 m-0 flex flex-col gap-3">
+          <li class="flex gap-3 items-center text-[14px]">
+            <Icon name="phone" size={18}/><a href={contactsRow.phoneHref} class="hover:text-accent transition-colors">{contactsRow.phone}</a>
+          </li>
+          <li class="flex gap-3 items-center text-[14px]">
+            <Icon name="mail" size={18}/><a href="mailto:{contactsRow.email}" class="hover:text-accent transition-colors">{contactsRow.email}</a>
+          </li>
+          <li class="flex gap-3 items-center text-[14px]">
+            <Icon name="map" size={18}/><span>{contactsRow.address}</span>
+          </li>
+          <li class="flex gap-3 items-start text-[13px] font-mono">
+            <span class="w-[18px] shrink-0 text-accent"><Icon name="clock" size={18}/></span>
+            <div>
+              <div>{contactsRow.hoursWeek}</div>
+              <div>{contactsRow.hoursSat}</div>
+            </div>
+          </li>
+        </ul>
+      {/if}
       <div class="placeholder aspect-[16/8] mt-1.5">[ DPFLAB · фото мастерской / здания ]</div>
     </div>
   </div>

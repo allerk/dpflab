@@ -1,17 +1,9 @@
 <script lang="ts">
-  import {
-    faq_title, faq_title_accent,
-    faq_1_q, faq_1_a, faq_2_q, faq_2_a, faq_3_q, faq_3_a, faq_4_q, faq_4_a, faq_5_q, faq_5_a
-  } from '$lib/paraglide/messages';
+  import { faq_title, faq_title_accent } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
+  import type { FaqItem } from '$lib/db/repositories/faq';
 
-  $: items = [
-    { q: faq_1_q(), a: faq_1_a() },
-    { q: faq_2_q(), a: faq_2_a() },
-    { q: faq_3_q(), a: faq_3_a() },
-    { q: faq_4_q(), a: faq_4_a() },
-    { q: faq_5_q(), a: faq_5_a() }
-  ];
+  export let items: FaqItem[] = [];
 
   let openSet = new Set<number>([0]);
   const toggle = (i: number) => {
@@ -32,11 +24,11 @@
              class:border-accent={isOpen} class:open={isOpen}>
           <button class="w-full bg-transparent border-0 text-fg flex items-center justify-between gap-4 px-[22px] py-[18px] text-[15px] font-semibold text-left"
                   on:click={() => toggle(i)} aria-expanded={isOpen}>
-            <span>{it.q}</span>
+            <span>{it.question}</span>
             <Icon name={isOpen ? 'minus' : 'plus'} size={20}/>
           </button>
           <div class="faq-a-wrap">
-            <p class="px-[22px] pb-[18px] m-0 text-fg-muted text-[14px] leading-relaxed">{it.a}</p>
+            <p class="px-[22px] pb-[18px] m-0 text-fg-muted text-[14px] leading-relaxed">{it.answer}</p>
           </div>
         </div>
       {/each}

@@ -1,18 +1,9 @@
 <script lang="ts">
-  import {
-    pricing_title, pricing_title_accent, pricing_footer,
-    pricing_item_1_title, pricing_item_1_price, pricing_item_1_cta,
-    pricing_item_2_title, pricing_item_2_price, pricing_item_2_cta,
-    pricing_item_3_title, pricing_item_3_price, pricing_item_3_cta
-  } from '$lib/paraglide/messages';
+  import { pricing_title, pricing_title_accent, pricing_footer } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
+  import type { PricingItem } from '$lib/db/repositories/pricing';
 
-  const itemIcons = ['filter', 'scope', 'bolt'];
-  $: items = [
-    { icon: itemIcons[0], title: pricing_item_1_title(), price: pricing_item_1_price(), cta: pricing_item_1_cta() },
-    { icon: itemIcons[1], title: pricing_item_2_title(), price: pricing_item_2_price(), cta: pricing_item_2_cta() },
-    { icon: itemIcons[2], title: pricing_item_3_title(), price: pricing_item_3_price(), cta: pricing_item_3_cta() }
-  ];
+  export let items: PricingItem[] = [];
 </script>
 
 <section id="pricing" class="section bg-bg">
