@@ -4,6 +4,7 @@
 /src/lib/paraglide
 .idea
 .wrangler
+.playwright-mcp
 
 node_modules
 
