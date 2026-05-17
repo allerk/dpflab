@@ -1,6 +1,6 @@
 export type LangStr = Record<string, string>;
 
-const FALLBACK_LOCALE = 'ee';
+const FALLBACK_LOCALE = 'et';
 
 export function makeLangStr(values: LangStr): string {
   return JSON.stringify(values);

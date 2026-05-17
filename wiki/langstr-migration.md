@@ -15,7 +15,7 @@ Current model requires inserting N rows per content item (one per locale). Addin
 A `LangStr` is a JSON string stored in a SQLite `TEXT` column:
 
 ```json
-{ "ee": "Kui kaua võtab DPF puhastus aega?", "ru": "Сколько времени занимает очистка DPF?" }
+{ "et": "Kui kaua võtab DPF puhastus aega?", "ru": "Сколько времени занимает очистка DPF?" }
 ```
 
 **Helper module** — `src/lib/db/langstr.ts`:
@@ -26,11 +26,11 @@ export type LangStr = Record<string, string>;
 // Serialize for DB insertion
 export function makeLangStr(values: LangStr): string
 
-// Deserialize + extract for a locale. Falls back to 'ee', then first available key.
+// Deserialize + extract for a locale. Falls back to 'et', then first available key.
 export function getLang(raw: string, locale: string): string
 ```
 
-Fallback chain: `locale` → `'ee'` → first key in the object. This ensures the site never shows an empty string even if a new locale key is missing from some rows.
+Fallback chain: `locale` → `'et'` → first key in the object. This ensures the site never shows an empty string even if a new locale key is missing from some rows.
 
 ---
 
@@ -133,8 +133,8 @@ One row per item, both locales embedded:
 ```ts
 await db.insert(faq).values([
   {
-    question: makeLangStr({ ee: 'Kui kaua võtab...', ru: 'Сколько времени...' }),
-    answer:   makeLangStr({ ee: 'Standardne puhastus...', ru: 'Стандартная очистка...' }),
+    question: makeLangStr({ et: 'Kui kaua võtab...', ru: 'Сколько времени...' }),
+    answer:   makeLangStr({ et: 'Standardne puhastus...', ru: 'Стандартная очистка...' }),
     sortOrder: 1
   },
   // ...
@@ -163,8 +163,8 @@ Seed is idempotent — truncates content tables before inserting.
 Tests updated before repositories. Key new cases:
 
 - **correct locale returned** — insert row with `makeLangStr`, assert `getLang` returns the right string
-- **fallback to `ee`** when requested locale key is missing from the JSON
-- **fallback to first key** when `ee` is also missing
+- **fallback to `et`** when requested locale key is missing from the JSON
+- **fallback to first key** when `et` is also missing
 - **`getContacts` with no locale param** — returns the single row
 - **LangStr unit tests** — `getLang` and `makeLangStr` tested independently in `tests/db/langstr.test.ts`
 

@@ -43,13 +43,13 @@ Two layers — see **`wiki/translation-strategy.md`** for the full design.
 - **Paraglide** owns static UI chrome: nav labels, button text, headings, form placeholders, validation messages.
 - **SQLite** owns editable business content: FAQ, reviews, pricing, certificates, contact details.
 
-Locale is URL-based: `/` → Russian (default), `/ee` → Estonian. Switching language triggers a full page reload (`window.location.href`) so the server sets the locale correctly via middleware. The active locale is available in server load functions as `event.locals.locale`.
+Locale is URL-based: `/` → Russian (default), `/et` → Estonian. Switching language triggers a full page reload (`window.location.href`) so the server sets the locale correctly via middleware. The active locale is available in server load functions as `event.locals.locale`.
 
 **Key files:**
-- `messages/ru.json`, `messages/ee.json` — Paraglide strings as flat JSON. Edit these to change static copy.
+- `messages/ru.json`, `messages/et.json` — Paraglide strings as flat JSON. Edit these to change static copy.
 - `src/lib/paraglide/` — **generated at build time, gitignored.** Never edit manually.
 - `src/hooks.server.ts` — `paraglideMiddleware` reads locale from URL, sets `event.locals.locale`, injects `%lang%`/`%dir%` into `app.html`.
-- `src/hooks.ts` — `deLocalizeUrl` maps `/ee/` → `/` so SvelteKit routes it to `+page.svelte`.
+- `src/hooks.ts` — `deLocalizeUrl` maps `/et/` → `/` so SvelteKit routes it to `+page.svelte`.
 - `src/lib/db/schema.ts` — Drizzle table definitions (single source of truth for DB shape).
 - `src/lib/db/repositories/` — one file per table, each function accepts `db` as a parameter for testability.
 - `src/routes/+page.server.ts` — load function queries all DB tables in parallel by locale; `actions.default` handles contact form submission.
@@ -70,7 +70,7 @@ $: currentLocale = getLocaleForUrl($page.url.href); // reactive to navigation
 **Language switching** — use `localizeHref` + `deLocalizeHref` from `$lib/paraglide/runtime`, then `window.location.href` for a full reload:
 ```ts
 import { localizeHref, deLocalizeHref } from '$lib/paraglide/runtime';
-window.location.href = localizeHref(deLocalizeHref($page.url.pathname), { locale: 'ee' });
+window.location.href = localizeHref(deLocalizeHref($page.url.pathname), { locale: 'et' });
 ```
 
 **To add a locale:** add the tag to `project.inlang/settings.json` → `languageTags`, create `messages/{tag}.json`, add an entry to `LANGUAGES` in `Header.svelte`, and insert rows for the new locale in every DB content table.

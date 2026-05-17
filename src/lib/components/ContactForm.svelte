@@ -9,7 +9,7 @@
   import type { ContactsRow } from '$lib/db/repositories/contacts';
 
   export let contactsRow: ContactsRow | null = null;
-  export let locale: string = 'ee';
+  export let locale: string = 'et';
   export let form: { errors?: Record<string, string>; name?: string; phone?: string; comment?: string; success?: boolean } | null = null;
 
   let clientErrors: Record<string, string> = {};
@@ -19,14 +19,10 @@
   $: nameError = clientErrors.name ?? (form?.errors?.name ? contact_valid_name() : '');
   $: phoneError = clientErrors.phone ?? (form?.errors?.phone ? contact_valid_phone() : '');
 
-  // Paraglide tags ('ee') don't always match BCP-47 ('et' for Estonian).
-  // Map for Intl APIs; pass-through for everything else.
-  const toBcp47 = (l: string) => (l === 'ee' ? 'et' : l);
-
   // 2024-01-01 is Monday; mondayOffset 1=Mon ... 6=Sat lands on 2024-01-{offset}
   const weekdayLabel = (l: string, mondayOffset: number) => {
     const date = new Date(Date.UTC(2024, 0, mondayOffset));
-    const label = new Intl.DateTimeFormat(toBcp47(l), { weekday: 'short', timeZone: 'UTC' }).format(date);
+    const label = new Intl.DateTimeFormat(l, { weekday: 'short', timeZone: 'UTC' }).format(date);
     return label.charAt(0).toUpperCase() + label.slice(1);
   };
 

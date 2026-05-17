@@ -25,7 +25,7 @@ describe('createContactSubmission', () => {
   });
 
   it('stores empty comment when not provided', async () => {
-    await createContactSubmission(db, { name: 'Bob', phone: '+372 5000 0001', locale: 'ee' });
+    await createContactSubmission(db, { name: 'Bob', phone: '+372 5000 0001', locale: 'et' });
 
     const rows = await db.select().from(contactSubmissions);
     expect(rows[0].comment).toBe('');
@@ -33,7 +33,7 @@ describe('createContactSubmission', () => {
 
   it('inserts multiple submissions independently', async () => {
     await createContactSubmission(db, { name: 'Alice', phone: '+372 1', locale: 'ru' });
-    await createContactSubmission(db, { name: 'Bob', phone: '+372 2', locale: 'ee' });
+    await createContactSubmission(db, { name: 'Bob', phone: '+372 2', locale: 'et' });
 
     const rows = await db.select().from(contactSubmissions);
     expect(rows).toHaveLength(2);
