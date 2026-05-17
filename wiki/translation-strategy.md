@@ -55,38 +55,67 @@ hooks.ts → reroute
 
 **Source of truth:** `data/dpflab.db` (SQLite file, gitignored).
 
-### Data model
+### Data model — LangStr
 
-Each content table has a `locale` column (`'ru'` or `'ee'`) and a `sort_order` column. There is **one row per locale per logical item** — not a shared base row with a translations join.
+Translatable fields are stored as a single JSON object per row keyed by locale (a `LangStr`). There is **one row per logical item** — adding a new locale is a seed update, not a schema change.
 
 ```
 faq
-┌────┬────────┬──────────────────────────┬────────────────────────┬────────────┐
-│ id │ locale │ question                 │ answer                 │ sort_order │
-├────┼────────┼──────────────────────────┼────────────────────────┼────────────┤
-│ 1  │ ru     │ Сколько времени...       │ Стандартная очистка... │     1      │
-│ 2  │ ru     │ Подходит ли услуга...    │ Да, мы работаем...     │     2      │
-│ 6  │ ee     │ Kui kaua võtab...        │ Standardne puhastus... │     1      │
-│ 7  │ ee     │ Kas teenus sobib...      │ Jah, töötame...        │     2      │
-└────┴────────┴──────────────────────────┴────────────────────────┴────────────┘
+┌────┬───────────────────────────────────────────────────────────────────────────┬───────────────────────────────────────────────────────────────────────┬────────────┐
+│ id │ question (LangStr)                                                        │ answer (LangStr)                                                      │ sort_order │
+├────┼───────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────┼────────────┤
+│ 1  │ {"ee":"Kui kaua võtab...","ru":"Сколько времени..."}                      │ {"ee":"Standardne puhastus...","ru":"Стандартная очистка..."}         │     1      │
+│ 2  │ {"ee":"Kas teenus sobib...","ru":"Подходит ли услуга..."}                 │ {"ee":"Jah, töötame...","ru":"Да, мы работаем..."}                    │     2      │
+└────┴───────────────────────────────────────────────────────────────────────────┴───────────────────────────────────────────────────────────────────────┴────────────┘
 ```
 
-**Why one row per locale instead of a base + translations table?**
+**`src/lib/db/langstr.ts`** provides the helpers:
 
-A normalised design (`faq_base` + `faq_translations`) would avoid repeating `sort_order` and any shared fields, but it requires a JOIN on every read and extra complexity when inserting/editing. For content this small and this rarely changing, the flat model is simpler and faster to query. Adding a third locale (e.g. `fi`) is just `INSERT` — no schema change.
+```ts
+export type LangStr = Record<string, string>;
 
-The one genuine duplication is in `contacts`: `phone`, `phone_href`, `whatsapp`, and `email` are the same in both locale rows. That's an acceptable trade-off — it avoids splitting a single-row table.
+makeLangStr({ ee: '...', ru: '...' })   // → JSON string for DB insert
+getLang(rawJson, locale)                // → string for active locale
+```
+
+`getLang` falls back: `locale` → `'ee'` → first key in the object. This ensures the site never renders an empty string even if a new locale's key is missing from some rows.
 
 ### Tables
 
-| Table | Locale-specific fields | Notes |
-|---|---|---|
-| `faq` | question, answer | ordered by sort_order |
-| `reviews` | stars, text, author | ordered by sort_order |
-| `pricing` | icon, title, price, cta | icon is the Icon.svelte name string |
-| `certificates` | title, text | ordered by sort_order |
-| `contacts` | phone, phone_href, whatsapp, email, address, hours_week, hours_sat | one row per locale |
-| `contact_submissions` | name, phone, comment, locale, created_at | write-only, no locale filter on read |
+| Table | LangStr fields | Plain fields | Notes |
+|---|---|---|---|
+| `faq` | question, answer | sort_order | ordered by sort_order |
+| `reviews` | text | stars, author, sort_order | author is shared (no transliteration) |
+| `pricing` | title, cta | icon, price, sort_order | price is one value shown in every locale |
+| `certificates` | title, text | sort_order | |
+| `contacts` | *(none)* | phone, phone_href, whatsapp, email, address, weekdays_open, weekdays_close, saturday_open, saturday_close | single row; see "Contacts" below |
+| `contact_submissions` | *(none)* | name, phone, comment, locale, created_at | write-only; the `locale` column records the user's active locale at submit time |
+
+### Contacts and business hours
+
+The contacts table is a **single row** of plain text — same contact info displayed regardless of active locale. Business hours are stored as structured wall-clock times in Europe/Tallinn (not UTC — they're a recurring daily schedule, not a point in time):
+
+```
+contacts
+┌────┬────────────────┬─────────────────┬─────────────────────┬────────────────┬──────────────────┬────────────────┬─────────────────┬───────────────┬────────────────┐
+│ id │ phone          │ phone_href      │ whatsapp            │ email          │ address          │ weekdays_open  │ weekdays_close  │ saturday_open │ saturday_close │
+├────┼────────────────┼─────────────────┼─────────────────────┼────────────────┼──────────────────┼────────────────┼─────────────────┼───────────────┼────────────────┤
+│ 1  │ +372 5850 7200 │ tel:+37258507200│ https://wa.me/...   │ info@dpflab.ee │ Tallinn, Estonia │ 09:00          │ 18:00           │ 10:00         │ 15:00          │
+└────┴────────────────┴─────────────────┴─────────────────────┴────────────────┴──────────────────┴────────────────┴─────────────────┴───────────────┴────────────────┘
+```
+
+`saturday_open` and `saturday_close` are nullable — set to `NULL` when closed; `ContactForm.svelte` hides the Saturday line in that case. Sunday is not modelled (assumed always closed).
+
+**Weekday labels are rendered at request time** from the active locale via `Intl.DateTimeFormat`, never stored in the DB:
+
+```ts
+// in ContactForm.svelte
+const date = new Date(Date.UTC(2024, 0, 1));   // Monday
+new Intl.DateTimeFormat('et', { weekday: 'short' }).format(date);  // → "E"
+new Intl.DateTimeFormat('ru', { weekday: 'short' }).format(date);  // → "пн"  (capitalised before display)
+```
+
+The Paraglide tag `'ee'` is mapped to BCP-47 `'et'` for Intl APIs (`'ee'` is the Ewe language in BCP-47).
 
 ### Data flow at request time
 
@@ -102,9 +131,9 @@ hooks.server.ts → event.locals.locale = 'ee'
     │
     ├── getFaqItems(db, 'ee')       ─┐
     ├── getReviews(db, 'ee')         │  Promise.all — parallel queries
-    ├── getPricingItems(db, 'ee')    │
-    ├── getCertificates(db, 'ee')   ─┘
-    └── getContacts(db, 'ee')
+    ├── getPricingItems(db, 'ee')    │  each repository fetches all rows
+    ├── getCertificates(db, 'ee')   ─┘  and unwraps LangStr via getLang
+    └── getContacts(db)                 (no locale param — single row)
     │
     ▼
 +page.svelte → passes typed arrays as props to each section component
@@ -113,12 +142,14 @@ hooks.server.ts → event.locals.locale = 'ee'
     ├── <Reviews items={data.reviewItems} />
     ├── <FAQ items={data.faqItems} />
     ├── <Certificates items={data.certificateItems} />
-    └── <ContactForm contactsRow={data.contactsRow} />
+    └── <ContactForm contactsRow={data.contactsRow} locale={data.locale} />
 ```
+
+`+page.server.ts` also returns `locale` so `ContactForm` can format weekday labels.
 
 ### Repository pattern
 
-Each table has a dedicated repository in `src/lib/db/repositories/`. Repositories accept the `db` instance as a parameter (not imported as a singleton) so they are trivially testable with an in-memory DB:
+Each table has a dedicated repository in `src/lib/db/repositories/`. Repositories accept the `db` instance as a parameter (not imported as a singleton) so they are trivially testable with an in-memory DB. They `SELECT *` (no `WHERE locale = ?`) and unwrap each LangStr field with `getLang(row.field, locale)` in the mapping step.
 
 ```ts
 // src/lib/db/repositories/faq.ts
@@ -126,9 +157,24 @@ export async function getFaqItems(db: Db, locale: string): Promise<FaqItem[]>
 
 // tests/db/faq.repository.test.ts
 const db = await createTestDb();  // in-memory SQLite
-await db.insert(faq).values([...]);
+await db.insert(faq).values([
+  { question: makeLangStr({ ee: '...', ru: '...' }), answer: makeLangStr({ ee: '...', ru: '...' }), sortOrder: 1 }
+]);
 const items = await getFaqItems(db, 'ru');
 ```
+
+`getContacts(db)` takes no locale — there's only one row.
+
+### contact_submissions behaviour
+
+Write-only from the landing page. Never read by the page load function.
+
+1. User submits the contact form.
+2. `+page.server.ts` `actions.default` validates name + phone server-side.
+3. `createContactSubmission(db, { name, phone, comment, locale })` inserts one row.
+4. `locale` records the language the user was viewing — used by future CRM to know whether to contact the lead in Estonian or Russian.
+
+It is never cleared by `db:seed` (real user data) and has no update/delete path — append-only.
 
 ---
 
@@ -137,8 +183,8 @@ const items = await getFaqItems(db, 'ru');
 | Content type | Use |
 |---|---|
 | Button label, nav item, form placeholder, heading | Paraglide (`messages/*.json`) |
-| Editable copy — prices, FAQ answers, review text | DB (`src/lib/db/seed.ts` + SQLite) |
-| Shared across all locales (e.g. a logo URL) | Either; prefer Paraglide if it's truly static |
+| Editable copy — prices, FAQ answers, review text | DB LangStr (`src/lib/db/seed.ts` + SQLite) |
+| Shared across all locales (e.g. a logo URL, contact phone) | DB plain column, or Paraglide if it's truly static |
 
 ---
 
@@ -147,5 +193,7 @@ const items = await getFaqItems(db, 'ru');
 1. Add the locale tag to `project.inlang/settings.json` → `languageTags`.
 2. Create `messages/{tag}.json` with all keys translated.
 3. Add an entry to the `LANGUAGES` map in `Header.svelte`.
-4. Insert rows for the new locale into every DB content table (update `src/lib/db/seed.ts`).
+4. Add the new key to every `makeLangStr(...)` call in `src/lib/db/seed.ts`.
 5. Run `npm run db:seed`.
+
+No schema change. No migration.
