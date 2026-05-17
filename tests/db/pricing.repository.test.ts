@@ -15,16 +15,16 @@ describe('getPricingItems', () => {
     await db.insert(pricing).values([
       {
         icon: 'bolt',
-        title: makeLangStr({ ee: 'Kiirpuhastus', ru: 'Срочная очистка' }),
+        title: makeLangStr({ et:'Kiirpuhastus', ru: 'Срочная очистка' }),
         price: '200€',
-        cta: makeLangStr({ ee: 'Tellida', ru: 'Заказать' }),
+        cta: makeLangStr({ et:'Tellida', ru: 'Заказать' }),
         sortOrder: 3
       },
       {
         icon: 'filter',
-        title: makeLangStr({ ee: 'Puhastus', ru: 'Очистка' }),
+        title: makeLangStr({ et:'Puhastus', ru: 'Очистка' }),
         price: '150€',
-        cta: makeLangStr({ ee: 'Tellida', ru: 'Заказать' }),
+        cta: makeLangStr({ et:'Tellida', ru: 'Заказать' }),
         sortOrder: 1
       }
     ]);

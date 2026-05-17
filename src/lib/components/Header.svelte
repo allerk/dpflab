@@ -10,7 +10,7 @@
 
   const LANGUAGES = [
     { code: 'ru', label: 'Русский', short: 'RU' },
-    { code: 'ee', label: 'Eesti',   short: 'EE' }
+    { code: 'et', label: 'Eesti',   short: 'ET' }
   ] as const;
 
   let scrolled = false;
@@ -30,7 +30,7 @@
     { href: '#contacts', label: nav_contacts() }
   ];
 
-  const setLang = (code: 'ru' | 'ee') => {
+  const setLang = (code: 'ru' | 'et') => {
     langOpen = false;
     menuOpen = false;
     window.location.href = localizeHref(deLocalizeHref($page.url.pathname), { locale: code });

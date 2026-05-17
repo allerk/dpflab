@@ -15,13 +15,13 @@ describe('getReviews', () => {
     await db.insert(reviews).values([
       {
         stars: 5,
-        text: makeLangStr({ ee: 'Suurepärane', ru: 'Отлично' }),
+        text: makeLangStr({ et: 'Suurepärane', ru: 'Отлично' }),
         author: '— Alice',
         sortOrder: 2
       },
       {
         stars: 4,
-        text: makeLangStr({ ee: 'Hea', ru: 'Хорошо' }),
+        text: makeLangStr({ et: 'Hea', ru: 'Хорошо' }),
         author: '— Bob',
         sortOrder: 1
       }
@@ -39,21 +39,21 @@ describe('getReviews', () => {
     await db.insert(reviews).values([
       {
         stars: 5,
-        text: makeLangStr({ ee: 'T', ru: 'T' }),
+        text: makeLangStr({ et: 'T', ru: 'T' }),
         author: '— AutoPro OÜ',
         sortOrder: 1
       }
     ]);
 
     expect(await getReviews(db, 'ru')).toEqual([{ stars: 5, text: 'T', author: '— AutoPro OÜ' }]);
-    expect(await getReviews(db, 'ee')).toEqual([{ stars: 5, text: 'T', author: '— AutoPro OÜ' }]);
+    expect(await getReviews(db, 'et')).toEqual([{ stars: 5, text: 'T', author: '— AutoPro OÜ' }]);
   });
 
-  it("falls back to 'ee' when the requested locale is missing", async () => {
+  it("falls back to 'et' when the requested locale is missing", async () => {
     await db.insert(reviews).values([
       {
         stars: 5,
-        text: makeLangStr({ ee: 'Suurepärane', ru: 'Отлично' }),
+        text: makeLangStr({ et: 'Suurepärane', ru: 'Отлично' }),
         author: '— Author',
         sortOrder: 1
       }

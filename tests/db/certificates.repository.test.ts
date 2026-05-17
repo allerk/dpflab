@@ -14,13 +14,13 @@ describe('getCertificates', () => {
   it('returns certificates in the requested locale ordered by sort_order', async () => {
     await db.insert(certificates).values([
       {
-        title: makeLangStr({ ee: 'Garantii', ru: 'Гарантия' }),
-        text: makeLangStr({ ee: 'Kõikidele töödele', ru: 'На все работы' }),
+        title: makeLangStr({ et:'Garantii', ru: 'Гарантия' }),
+        text: makeLangStr({ et:'Kõikidele töödele', ru: 'На все работы' }),
         sortOrder: 2
       },
       {
-        title: makeLangStr({ ee: 'ISO 9001', ru: 'ISO 9001' }),
-        text: makeLangStr({ ee: 'Kvaliteedisertifikaat', ru: 'Сертификат' }),
+        title: makeLangStr({ et:'ISO 9001', ru: 'ISO 9001' }),
+        text: makeLangStr({ et:'Kvaliteedisertifikaat', ru: 'Сертификат' }),
         sortOrder: 1
       }
     ]);

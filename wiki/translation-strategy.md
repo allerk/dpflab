@@ -8,14 +8,14 @@ The site uses two separate layers for i18n. Each layer owns a distinct category 
 
 **Owns:** static copy that only developers change — nav labels, button text, section headings, form field labels, validation messages, footer text.
 
-**Source of truth:** `messages/ru.json` and `messages/ee.json`. Flat key/value JSON.
+**Source of truth:** `messages/ru.json` and `messages/et.json`. Flat key/value JSON.
 
 **How it works:**
 
 ```
 messages/ru.json  ──┐
                     ├──► paraglide-js compile ──► src/lib/paraglide/  (gitignored, generated)
-messages/ee.json  ──┘
+messages/et.json  ──┘
 ```
 
 Components import named functions and call them — the function returns the string for the currently active locale:
@@ -23,7 +23,7 @@ Components import named functions and call them — the function returns the str
 ```ts
 import { nav_home, hero_subtitle } from '$lib/paraglide/messages';
 
-nav_home()       // → "Главная"  (ru)  |  "Avaleht"  (ee)
+nav_home()       // → "Главная"  (ru)  |  "Avaleht"  (et)
 hero_subtitle()  // → "Вернём мощность..."  |  "Taastame mootori..."
 ```
 
@@ -34,18 +34,18 @@ Request URL
     │
     ▼
 hooks.server.ts → paraglideMiddleware
-    │  reads /ee/* → locale = 'ee'
+    │  reads /et/* → locale = 'et'
     │  reads /*    → locale = 'ru'
     │
     ├── sets event.locals.locale
     └── injects %lang% / %dir% into app.html
 
 hooks.ts → reroute
-    │  /ee/... → /  (so SvelteKit routes to the single +page.svelte)
+    │  /et/... → /  (so SvelteKit routes to the single +page.svelte)
     └── /    → /
 ```
 
-**To change UI copy:** edit `messages/ru.json` or `messages/ee.json`. Paraglide picks up changes on next build/dev-server restart.
+**To change UI copy:** edit `messages/ru.json` or `messages/et.json`. Paraglide picks up changes on next build/dev-server restart.
 
 ---
 
@@ -64,8 +64,8 @@ faq
 ┌────┬───────────────────────────────────────────────────────────────────────────┬───────────────────────────────────────────────────────────────────────┬────────────┐
 │ id │ question (LangStr)                                                        │ answer (LangStr)                                                      │ sort_order │
 ├────┼───────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────┼────────────┤
-│ 1  │ {"ee":"Kui kaua võtab...","ru":"Сколько времени..."}                      │ {"ee":"Standardne puhastus...","ru":"Стандартная очистка..."}         │     1      │
-│ 2  │ {"ee":"Kas teenus sobib...","ru":"Подходит ли услуга..."}                 │ {"ee":"Jah, töötame...","ru":"Да, мы работаем..."}                    │     2      │
+│ 1  │ {"et":"Kui kaua võtab...","ru":"Сколько времени..."}                      │ {"et":"Standardne puhastus...","ru":"Стандартная очистка..."}         │     1      │
+│ 2  │ {"et":"Kas teenus sobib...","ru":"Подходит ли услуга..."}                 │ {"et":"Jah, töötame...","ru":"Да, мы работаем..."}                    │     2      │
 └────┴───────────────────────────────────────────────────────────────────────────┴───────────────────────────────────────────────────────────────────────┴────────────┘
 ```
 
@@ -74,11 +74,11 @@ faq
 ```ts
 export type LangStr = Record<string, string>;
 
-makeLangStr({ ee: '...', ru: '...' })   // → JSON string for DB insert
+makeLangStr({ et: '...', ru: '...' })   // → JSON string for DB insert
 getLang(rawJson, locale)                // → string for active locale
 ```
 
-`getLang` falls back: `locale` → `'ee'` → first key in the object. This ensures the site never renders an empty string even if a new locale's key is missing from some rows.
+`getLang` falls back: `locale` → `'et'` → first key in the object. This ensures the site never renders an empty string even if a new locale's key is missing from some rows.
 
 ### Tables
 
@@ -115,24 +115,24 @@ new Intl.DateTimeFormat('et', { weekday: 'short' }).format(date);  // → "E"
 new Intl.DateTimeFormat('ru', { weekday: 'short' }).format(date);  // → "пн"  (capitalised before display)
 ```
 
-The Paraglide tag `'ee'` is mapped to BCP-47 `'et'` for Intl APIs (`'ee'` is the Ewe language in BCP-47).
+Paraglide locale tags are BCP-47 (`'et'`, not `'ee'`), so the active locale is fed straight into `Intl.DateTimeFormat` with no mapping.
 
 ### Data flow at request time
 
 ```
-Browser GET /ee
+Browser GET /et
     │
     ▼
-hooks.server.ts → event.locals.locale = 'ee'
+hooks.server.ts → event.locals.locale = 'et'
     │
     ▼
 +page.server.ts → load()
-    │  locale = event.locals.locale  ('ee')
+    │  locale = event.locals.locale  ('et')
     │
-    ├── getFaqItems(db, 'ee')       ─┐
-    ├── getReviews(db, 'ee')         │  Promise.all — parallel queries
-    ├── getPricingItems(db, 'ee')    │  each repository fetches all rows
-    ├── getCertificates(db, 'ee')   ─┘  and unwraps LangStr via getLang
+    ├── getFaqItems(db, 'et')       ─┐
+    ├── getReviews(db, 'et')         │  Promise.all — parallel queries
+    ├── getPricingItems(db, 'et')    │  each repository fetches all rows
+    ├── getCertificates(db, 'et')   ─┘  and unwraps LangStr via getLang
     └── getContacts(db)                 (no locale param — single row)
     │
     ▼
@@ -158,7 +158,7 @@ export async function getFaqItems(db: Db, locale: string): Promise<FaqItem[]>
 // tests/db/faq.repository.test.ts
 const db = await createTestDb();  // in-memory SQLite
 await db.insert(faq).values([
-  { question: makeLangStr({ ee: '...', ru: '...' }), answer: makeLangStr({ ee: '...', ru: '...' }), sortOrder: 1 }
+  { question: makeLangStr({ et: '...', ru: '...' }), answer: makeLangStr({ et: '...', ru: '...' }), sortOrder: 1 }
 ]);
 const items = await getFaqItems(db, 'ru');
 ```
