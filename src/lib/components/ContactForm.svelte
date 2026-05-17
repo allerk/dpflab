@@ -9,6 +9,7 @@
   import type { ContactsRow } from '$lib/db/repositories/contacts';
 
   export let contactsRow: ContactsRow | null = null;
+  export let locale: string = 'ee';
   export let form: { errors?: Record<string, string>; name?: string; phone?: string; comment?: string; success?: boolean } | null = null;
 
   let clientErrors: Record<string, string> = {};
@@ -17,6 +18,25 @@
   $: if (form?.success) submitted = true;
   $: nameError = clientErrors.name ?? (form?.errors?.name ? contact_valid_name() : '');
   $: phoneError = clientErrors.phone ?? (form?.errors?.phone ? contact_valid_phone() : '');
+
+  // Paraglide tags ('ee') don't always match BCP-47 ('et' for Estonian).
+  // Map for Intl APIs; pass-through for everything else.
+  const toBcp47 = (l: string) => (l === 'ee' ? 'et' : l);
+
+  // 2024-01-01 is Monday; mondayOffset 1=Mon ... 6=Sat lands on 2024-01-{offset}
+  const weekdayLabel = (l: string, mondayOffset: number) => {
+    const date = new Date(Date.UTC(2024, 0, mondayOffset));
+    const label = new Intl.DateTimeFormat(toBcp47(l), { weekday: 'short', timeZone: 'UTC' }).format(date);
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  };
+
+  $: weekdaysLine = contactsRow
+    ? `${weekdayLabel(locale, 1)} – ${weekdayLabel(locale, 5)}: ${contactsRow.weekdaysOpen} – ${contactsRow.weekdaysClose}`
+    : '';
+
+  $: saturdayLine = contactsRow?.saturdayOpen && contactsRow?.saturdayClose
+    ? `${weekdayLabel(locale, 6)}: ${contactsRow.saturdayOpen} – ${contactsRow.saturdayClose}`
+    : '';
 
   const validate = (name: string, phone: string) => {
     const e: Record<string, string> = {};
@@ -93,8 +113,8 @@
           <li class="flex gap-3 items-start text-[13px] font-mono">
             <span class="w-[18px] shrink-0 text-accent"><Icon name="clock" size={18}/></span>
             <div>
-              <div>{contactsRow.hoursWeek}</div>
-              <div>{contactsRow.hoursSat}</div>
+              <div>{weekdaysLine}</div>
+              {#if saturdayLine}<div>{saturdayLine}</div>{/if}
             </div>
           </li>
         </ul>

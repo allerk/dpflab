@@ -17,12 +17,13 @@ export const load: PageServerLoad = async ({ locals }) => {
       getReviews(db, locale),
       getPricingItems(db, locale),
       getCertificates(db, locale),
-      getContacts(db, locale)
+      getContacts(db)
     ]);
 
-    return { faqItems, reviewItems, pricingItems, certificateItems, contactsRow };
+    return { locale, faqItems, reviewItems, pricingItems, certificateItems, contactsRow };
   } catch {
     return {
+      locale,
       faqItems: [],
       reviewItems: [],
       pricingItems: [],

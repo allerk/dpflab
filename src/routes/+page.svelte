@@ -32,6 +32,6 @@
   <Reviews items={data.reviewItems} />
   <FAQ items={data.faqItems} />
   <Certificates items={data.certificateItems} />
-  <ContactForm contactsRow={data.contactsRow} {form} />
+  <ContactForm contactsRow={data.contactsRow} locale={data.locale} {form} />
 </main>
 <Footer />
