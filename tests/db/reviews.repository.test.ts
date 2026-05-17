@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createTestDb, type TestDb } from '../helpers/db';
 import { reviews } from '../../src/lib/db/schema';
+import { makeLangStr } from '../../src/lib/db/langstr';
 import { getReviews } from '../../src/lib/db/repositories/reviews';
 
 describe('getReviews', () => {
@@ -10,29 +11,55 @@ describe('getReviews', () => {
     db = await createTestDb();
   });
 
-  it('returns reviews for the requested locale ordered by sort_order', async () => {
+  it('returns reviews in the requested locale ordered by sort_order', async () => {
     await db.insert(reviews).values([
-      { locale: 'ru', stars: 5, text: 'Great', author: 'Alice', sortOrder: 2 },
-      { locale: 'ru', stars: 4, text: 'Good', author: 'Bob', sortOrder: 1 },
-      { locale: 'ee', stars: 5, text: 'Suurepärane', author: 'Tiit', sortOrder: 1 }
+      {
+        stars: 5,
+        text: makeLangStr({ ee: 'Suurepärane', ru: 'Отлично' }),
+        author: '— Alice',
+        sortOrder: 2
+      },
+      {
+        stars: 4,
+        text: makeLangStr({ ee: 'Hea', ru: 'Хорошо' }),
+        author: '— Bob',
+        sortOrder: 1
+      }
     ]);
 
     const items = await getReviews(db, 'ru');
 
     expect(items).toEqual([
-      { stars: 4, text: 'Good', author: 'Bob' },
-      { stars: 5, text: 'Great', author: 'Alice' }
+      { stars: 4, text: 'Хорошо', author: '— Bob' },
+      { stars: 5, text: 'Отлично', author: '— Alice' }
     ]);
   });
 
-  it('returns empty array when no reviews for locale', async () => {
-    const items = await getReviews(db, 'ru');
-    expect(items).toEqual([]);
+  it('keeps author as plain text regardless of locale', async () => {
+    await db.insert(reviews).values([
+      {
+        stars: 5,
+        text: makeLangStr({ ee: 'T', ru: 'T' }),
+        author: '— AutoPro OÜ',
+        sortOrder: 1
+      }
+    ]);
+
+    expect(await getReviews(db, 'ru')).toEqual([{ stars: 5, text: 'T', author: '— AutoPro OÜ' }]);
+    expect(await getReviews(db, 'ee')).toEqual([{ stars: 5, text: 'T', author: '— AutoPro OÜ' }]);
   });
 
-  it('excludes reviews from other locales', async () => {
-    await db.insert(reviews).values([{ locale: 'ee', stars: 5, text: 'T', author: 'T', sortOrder: 1 }]);
-    const items = await getReviews(db, 'ru');
-    expect(items).toEqual([]);
+  it("falls back to 'ee' when the requested locale is missing", async () => {
+    await db.insert(reviews).values([
+      {
+        stars: 5,
+        text: makeLangStr({ ee: 'Suurepärane', ru: 'Отлично' }),
+        author: '— Author',
+        sortOrder: 1
+      }
+    ]);
+
+    const items = await getReviews(db, 'fi');
+    expect(items).toEqual([{ stars: 5, text: 'Suurepärane', author: '— Author' }]);
   });
 });

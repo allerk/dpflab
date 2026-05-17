@@ -3,15 +3,16 @@ import { createTestDb, type TestDb } from '../helpers/db';
 import { contacts } from '../../src/lib/db/schema';
 import { getContacts } from '../../src/lib/db/repositories/contacts';
 
-const RU_CONTACTS = {
-  locale: 'ru',
+const SAMPLE = {
   phone: '+372 5850 7200',
   phoneHref: 'tel:+37258507200',
   whatsapp: 'https://wa.me/37258507200',
   email: 'info@dpflab.ee',
   address: 'Tallinn, Estonia',
-  hoursWeek: 'Пн – Пт: 9:00 – 18:00',
-  hoursSat: 'Сб: 10:00 – 15:00'
+  weekdaysOpen: '09:00',
+  weekdaysClose: '18:00',
+  saturdayOpen: '10:00',
+  saturdayClose: '15:00'
 };
 
 describe('getContacts', () => {
@@ -21,36 +22,24 @@ describe('getContacts', () => {
     db = await createTestDb();
   });
 
-  it('returns the contacts row for the requested locale', async () => {
-    await db.insert(contacts).values([
-      RU_CONTACTS,
-      { ...RU_CONTACTS, locale: 'ee', address: 'Tallinn, Eesti', hoursWeek: 'E – R: 9:00 – 18:00', hoursSat: 'L: 10:00 – 15:00' }
-    ]);
+  it('returns the single contacts row', async () => {
+    await db.insert(contacts).values(SAMPLE);
 
-    const result = await getContacts(db, 'ru');
+    const result = await getContacts(db);
 
-    expect(result).toMatchObject({
-      phone: '+372 5850 7200',
-      email: 'info@dpflab.ee',
-      address: 'Tallinn, Estonia',
-      hoursWeek: 'Пн – Пт: 9:00 – 18:00'
-    });
+    expect(result).toMatchObject(SAMPLE);
   });
 
-  it('returns null when no contacts for locale', async () => {
-    const result = await getContacts(db, 'ru');
-    expect(result).toBeNull();
+  it('returns null when no contacts row exists', async () => {
+    expect(await getContacts(db)).toBeNull();
   });
 
-  it('returns the correct locale row', async () => {
-    await db.insert(contacts).values([
-      RU_CONTACTS,
-      { ...RU_CONTACTS, locale: 'ee', address: 'Tallinn, Eesti', hoursWeek: 'E – R: 9:00 – 18:00', hoursSat: 'L: 10:00 – 15:00' }
-    ]);
+  it('returns null saturday hours when closed', async () => {
+    await db.insert(contacts).values({ ...SAMPLE, saturdayOpen: null, saturdayClose: null });
 
-    const result = await getContacts(db, 'ee');
+    const result = await getContacts(db);
 
-    expect(result?.address).toBe('Tallinn, Eesti');
-    expect(result?.hoursWeek).toBe('E – R: 9:00 – 18:00');
+    expect(result?.saturdayOpen).toBeNull();
+    expect(result?.saturdayClose).toBeNull();
   });
 });
