@@ -129,5 +129,15 @@
   "footer_copy": "© 2026 DPFLAB OÜ",
   "footer_rights": "Все права защищены.",
   "footer_link_1": "Политика конфиденциальности",
-  "footer_link_2": "Условия использования"
+  "footer_link_2": "Условия использования",
+
+  "admin_login_title": "Вход в панель",
+  "admin_login_email_label": "Email",
+  "admin_login_password_label": "Пароль",
+  "admin_login_submit": "Войти",
+  "admin_login_error": "Неверный email или пароль",
+  "admin_logout": "Выйти",
+  "admin_dashboard_title": "Панель администратора",
+  "admin_dashboard_welcome": "Добро пожаловать",
+  "admin_access_denied": "Доступ запрещён"
 }

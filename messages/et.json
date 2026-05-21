@@ -129,5 +129,15 @@
   "footer_copy": "© 2026 DPFLAB OÜ",
   "footer_rights": "Kõik õigused kaitstud.",
   "footer_link_1": "Privaatsuspoliitika",
-  "footer_link_2": "Kasutustingimused"
+  "footer_link_2": "Kasutustingimused",
+
+  "admin_login_title": "Sisselogimine",
+  "admin_login_email_label": "E-post",
+  "admin_login_password_label": "Parool",
+  "admin_login_submit": "Logi sisse",
+  "admin_login_error": "Vale e-post või parool",
+  "admin_logout": "Logi välja",
+  "admin_dashboard_title": "Administraatori paneel",
+  "admin_dashboard_welcome": "Tere tulemast",
+  "admin_access_denied": "Ligipääs keelatud"
 }
