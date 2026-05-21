@@ -18,6 +18,9 @@ node_modules
 /data/*.db-shm
 /data/*.db-wal
 
+# Uploaded images
+/data/images/
+
 # Admin
 /config/admin-whitelist.txt
 

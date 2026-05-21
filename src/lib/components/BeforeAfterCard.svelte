@@ -14,11 +14,13 @@
     pos = Math.max(0, Math.min(100, ((clientX - r.left) / r.width) * 100));
   };
   const onDown = (e: MouseEvent | TouchEvent) => {
+    e.preventDefault();
     dragging = true;
     update('touches' in e ? e.touches[0].clientX : e.clientX);
   };
   const onMove = (e: MouseEvent | TouchEvent) => {
     if (!dragging) return;
+    e.preventDefault();
     update('touches' in e ? e.touches[0].clientX : e.clientX);
   };
   const onUp = () => (dragging = false);
@@ -27,19 +29,19 @@
 {#if sliderEnabled}
   <div
     bind:this={card}
-    class="ba-card"
+    class="ba-card select-none"
     on:mousedown={onDown} on:mousemove={onMove} on:mouseup={onUp} on:mouseleave={onUp}
     on:touchstart={onDown} on:touchmove={onMove} on:touchend={onUp}
     role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(pos)} tabindex="0"
   >
     {#if imageAfter}
-      <img src="/images/{imageAfter}" alt={labelAfter} class="ba-img ba-after" />
+      <img src="/images/{imageAfter}" alt={labelAfter} class="ba-img ba-after" draggable="false" />
     {:else}
       <div class="ba-img ba-after placeholder">[{labelAfter}]</div>
     {/if}
     <div class="ba-img ba-before" style="clip-path: inset(0 {100 - pos}% 0 0)">
       {#if imageBefore}
-        <img src="/images/{imageBefore}" alt={labelBefore} style="width:100%;height:100%;object-fit:cover" />
+        <img src="/images/{imageBefore}" alt={labelBefore} draggable="false" style="width:100%;height:100%;object-fit:cover" />
       {:else}
         <div class="placeholder" style="width:100%;height:100%">[{labelBefore}]</div>
       {/if}

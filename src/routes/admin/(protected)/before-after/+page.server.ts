@@ -7,9 +7,11 @@ import {
   deleteBeforeAfterItem,
   reorderBeforeAfterItem
 } from '$lib/db/repositories/before-after';
+import { listImages } from '$lib/server/admin/images';
 
 export const load: PageServerLoad = async () => {
-  return { rows: await getBeforeAfterRows(db) };
+  const [rows, images] = await Promise.all([getBeforeAfterRows(db), listImages()]);
+  return { rows, images };
 };
 
 export const actions: Actions = {

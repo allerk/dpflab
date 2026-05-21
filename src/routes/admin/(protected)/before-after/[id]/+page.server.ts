@@ -2,13 +2,14 @@ import type { Actions, PageServerLoad } from './$types';
 import { error, redirect } from '@sveltejs/kit';
 import { db } from '$lib/db/index';
 import { getBeforeAfterRows, updateBeforeAfterItem } from '$lib/db/repositories/before-after';
+import { listImages } from '$lib/server/admin/images';
 
 export const load: PageServerLoad = async ({ params }) => {
   const id = Number(params.id);
-  const rows = await getBeforeAfterRows(db);
+  const [rows, images] = await Promise.all([getBeforeAfterRows(db), listImages()]);
   const row = rows.find((r) => r.id === id);
   if (!row) error(404);
-  return { row };
+  return { row, images };
 };
 
 export const actions: Actions = {

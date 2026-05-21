@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import ImagePicker from '$lib/components/admin/ImagePicker.svelte';
   import {
     admin_before_after_title,
     admin_before_after_add,
@@ -21,6 +22,8 @@
   export let form: ActionData;
 
   $: rows = (form as { rows?: typeof data.rows } | null)?.rows ?? data.rows;
+
+  let sliderEnabled = true;
 
   onMount(() => {
     document.querySelectorAll<HTMLFormElement>('form[data-confirm]').forEach((f) => {
@@ -113,33 +116,34 @@
     <h2 class="font-semibold mb-4">{admin_before_after_add()}</h2>
     <form method="POST" action="?/create" class="space-y-4">
       <label class="flex items-center gap-2 cursor-pointer select-none">
-        <input type="checkbox" name="slider_enabled" checked class="accent-accent w-4 h-4" />
+        <input type="checkbox" name="slider_enabled" bind:checked={sliderEnabled} class="accent-accent w-4 h-4" />
         <span class="text-sm">{admin_before_after_slider()}</span>
       </label>
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label for="new-image-before" class="block text-sm mb-1">{admin_before_after_image_before()}</label>
-          <input
+      {#if sliderEnabled}
+        <div class="grid grid-cols-2 gap-4">
+          <ImagePicker
             id="new-image-before"
-            type="text"
             name="image_before"
-            placeholder="filename.jpg"
-            class="w-full rounded-input border border-border bg-bg px-3 py-2 text-sm font-mono focus:outline-none focus:border-accent"
+            label={admin_before_after_image_before()}
+            images={data.images}
           />
-        </div>
-        <div>
-          <label for="new-image-after" class="block text-sm mb-1">{admin_before_after_image_after()}</label>
-          <input
+          <ImagePicker
             id="new-image-after"
-            type="text"
             name="image_after"
-            placeholder="filename.jpg"
-            class="w-full rounded-input border border-border bg-bg px-3 py-2 text-sm font-mono focus:outline-none focus:border-accent"
+            label={admin_before_after_image_after()}
+            images={data.images}
           />
         </div>
-      </div>
+      {:else}
+        <ImagePicker
+          id="new-image-before"
+          name="image_before"
+          label={admin_before_after_image_single()}
+          images={data.images}
+        />
+      {/if}
       <p class="text-xs text-fg-muted">
-        Upload files on the <a href="/admin/images" class="text-accent underline">Images</a> page, then paste the filename here.
+        Upload files on the <a href="/admin/images" class="text-accent underline">Images</a> page to add them to the list.
       </p>
       <button
         type="submit"

@@ -1,20 +1,13 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
-import { readdir, unlink, writeFile, mkdir } from 'node:fs/promises';
+import { unlink, writeFile, mkdir } from 'node:fs/promises';
 import { resolve, basename, extname } from 'node:path';
+import { listImages, ALLOWED_EXT } from '$lib/server/admin/images';
+import { db } from '$lib/db/index';
+import { getBeforeAfterRows } from '$lib/db/repositories/before-after';
 
 const IMAGES_DIR = resolve(process.cwd(), 'data/images');
-const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg', '.avif']);
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
-
-async function listImages(): Promise<string[]> {
-  try {
-    const files = await readdir(IMAGES_DIR);
-    return files.filter((f) => ALLOWED_EXT.has(extname(f).toLowerCase())).sort();
-  } catch {
-    return [];
-  }
-}
 
 export const load: PageServerLoad = async () => {
   return { files: await listImages() };
@@ -47,6 +40,15 @@ export const actions: Actions = {
 
     const ext = extname(filename).toLowerCase();
     if (!ALLOWED_EXT.has(ext)) return fail(400, { error: 'bad_type' });
+
+    const baRows = await getBeforeAfterRows(db);
+    const usedIn = baRows
+      .filter((r) => r.imageBefore === filename || r.imageAfter === filename)
+      .map((r) => `Before/After #${r.id}`);
+
+    if (usedIn.length > 0) {
+      return fail(400, { error: 'in_use', filename, usedIn, files: await listImages() });
+    }
 
     try {
       await unlink(resolve(IMAGES_DIR, filename));

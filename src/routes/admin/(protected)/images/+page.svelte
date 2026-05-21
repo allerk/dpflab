@@ -15,6 +15,7 @@
   export let form: ActionData;
 
   $: files = (form as { files?: string[] } | null)?.files ?? data.files;
+  $: inUseError = form as { error?: string; filename?: string; usedIn?: string[] } | null;
 
   let copied = '';
   function copyUrl(filename: string) {
@@ -70,7 +71,11 @@
           />
           <div class="flex-1 min-w-0">
             <p class="text-sm font-mono truncate">{filename}</p>
-            <p class="text-xs text-fg-muted font-mono truncate">/images/{filename}</p>
+            {#if inUseError?.error === 'in_use' && inUseError.filename === filename}
+              <p class="text-xs text-danger mt-0.5">In use: {inUseError.usedIn?.join(', ')}</p>
+            {:else}
+              <p class="text-xs text-fg-muted font-mono truncate">/images/{filename}</p>
+            {/if}
           </div>
           <button
             type="button"

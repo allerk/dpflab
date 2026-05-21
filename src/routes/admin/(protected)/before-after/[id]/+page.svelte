@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ImagePicker from '$lib/components/admin/ImagePicker.svelte';
   import {
     admin_before_after_title,
     admin_before_after_slider,
@@ -39,55 +40,34 @@
 
     {#if sliderEnabled}
       <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label for="edit-image-before" class="block text-sm mb-1">{admin_before_after_image_before()}</label>
-          {#if data.row.imageBefore}
-            <img src="/images/{data.row.imageBefore}" alt="before" class="w-full h-28 object-cover rounded mb-2 bg-bg" />
-          {/if}
-          <input
-            id="edit-image-before"
-            type="text"
-            name="image_before"
-            value={data.row.imageBefore ?? ''}
-            placeholder="filename.jpg"
-            class="w-full rounded-input border border-border bg-bg px-3 py-2 text-sm font-mono focus:outline-none focus:border-accent"
-          />
-        </div>
-        <div>
-          <label for="edit-image-after" class="block text-sm mb-1">{admin_before_after_image_after()}</label>
-          {#if data.row.imageAfter}
-            <img src="/images/{data.row.imageAfter}" alt="after" class="w-full h-28 object-cover rounded mb-2 bg-bg" />
-          {/if}
-          <input
-            id="edit-image-after"
-            type="text"
-            name="image_after"
-            value={data.row.imageAfter ?? ''}
-            placeholder="filename.jpg"
-            class="w-full rounded-input border border-border bg-bg px-3 py-2 text-sm font-mono focus:outline-none focus:border-accent"
-          />
-        </div>
+        <ImagePicker
+          id="edit-image-before"
+          name="image_before"
+          label={admin_before_after_image_before()}
+          value={data.row.imageBefore ?? ''}
+          images={data.images}
+        />
+        <ImagePicker
+          id="edit-image-after"
+          name="image_after"
+          label={admin_before_after_image_after()}
+          value={data.row.imageAfter ?? ''}
+          images={data.images}
+        />
       </div>
     {:else}
-      <div>
-        <label for="edit-image-single" class="block text-sm mb-1">{admin_before_after_image_single()}</label>
-        {#if data.row.imageBefore}
-          <img src="/images/{data.row.imageBefore}" alt="preview" class="w-full max-h-48 object-contain rounded mb-2 bg-bg" />
-        {/if}
-        <input
-          id="edit-image-single"
-          type="text"
-          name="image_before"
-          value={data.row.imageBefore ?? ''}
-          placeholder="filename.jpg"
-          class="w-full rounded-input border border-border bg-bg px-3 py-2 text-sm font-mono focus:outline-none focus:border-accent"
-        />
-        <input type="hidden" name="image_after" value="" />
-      </div>
+      <ImagePicker
+        id="edit-image-single"
+        name="image_before"
+        label={admin_before_after_image_single()}
+        value={data.row.imageBefore ?? ''}
+        images={data.images}
+      />
+      <input type="hidden" name="image_after" value="" />
     {/if}
 
     <p class="text-xs text-fg-muted">
-      Upload files on the <a href="/admin/images" class="text-accent underline">Images</a> page, then paste the filename here.
+      Upload files on the <a href="/admin/images" class="text-accent underline">Images</a> page to add them to the list.
     </p>
 
     <button

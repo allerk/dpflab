@@ -10,15 +10,17 @@
   <section id="gallery" class="section bg-bg">
     <div class="container">
       <h2 class="text-[clamp(28px,3.5vw,42px)] font-extrabold text-center tracking-[0.02em] mb-10 max-sm:text-[clamp(22px,6vw,28px)]">{gallery_title()}</h2>
-      <div class="grid grid-cols-5 gap-3 max-md:grid-cols-2 max-xs:grid-cols-1">
+      <div class="flex flex-wrap justify-center gap-3">
         {#each items as item}
-          <BeforeAfterCard
-            sliderEnabled={item.sliderEnabled}
-            imageBefore={item.imageBefore}
-            imageAfter={item.imageAfter}
-            labelBefore={gallery_label_before()}
-            labelAfter={gallery_label_after()}
-          />
+          <div class="w-[calc(20%-9.6px)] max-md:w-[calc(50%-6px)] max-xs:w-full">
+            <BeforeAfterCard
+              sliderEnabled={item.sliderEnabled}
+              imageBefore={item.imageBefore}
+              imageAfter={item.imageAfter}
+              labelBefore={gallery_label_before()}
+              labelAfter={gallery_label_after()}
+            />
+          </div>
         {/each}
       </div>
     </div>
