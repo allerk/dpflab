@@ -7,7 +7,9 @@
     admin_nav_pricing,
     admin_nav_certificates,
     admin_nav_contacts,
-    admin_nav_submissions
+    admin_nav_submissions,
+    admin_nav_before_after,
+    admin_nav_images
   } from '$lib/paraglide/messages';
   import type { LayoutData } from './$types';
 
@@ -19,7 +21,9 @@
     { href: '/admin/pricing', label: admin_nav_pricing() },
     { href: '/admin/certificates', label: admin_nav_certificates() },
     { href: '/admin/contacts', label: admin_nav_contacts() },
-    { href: '/admin/submissions', label: admin_nav_submissions() }
+    { href: '/admin/submissions', label: admin_nav_submissions() },
+    { href: '/admin/before-after', label: admin_nav_before_after() },
+    { href: '/admin/images', label: admin_nav_images() }
   ];
 </script>
 

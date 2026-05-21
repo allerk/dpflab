@@ -147,6 +147,8 @@
   "admin_nav_certificates": "Sertifikaadid",
   "admin_nav_contacts": "Kontaktid",
   "admin_nav_submissions": "Päringud",
+  "admin_nav_before_after": "Enne/Pärast",
+  "admin_nav_images": "Pildid",
 
   "admin_faq_title": "KKK",
   "admin_faq_add": "Lisa küsimus",
@@ -190,6 +192,21 @@
   "admin_contacts_saturday_close": "L sulgemine (valikuline)",
 
   "admin_submissions_title": "Päringud",
+
+  "admin_before_after_title": "Enne / Pärast",
+  "admin_before_after_add": "Lisa paar",
+  "admin_before_after_slider": "Liugur",
+  "admin_before_after_slider_on": "Liugur sees",
+  "admin_before_after_slider_off": "Valmis pilt",
+  "admin_before_after_image_before": "Pilt ENNE",
+  "admin_before_after_image_after": "Pilt PÄRAST",
+  "admin_before_after_image_single": "Pilt",
+
+  "admin_images_title": "Pildid",
+  "admin_images_upload": "Laadi üles",
+  "admin_images_choose_file": "Vali fail",
+  "admin_images_no_files": "Üleslaaditud pilte pole",
+  "admin_images_copy_url": "Kopeeri URL",
 
   "admin_action_save": "Salvesta",
   "admin_action_add": "Lisa",

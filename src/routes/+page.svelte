@@ -28,7 +28,7 @@
   <Process />
   <Pricing items={data.pricingItems} />
   <Benefits />
-  <BeforeAfter />
+  <BeforeAfter items={data.beforeAfterItems} />
   <Reviews items={data.reviewItems} />
   <FAQ items={data.faqItems} />
   <Certificates items={data.certificateItems} />

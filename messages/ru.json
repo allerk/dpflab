@@ -147,6 +147,8 @@
   "admin_nav_certificates": "Сертификаты",
   "admin_nav_contacts": "Контакты",
   "admin_nav_submissions": "Заявки",
+  "admin_nav_before_after": "До/После",
+  "admin_nav_images": "Изображения",
 
   "admin_faq_title": "FAQ",
   "admin_faq_add": "Добавить вопрос",
@@ -190,6 +192,21 @@
   "admin_contacts_saturday_close": "Сб закрытие (необязательно)",
 
   "admin_submissions_title": "Заявки",
+
+  "admin_before_after_title": "До / После",
+  "admin_before_after_add": "Добавить пару",
+  "admin_before_after_slider": "Слайдер",
+  "admin_before_after_slider_on": "Слайдер включён",
+  "admin_before_after_slider_off": "Готовое изображение",
+  "admin_before_after_image_before": "Изображение ДО",
+  "admin_before_after_image_after": "Изображение ПОСЛЕ",
+  "admin_before_after_image_single": "Изображение",
+
+  "admin_images_title": "Изображения",
+  "admin_images_upload": "Загрузить",
+  "admin_images_choose_file": "Выбрать файл",
+  "admin_images_no_files": "Нет загруженных изображений",
+  "admin_images_copy_url": "Скопировать URL",
 
   "admin_action_save": "Сохранить",
   "admin_action_add": "Добавить",

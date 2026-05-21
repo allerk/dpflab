@@ -45,6 +45,14 @@ export const contacts = sqliteTable('contacts', {
   saturdayClose: text('saturday_close')
 });
 
+export const beforeAfter = sqliteTable('before_after', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  sliderEnabled: integer('slider_enabled', { mode: 'boolean' }).notNull().default(true),
+  imageBefore: text('image_before'),
+  imageAfter: text('image_after'),
+  sortOrder: integer('sort_order').notNull().default(0)
+});
+
 export const contactSubmissions = sqliteTable('contact_submissions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),

@@ -6,21 +6,24 @@ import { getReviews } from '$lib/db/repositories/reviews';
 import { getPricingItems } from '$lib/db/repositories/pricing';
 import { getCertificates } from '$lib/db/repositories/certificates';
 import { getContacts } from '$lib/db/repositories/contacts';
+import { getBeforeAfterRows } from '$lib/db/repositories/before-after';
 import { createContactSubmission } from '$lib/db/repositories/contact-submissions';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const locale = locals.locale;
 
   try {
-    const [faqItems, reviewItems, pricingItems, certificateItems, contactsRow] = await Promise.all([
-      getFaqItems(db, locale),
-      getReviews(db),
-      getPricingItems(db, locale),
-      getCertificates(db, locale),
-      getContacts(db)
-    ]);
+    const [faqItems, reviewItems, pricingItems, certificateItems, contactsRow, beforeAfterItems] =
+      await Promise.all([
+        getFaqItems(db, locale),
+        getReviews(db),
+        getPricingItems(db, locale),
+        getCertificates(db, locale),
+        getContacts(db),
+        getBeforeAfterRows(db)
+      ]);
 
-    return { locale, faqItems, reviewItems, pricingItems, certificateItems, contactsRow };
+    return { locale, faqItems, reviewItems, pricingItems, certificateItems, contactsRow, beforeAfterItems };
   } catch {
     return {
       locale,
@@ -28,7 +31,8 @@ export const load: PageServerLoad = async ({ locals }) => {
       reviewItems: [],
       pricingItems: [],
       certificateItems: [],
-      contactsRow: null
+      contactsRow: null,
+      beforeAfterItems: []
     };
   }
 };

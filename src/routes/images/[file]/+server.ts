@@ -23,14 +23,15 @@ export const GET: RequestHandler = async ({ params }) => {
 
   const filePath = resolve(process.cwd(), 'data/images', filename);
 
-  let data: Buffer;
+  let ab: ArrayBuffer;
   try {
-    data = await readFile(filePath);
+    const buf = await readFile(filePath);
+    ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
   } catch {
     error(404, 'Not found');
   }
 
-  return new Response(data, {
+  return new Response(ab, {
     headers: {
       'Content-Type': mime,
       'Cache-Control': 'public, max-age=31536000, immutable'
