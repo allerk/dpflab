@@ -1,8 +1,26 @@
 <script lang="ts">
-  import { admin_dashboard_title, admin_dashboard_welcome } from '$lib/paraglide/messages';
+  import {
+    admin_dashboard_title,
+    admin_dashboard_welcome,
+    admin_nav_faq,
+    admin_nav_reviews,
+    admin_nav_pricing,
+    admin_nav_certificates,
+    admin_nav_contacts,
+    admin_nav_submissions
+  } from '$lib/paraglide/messages';
   import type { LayoutData } from './$types';
 
   export let data: LayoutData;
+
+  $: sections = [
+    { href: '/admin/faq', label: admin_nav_faq() },
+    { href: '/admin/reviews', label: admin_nav_reviews() },
+    { href: '/admin/pricing', label: admin_nav_pricing() },
+    { href: '/admin/certificates', label: admin_nav_certificates() },
+    { href: '/admin/contacts', label: admin_nav_contacts() },
+    { href: '/admin/submissions', label: admin_nav_submissions() }
+  ];
 </script>
 
 <div class="max-w-2xl">
@@ -10,14 +28,7 @@
   <p class="text-fg-muted mb-8 text-sm">{admin_dashboard_welcome()}, {data.adminEmail}</p>
 
   <div class="grid grid-cols-1 gap-4">
-    {#each [
-      { href: '/admin/faq', label: 'FAQ' },
-      { href: '/admin/reviews', label: 'Reviews' },
-      { href: '/admin/pricing', label: 'Pricing' },
-      { href: '/admin/certificates', label: 'Certificates' },
-      { href: '/admin/contacts', label: 'Contacts' },
-      { href: '/admin/submissions', label: 'Submissions' }
-    ] as item}
+    {#each sections as item}
       <a
         href={item.href}
         class="bg-bg-card rounded-card p-5 border border-border hover:border-accent transition-colors block"

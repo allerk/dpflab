@@ -76,21 +76,21 @@ await db.insert(reviews).values([
   {
     stars: 5,
     text: 'Быстро, качественно и по адекватной цене. Фильтр как новый, машина поехала совсем иначе!',
-    author: '— Aleksei, Tallinn',
+    author: 'Aleksei, Tallinn',
     locale: 'ru',
     sortOrder: 1
   },
   {
     stars: 5,
     text: 'Сотрудничаем с DPFLAB на постоянной основе. Всегда быстро забирают и возвращают фильтры.',
-    author: '— AutoPro OÜ',
+    author: 'AutoPro OÜ',
     locale: 'ru',
     sortOrder: 2
   },
   {
     stars: 5,
     text: 'Suurepärane teenus! Tulid kohale, puhastasid ja tõid tagasi. Soovitan!',
-    author: '— Igor, Tartu',
+    author: 'Igor, Tartu',
     locale: 'et',
     sortOrder: 3
   }
