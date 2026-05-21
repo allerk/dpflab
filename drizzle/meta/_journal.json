@@ -15,6 +15,13 @@
       "when": 1779002590885,
       "tag": "0001_bright_hercules",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1779393053966,
+      "tag": "0002_organic_junta",
+      "breakpoints": true
     }
   ]
 }

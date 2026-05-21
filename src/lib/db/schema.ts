@@ -12,6 +12,7 @@ export const reviews = sqliteTable('reviews', {
   stars: integer('stars').notNull().default(5),
   text: text('text').notNull(),
   author: text('author').notNull(),
+  locale: text('locale').notNull().default('ru'),
   sortOrder: integer('sort_order').notNull().default(0)
 });
 

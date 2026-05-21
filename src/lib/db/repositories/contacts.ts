@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm';
 import type { Db } from '../types';
 import { contacts } from '../schema';
 
@@ -30,4 +31,23 @@ export async function getContacts(db: Db): Promise<ContactsRow | null> {
     .limit(1);
 
   return rows[0] ?? null;
+}
+
+export async function updateContacts(db: Db, data: ContactsRow): Promise<void> {
+  const rows = await db.select({ id: contacts.id }).from(contacts).limit(1);
+  if (!rows[0]) return;
+  await db
+    .update(contacts)
+    .set({
+      phone: data.phone,
+      phoneHref: data.phoneHref,
+      whatsapp: data.whatsapp,
+      email: data.email,
+      address: data.address,
+      weekdaysOpen: data.weekdaysOpen,
+      weekdaysClose: data.weekdaysClose,
+      saturdayOpen: data.saturdayOpen || null,
+      saturdayClose: data.saturdayClose || null
+    })
+    .where(eq(contacts.id, rows[0].id));
 }

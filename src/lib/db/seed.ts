@@ -75,29 +75,23 @@ await db.insert(faq).values([
 await db.insert(reviews).values([
   {
     stars: 5,
-    text: makeLangStr({
-      et: 'Kiire, kvaliteetne ja taskukohase hinnaga. Filter nagu uus, auto sõidab täiesti teisiti!',
-      ru: 'Быстро, качественно и по адекватной цене. Фильтр как новый, машина поехала совсем иначе!'
-    }),
+    text: 'Быстро, качественно и по адекватной цене. Фильтр как новый, машина поехала совсем иначе!',
     author: '— Aleksei, Tallinn',
+    locale: 'ru',
     sortOrder: 1
   },
   {
     stars: 5,
-    text: makeLangStr({
-      et: 'Teeme DPFLABiga pidevalt koostööd. Alati kiire teenindus ja tagastus.',
-      ru: 'Сотрудничаем с DPFLAB на постоянной основе. Всегда быстро забирают и возвращают фильтры.'
-    }),
+    text: 'Сотрудничаем с DPFLAB на постоянной основе. Всегда быстро забирают и возвращают фильтры.',
     author: '— AutoPro OÜ',
+    locale: 'ru',
     sortOrder: 2
   },
   {
     stars: 5,
-    text: makeLangStr({
-      et: 'Suurepärane teenus! Tulid kohale, puhastasid ja tõid tagasi. Soovitan!',
-      ru: 'Отличный сервис! Забрали, почистили и привезли обратно. Рекомендую!'
-    }),
+    text: 'Suurepärane teenus! Tulid kohale, puhastasid ja tõid tagasi. Soovitan!',
     author: '— Igor, Tartu',
+    locale: 'et',
     sortOrder: 3
   }
 ]);

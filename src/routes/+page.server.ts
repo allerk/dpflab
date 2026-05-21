@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   try {
     const [faqItems, reviewItems, pricingItems, certificateItems, contactsRow] = await Promise.all([
       getFaqItems(db, locale),
-      getReviews(db, locale),
+      getReviews(db),
       getPricingItems(db, locale),
       getCertificates(db, locale),
       getContacts(db)
