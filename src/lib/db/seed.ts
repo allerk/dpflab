@@ -1,8 +1,9 @@
 import { createClient } from '@libsql/client';
 import { drizzle } from 'drizzle-orm/libsql';
 import * as schema from './schema';
-import { faq, reviews, pricing, certificates, contacts } from './schema';
+import { faq, reviews, pricing, certificates, contacts, siteImages } from './schema';
 import { makeLangStr } from './langstr';
+import { SITE_IMAGE_KEYS } from './repositories/site-images';
 
 const client = createClient({ url: process.env.DATABASE_URL ?? 'file:./data/dpflab.db' });
 const db = drizzle(client, { schema });
@@ -75,29 +76,23 @@ await db.insert(faq).values([
 await db.insert(reviews).values([
   {
     stars: 5,
-    text: makeLangStr({
-      et: 'Kiire, kvaliteetne ja taskukohase hinnaga. Filter nagu uus, auto sõidab täiesti teisiti!',
-      ru: 'Быстро, качественно и по адекватной цене. Фильтр как новый, машина поехала совсем иначе!'
-    }),
-    author: '— Aleksei, Tallinn',
+    text: 'Быстро, качественно и по адекватной цене. Фильтр как новый, машина поехала совсем иначе!',
+    author: 'Aleksei, Tallinn',
+    locale: 'ru',
     sortOrder: 1
   },
   {
     stars: 5,
-    text: makeLangStr({
-      et: 'Teeme DPFLABiga pidevalt koostööd. Alati kiire teenindus ja tagastus.',
-      ru: 'Сотрудничаем с DPFLAB на постоянной основе. Всегда быстро забирают и возвращают фильтры.'
-    }),
-    author: '— AutoPro OÜ',
+    text: 'Сотрудничаем с DPFLAB на постоянной основе. Всегда быстро забирают и возвращают фильтры.',
+    author: 'AutoPro OÜ',
+    locale: 'ru',
     sortOrder: 2
   },
   {
     stars: 5,
-    text: makeLangStr({
-      et: 'Suurepärane teenus! Tulid kohale, puhastasid ja tõid tagasi. Soovitan!',
-      ru: 'Отличный сервис! Забрали, почистили и привезли обратно. Рекомендую!'
-    }),
-    author: '— Igor, Tartu',
+    text: 'Suurepärane teenus! Tulid kohale, puhastasid ja tõid tagasi. Soovitan!',
+    author: 'Igor, Tartu',
+    locale: 'et',
     sortOrder: 3
   }
 ]);
@@ -160,6 +155,11 @@ await db.insert(contacts).values({
   saturdayOpen: '10:00',
   saturdayClose: '15:00'
 });
+
+// Initialize site image slots without overwriting admin-set values
+for (const key of SITE_IMAGE_KEYS) {
+  await db.insert(siteImages).values({ key, filename: null }).onConflictDoNothing();
+}
 
 console.log('✓ Database seeded');
 client.close();

@@ -11,6 +11,7 @@
   export let contactsRow: ContactsRow | null = null;
   export let locale: string = 'et';
   export let form: { errors?: Record<string, string>; name?: string; phone?: string; comment?: string; success?: boolean } | null = null;
+  export let workshopImage: string | null = null;
 
   let clientErrors: Record<string, string> = {};
   let submitted = false;
@@ -115,7 +116,11 @@
           </li>
         </ul>
       {/if}
-      <div class="placeholder aspect-[16/8] mt-1.5">[ DPFLAB · фото мастерской / здания ]</div>
+      {#if workshopImage}
+        <img src="/images/{workshopImage}" alt="DPFLAB workshop" class="w-full aspect-[16/8] mt-1.5 object-cover rounded-card" />
+      {:else}
+        <div class="placeholder aspect-[16/8] mt-1.5">[ DPFLAB · фото мастерской / здания ]</div>
+      {/if}
     </div>
   </div>
 </section>

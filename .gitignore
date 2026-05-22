@@ -5,6 +5,7 @@
 .idea
 .wrangler
 .playwright-mcp
+.claude/commands
 
 node_modules
 
@@ -16,6 +17,12 @@ node_modules
 /data/*.db
 /data/*.db-shm
 /data/*.db-wal
+
+# Uploaded images
+/data/images/
+
+# Admin
+/config/admin-whitelist.txt
 
 # Local notes
 CLAUDE_SETUP.md

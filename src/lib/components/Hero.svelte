@@ -7,6 +7,8 @@
   } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
 
+  export let image: string | null = null;
+
   const badgeIcons = ['clock', 'shield', 'truck'];
 
   $: titleWords = hero_title_words().split('|');
@@ -23,7 +25,7 @@
   <div class="container grid grid-cols-[1.1fr_1fr] gap-[60px] items-center max-md:grid-cols-1 max-md:gap-8">
 
     <div class="min-w-0">
-      <h1 class="text-[clamp(24px,7.5vw,60px)] font-black leading-[1.02] tracking-[-0.01em] mb-6">
+      <h1 class="text-[clamp(24px,7.5vw,60px)] font-black leading-[1.02] tracking-[-0.01em] mb-6 hyphens-auto">
         {#each titleWords as w, i}{#if i > 0}{' '}{/if}<span class:text-accent={w === 'DPF'}>{w}</span>{/each}
       </h1>
       <p class="text-[17px] text-fg-muted max-w-[520px] mb-8 max-sm:text-[15px]">{hero_subtitle()}</p>
@@ -55,10 +57,14 @@
     </div>
 
     <div class="min-w-0 aspect-[4/3]">
-      <div class="placeholder w-full h-full">
-        [ {hero_image_alt()} ]<br/>
-        <span style="opacity:.6">1200×900 · фото DPF</span>
-      </div>
+      {#if image}
+        <img src="/images/{image}" alt={hero_image_alt()} class="w-full h-full object-cover rounded-card" />
+      {:else}
+        <div class="placeholder w-full h-full">
+          [ {hero_image_alt()} ]<br/>
+          <span style="opacity:.6">1200×900 · фото DPF</span>
+        </div>
+      {/if}
     </div>
   </div>
 </section>
