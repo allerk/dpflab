@@ -8,22 +8,24 @@ import { getCertificates } from '$lib/db/repositories/certificates';
 import { getContacts } from '$lib/db/repositories/contacts';
 import { getBeforeAfterRows } from '$lib/db/repositories/before-after';
 import { createContactSubmission } from '$lib/db/repositories/contact-submissions';
+import { getSiteImages } from '$lib/db/repositories/site-images';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const locale = locals.locale;
 
   try {
-    const [faqItems, reviewItems, pricingItems, certificateItems, contactsRow, beforeAfterItems] =
+    const [faqItems, reviewItems, pricingItems, certificateItems, contactsRow, beforeAfterItems, siteImagesMap] =
       await Promise.all([
         getFaqItems(db, locale),
         getReviews(db),
         getPricingItems(db, locale),
         getCertificates(db, locale),
         getContacts(db),
-        getBeforeAfterRows(db)
+        getBeforeAfterRows(db),
+        getSiteImages(db)
       ]);
 
-    return { locale, faqItems, reviewItems, pricingItems, certificateItems, contactsRow, beforeAfterItems };
+    return { locale, faqItems, reviewItems, pricingItems, certificateItems, contactsRow, beforeAfterItems, siteImagesMap };
   } catch {
     return {
       locale,
@@ -32,7 +34,8 @@ export const load: PageServerLoad = async ({ locals }) => {
       pricingItems: [],
       certificateItems: [],
       contactsRow: null,
-      beforeAfterItems: []
+      beforeAfterItems: [],
+      siteImagesMap: { hero_main: null, why_main: null, contact_workshop: null }
     };
   }
 };

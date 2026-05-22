@@ -23,8 +23,8 @@
 
 <Header />
 <main>
-  <Hero />
-  <WhyImportant />
+  <Hero image={data.siteImagesMap.hero_main} />
+  <WhyImportant image={data.siteImagesMap.why_main} />
   <Process />
   <Pricing items={data.pricingItems} />
   <Benefits />
@@ -32,6 +32,6 @@
   <Reviews items={data.reviewItems} />
   <FAQ items={data.faqItems} />
   <Certificates items={data.certificateItems} />
-  <ContactForm contactsRow={data.contactsRow} locale={data.locale} {form} />
+  <ContactForm contactsRow={data.contactsRow} locale={data.locale} {form} workshopImage={data.siteImagesMap.contact_workshop} />
 </main>
 <Footer />

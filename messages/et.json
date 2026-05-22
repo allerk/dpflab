@@ -149,6 +149,7 @@
   "admin_nav_submissions": "Päringud",
   "admin_nav_before_after": "Enne/Pärast",
   "admin_nav_images": "Pildid",
+  "admin_nav_site_images": "Sektsiooni pildid",
 
   "admin_faq_title": "KKK",
   "admin_faq_add": "Lisa küsimus",
@@ -201,6 +202,12 @@
   "admin_before_after_image_before": "Pilt ENNE",
   "admin_before_after_image_after": "Pilt PÄRAST",
   "admin_before_after_image_single": "Pilt",
+
+  "admin_site_images_title": "Saidi sektsioonide pildid",
+  "admin_site_images_hero": "Peamine bänner (Hero)",
+  "admin_site_images_why": "Sektsioon «Miks oluline»",
+  "admin_site_images_contact": "Sektsioon «Kontaktid» — töökoda",
+  "admin_site_images_hint": "Vali pilt üleslaaditud piltide hulgast. Kui pole valitud — kuvatakse kohatäide.",
 
   "admin_images_title": "Pildid",
   "admin_images_upload": "Laadi üles",

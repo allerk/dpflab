@@ -1,8 +1,9 @@
 import { createClient } from '@libsql/client';
 import { drizzle } from 'drizzle-orm/libsql';
 import * as schema from './schema';
-import { faq, reviews, pricing, certificates, contacts } from './schema';
+import { faq, reviews, pricing, certificates, contacts, siteImages } from './schema';
 import { makeLangStr } from './langstr';
+import { SITE_IMAGE_KEYS } from './repositories/site-images';
 
 const client = createClient({ url: process.env.DATABASE_URL ?? 'file:./data/dpflab.db' });
 const db = drizzle(client, { schema });
@@ -154,6 +155,11 @@ await db.insert(contacts).values({
   saturdayOpen: '10:00',
   saturdayClose: '15:00'
 });
+
+// Initialize site image slots without overwriting admin-set values
+for (const key of SITE_IMAGE_KEYS) {
+  await db.insert(siteImages).values({ key, filename: null }).onConflictDoNothing();
+}
 
 console.log('✓ Database seeded');
 client.close();

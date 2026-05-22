@@ -5,6 +5,8 @@
   } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
 
+  export let image: string | null = null;
+
   $: points = [why_point_1(), why_point_2(), why_point_3(), why_point_4()];
 </script>
 
@@ -25,10 +27,14 @@
     </div>
 
     <div class="min-w-0 aspect-[4/3]">
-      <div class="placeholder w-full h-full">
-        [ {why_image_alt()} ]<br/>
-        <span style="opacity:.6">фото DPF: до / после</span>
-      </div>
+      {#if image}
+        <img src="/images/{image}" alt={why_image_alt()} class="w-full h-full object-cover rounded-card" />
+      {:else}
+        <div class="placeholder w-full h-full">
+          [ {why_image_alt()} ]<br/>
+          <span style="opacity:.6">фото DPF: до / после</span>
+        </div>
+      {/if}
     </div>
   </div>
 </section>

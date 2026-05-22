@@ -53,6 +53,11 @@ export const beforeAfter = sqliteTable('before_after', {
   sortOrder: integer('sort_order').notNull().default(0)
 });
 
+export const siteImages = sqliteTable('site_images', {
+  key: text('key').primaryKey(),
+  filename: text('filename')
+});
+
 export const contactSubmissions = sqliteTable('contact_submissions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),

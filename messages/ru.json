@@ -149,6 +149,7 @@
   "admin_nav_submissions": "Заявки",
   "admin_nav_before_after": "До/После",
   "admin_nav_images": "Изображения",
+  "admin_nav_site_images": "Фото разделов",
 
   "admin_faq_title": "FAQ",
   "admin_faq_add": "Добавить вопрос",
@@ -201,6 +202,12 @@
   "admin_before_after_image_before": "Изображение ДО",
   "admin_before_after_image_after": "Изображение ПОСЛЕ",
   "admin_before_after_image_single": "Изображение",
+
+  "admin_site_images_title": "Фотографии разделов сайта",
+  "admin_site_images_hero": "Главный баннер (Hero)",
+  "admin_site_images_why": "Раздел «Почему важно»",
+  "admin_site_images_contact": "Раздел «Контакты» — мастерская",
+  "admin_site_images_hint": "Выберите изображение из загруженных. Если не выбрано — показывается заглушка.",
 
   "admin_images_title": "Изображения",
   "admin_images_upload": "Загрузить",

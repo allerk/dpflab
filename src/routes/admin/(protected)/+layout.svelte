@@ -9,7 +9,8 @@
     admin_nav_contacts,
     admin_nav_submissions,
     admin_nav_before_after,
-    admin_nav_images
+    admin_nav_images,
+    admin_nav_site_images
   } from '$lib/paraglide/messages';
   import { page } from '$app/stores';
   import type { LayoutData } from './$types';
@@ -24,7 +25,8 @@
     { href: '/admin/contacts', label: admin_nav_contacts },
     { href: '/admin/submissions', label: admin_nav_submissions },
     { href: '/admin/before-after', label: admin_nav_before_after },
-    { href: '/admin/images', label: admin_nav_images }
+    { href: '/admin/images', label: admin_nav_images },
+    { href: '/admin/site-images', label: admin_nav_site_images }
   ];
 
   $: currentPath = $page.url.pathname;

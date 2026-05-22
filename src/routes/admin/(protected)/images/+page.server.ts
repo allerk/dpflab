@@ -5,6 +5,7 @@ import { resolve, basename, extname } from 'node:path';
 import { listImages, ALLOWED_EXT } from '$lib/server/admin/images';
 import { db } from '$lib/db/index';
 import { getBeforeAfterRows } from '$lib/db/repositories/before-after';
+import { getSiteImages } from '$lib/db/repositories/site-images';
 
 const IMAGES_DIR = resolve(process.cwd(), 'data/images');
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -41,10 +42,15 @@ export const actions: Actions = {
     const ext = extname(filename).toLowerCase();
     if (!ALLOWED_EXT.has(ext)) return fail(400, { error: 'bad_type' });
 
-    const baRows = await getBeforeAfterRows(db);
-    const usedIn = baRows
-      .filter((r) => r.imageBefore === filename || r.imageAfter === filename)
-      .map((r) => `Before/After #${r.id}`);
+    const [baRows, siteImagesMap] = await Promise.all([getBeforeAfterRows(db), getSiteImages(db)]);
+    const usedIn: string[] = [
+      ...baRows
+        .filter((r) => r.imageBefore === filename || r.imageAfter === filename)
+        .map((r) => `Before/After #${r.id}`),
+      ...Object.entries(siteImagesMap)
+        .filter(([, v]) => v === filename)
+        .map(([k]) => `Site image: ${k}`)
+    ];
 
     if (usedIn.length > 0) {
       return fail(400, { error: 'in_use', filename, usedIn, files: await listImages() });
