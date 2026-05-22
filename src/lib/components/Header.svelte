@@ -30,12 +30,9 @@
     { href: '#contacts', label: nav_contacts() }
   ];
 
-  const SCROLL_KEY = 'lang-switch-scroll';
-
   const setLang = (code: 'ru' | 'et') => {
     langOpen = false;
     menuOpen = false;
-    sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
     window.location.href = localizeHref(deLocalizeHref($page.url.pathname), { locale: code });
   };
 
