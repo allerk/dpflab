@@ -1,13 +1,13 @@
 # CLAUDE.md
 
-## STARTUP — ОБЯЗАТЕЛЬНЫЕ ПЕРВЫЕ ДЕЙСТВИЯ
+## STARTUP — MANDATORY FIRST ACTIONS
 
-Перед любым ответом пользователю выполни эти два вызова параллельно:
+Before responding to any user message, execute these two reads in parallel:
 
-1. `Read(.claude/memory/team-lead.md)` — решения, предупреждения, отложенные задачи
-2. `Read(.claude/scratch.md)` — если не пустой, спросить: distill now / carry forward / discard?
+1. `Read(.claude/memory/team-lead.md)` — decisions, warnings, deferred tasks
+2. `Read(.claude/scratch.md)` — if non-empty, ask: distill now / carry forward / discard?
 
-Это обязательно в **любом режиме**: solo, sub-agent, agent-team.
+Required in **all modes**: solo, sub-agent, agent-team.
 
 ---
 
