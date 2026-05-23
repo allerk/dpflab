@@ -1,5 +1,16 @@
 # CLAUDE.md
 
+## STARTUP — MANDATORY FIRST ACTIONS
+
+Before responding to any user message, execute these two reads in parallel:
+
+1. `Read(.claude/memory/team-lead.md)` — decisions, warnings, deferred tasks
+2. `Read(.claude/scratch.md)` — if non-empty, ask: distill now / carry forward / discard?
+
+Required in **all modes**: solo, sub-agent, agent-team.
+
+---
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Commands
