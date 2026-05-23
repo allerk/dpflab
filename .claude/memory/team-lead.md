@@ -6,14 +6,14 @@ metadata:
   agent: team-lead
 ---
 
-## Session 2026-05-23 — Agent team smoke test
+## Session 1 — 2026-05-23 16:12 UTC
 
 [LEARNED] Full `dpflab-agents` team lifecycle tested and confirmed working:
-`TeamCreate` → spawn homelander + black-noir → `SendMessage` task → report received → memory written → `shutdown_request` → `shutdown_approved` → system `teammate_terminated`. No issues.
+`TeamCreate` → spawn homelander + black-noir → `SendMessage` task → report received → memory written → `shutdown_request` → `shutdown_approved` → `TeamDelete`. No issues.
 
 [DECISION] Shutdown protocol: use `/end:shutdown` skill (sends `shutdown_request` to all agents, then `TeamDelete`). Do not send shutdown messages manually — the skill also flushes memory and calls `TeamDelete`.
 
-[WARNING] Admin panel has several security gaps found by black-noir (2026-05-23). Not fixed — out of scope for this session. Key issues:
+[WARNING] Admin panel has several security gaps found by black-noir. Not fixed — out of scope for this session. Key issues:
 - 4 routes skip `requireAdmin` (images, site-images, before-after list, before-after detail)
 - Session `iat` never validated server-side — replayable for full 7-day cookie window
 - Image upload silently overwrites existing files without collision check

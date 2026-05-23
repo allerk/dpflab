@@ -21,6 +21,7 @@ Read `.claude/scratch.md`. If it contains entries beyond the header comment:
    - Entry from `homelander` → `.claude/memory/agents/homelander.md`
    - Entry from `black-noir` → `.claude/memory/agents/black-noir.md`
    - Entry from `team-lead` or cross-cutting → `.claude/memory/team-lead.md`
+   - **Timestamp rule:** the session section header (`## Session N — YYYY-MM-DD HH:MM UTC`) must use the timestamp copied from the scratch entry's `<!-- agent: ... | YYYY-MM-DD HH:MM -->` tag — do NOT invent or manually choose a time. By this point the hook has already corrected it to UTC, so copy it as-is.
 4. Update `.claude/memory/MEMORY.md` index for any file that received new entries.
 5. Follow **Memory Write Rules** from `@.claude/common-prompt.md` for tags and format.
 6. Clear `.claude/scratch.md` — restore to empty header only:
