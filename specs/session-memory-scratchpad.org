@@ -1,0 +1,325 @@
+#+TITLE: Session Memory Scratchpad & Distillation Flow
+#+AUTHOR: aleksandr.lerko
+#+DATE: 2026-05-23
+#+STARTUP: overview
+#+TODO: TODO(t) IN-PROGRESS(p) BLOCKED(b) | DONE(d) CANCELLED(c)
+#+TAGS: spec(s) design(d) impl(i) test(e) docs(o)
+#+OPTIONS: toc:2 num:t
+
+* Overview                                                              :spec:
+  :PROPERTIES:
+  :STATUS:   draft
+  :VERSION:  0.1.0
+  :END:
+
+** Problem Statement
+   The current memory design writes directly to =.claude/memory/= (git-tracked) during
+   a session. This creates two problems:
+
+   1. *Git history pollution* — every WIP note, intermediate finding, and in-progress
+      tag produces a commit. The history becomes noise rather than a record of meaningful
+      decisions.
+
+   2. *No crash recovery* — if the session ends unexpectedly (crash, forced quit), any
+      facts not yet written are permanently lost. There is no intermediate buffer.
+
+   A scratchpad layer between the live session and the git-tracked memory files solves
+   both: agents write freely during a session without touching git, and at shutdown the
+   team-lead distills the raw scratch into clean, tagged, commit-worthy entries.
+
+** Goals
+   - Introduce =.claude/scratch.md= as a local, gitignored session buffer.
+   - Agents write all in-session observations to scratch, not directly to =.claude/memory/=.
+   - Shutdown protocol reads scratch, distills it into tagged entries in the correct
+     memory files, then clears scratch.
+   - Git history for =.claude/memory/= contains only distilled, intentional writes.
+   - Crash recovery: scratch survives a crash; next session opens with prior scratch intact.
+
+** Non-Goals
+   - Multi-developer memory merge (separate problem, deferred).
+   - Replacing the existing =.claude/memory/= structure or tag system.
+   - Automatic background distillation during a session.
+   - Remote / shared agent team scenarios.
+
+** Success Criteria
+   - =.claude/scratch.md= is present and listed in =.gitignore=.
+   - Agents write raw notes to scratch; zero in-session writes to =.claude/memory/=
+     except on explicit =/save-project-memory= or shutdown.
+   - =/shutdown= distills scratch → memory files → clears scratch → reports what was written.
+   - If session crashes with non-empty scratch, the next session's team-lead reads scratch
+     on startup and surfaces any unresolved WIP items.
+
+* Context & Background                                                  :spec:
+
+** Current State
+   - =.claude/memory/= is git-tracked; agents write directly to it during tasks.
+   - =/shutdown= exists but does not read a scratchpad — it only flushes team-lead's
+     in-context decisions.
+   - =common-prompt.md= mandates in-moment reporting; team-lead writes to agent memory
+     files after each report.
+   - No intermediate buffer exists; crash = data loss.
+
+** Stakeholders / Users
+   - *Developer (aleksandr.lerko)* — wants clean git history and crash safety.
+   - *Team-lead agent* — primary writer; owns distillation at shutdown.
+   - *Homelander / black-noir* — write to scratch during tasks; never write to memory directly.
+
+** Constraints & Assumptions
+   - =.claude/scratch.md= must be gitignored — it is machine-local, session-scoped.
+   - Scratch format is free-form but must use the same tags =([DECISION], [LEARNED], etc.)=
+     so distillation is mechanical, not interpretive.
+   - Only one agent team (or solo session) runs per machine at a time — no concurrent
+     scratch writers.
+   - Distillation is team-lead's responsibility; sub-agents never read or write memory
+     directly.
+
+* Requirements                                                          :spec:
+
+** Functional Requirements
+
+*** TODO FR-001: Create =.claude/scratch.md= and gitignore it
+    :PROPERTIES:
+    :PRIORITY: P0
+    :END:
+    - Create =.claude/scratch.md= with a minimal header comment.
+    - Add =.claude/scratch.md= to =.gitignore=.
+    - File persists across sessions (not auto-deleted on startup).
+
+*** TODO FR-002: Agents write in-session observations to scratch only
+    :PROPERTIES:
+    :PRIORITY: P0
+    :END:
+    Update =common-prompt.md= Memory Reporting Rule:
+    - Agents append raw findings to =.claude/scratch.md= using the standard tag format.
+    - Agents do NOT write to =.claude/memory/= directly during a session.
+    - Exception: explicit developer command =/save-project-memory= bypasses scratch and
+      writes directly to memory (intentional, developer-confirmed fact).
+
+    Scratch entry format (append-only during session):
+
+    #+BEGIN_SRC markdown
+    <!-- agent: homelander | task: fix auth | 2026-05-23 14:32 -->
+    [WARNING] IMAGES_DIR defined in two files independently.
+    #+END_SRC
+
+    Timestamp is mandatory — agent runs =date '+%Y-%m-%d %H:%M'= before appending.
+
+*** TODO FR-003: Startup check for non-empty scratch
+    :PROPERTIES:
+    :PRIORITY: P1
+    :END:
+    When team-lead starts (solo or team mode), it must check whether =.claude/scratch.md=
+    is non-empty. If so:
+    - Surface a summary of unresolved items to the developer ("Previous session left X
+      items in scratch — distill now or carry forward?").
+    - Developer decides: distill immediately, carry forward, or discard.
+
+*** TODO FR-004: =/shutdown= distills scratch into memory
+    :PROPERTIES:
+    :PRIORITY: P0
+    :END:
+    Update =.claude/commands/shutdown.md=:
+
+    1. Read =.claude/scratch.md=.
+    2. Group entries by agent (comment header) and by tag category.
+    3. Deduplicate against existing =.claude/memory/agents/<name>.md= content
+       (idempotency check from =common-prompt.md=).
+    4. Write surviving entries to the correct memory files with proper frontmatter.
+    5. Update =.claude/memory/MEMORY.md= index if new files were created.
+    6. Clear =.claude/scratch.md= (truncate to empty header).
+    7. Report: list of files written, count of entries distilled, count of duplicates skipped.
+
+*** TODO FR-005: =/save-project-memory= bypasses scratch
+    :PROPERTIES:
+    :PRIORITY: P1
+    :END:
+    When the developer explicitly runs =/save-project-memory=, the fact is
+    developer-confirmed and should land directly in =.claude/memory/= without going
+    through scratch. Update =save-project-memory.md= to make this clear.
+
+** Non-Functional Requirements
+
+*** Performance
+    - Scratch reads/writes are local file I/O — no measurable latency impact.
+
+*** Security
+    - Scratch is gitignored — secrets accidentally written there stay local.
+    - Distillation must still enforce the "no secrets in memory" rule before writing.
+
+*** Observability
+    - Every distillation is visible in =git log .claude/memory/= (only committed at shutdown).
+    - Scratch content is visible via =cat .claude/scratch.md= at any point during a session.
+
+*** Accessibility / i18n (if applicable)
+    - Not applicable.
+
+* Design                                                             :design:
+
+** Architecture Overview
+
+   #+BEGIN_SRC text
+   During session:
+     Agent finds something → appends to .claude/scratch.md (local, gitignored)
+
+   /save-project-memory (explicit):
+     Developer confirms fact → writes directly to .claude/memory/<file>.md (bypasses scratch)
+
+   /shutdown:
+     Team-lead reads scratch → deduplicates → writes to .claude/memory/ → clears scratch
+     → git add .claude/memory/ → developer commits
+
+   Crash recovery:
+     Next session → team-lead reads non-empty scratch → surfaces to developer → carry or distill
+   #+END_SRC
+
+** Data Model
+
+   Scratch file (=.claude/scratch.md=):
+   #+BEGIN_SRC markdown
+   <!-- session scratchpad — gitignored, cleared on /shutdown -->
+
+   <!-- agent: black-noir | task: admin panel review | 2026-05-23 14:02 -->
+   [WARNING] 4 admin routes skip requireAdmin — images, site-images, before-after.
+
+   <!-- agent: homelander | task: image upload fix | 2026-05-23 15:10 -->
+   [WIP] Image collision check not yet implemented — deferred to next session.
+   #+END_SRC
+
+   Memory files (=.claude/memory/agents/<name>.md=) — unchanged format, written only at
+   shutdown or on explicit =/save-project-memory=.
+
+** Interfaces / API
+   - *Write path (in-session):* agent appends to scratch → no memory write.
+   - *Write path (explicit):* =/save-project-memory= → direct to memory (unchanged).
+   - *Distillation path:* =/shutdown= → reads scratch → writes memory → clears scratch.
+   - *Crash recovery path:* startup → team-lead reads scratch → developer decides.
+
+** Key Flows
+
+   *Flow A — Normal session:*
+   1. Session starts → team-lead checks scratch (empty → continue).
+   2. Agents work, append findings to scratch.
+   3. Developer runs =/shutdown=.
+   4. Team-lead distills scratch → memory → clears scratch → reports.
+   5. Developer reviews, commits memory files.
+
+   *Flow B — Crash recovery:*
+   1. New session starts → team-lead reads non-empty scratch.
+   2. Surfaces summary to developer.
+   3. Developer says "distill" → team-lead runs distillation immediately.
+   4. Developer says "discard" → team-lead clears scratch.
+   5. Developer says "carry forward" → scratch stays, session continues.
+
+   *Flow C — Explicit save (bypasses scratch):*
+   1. Developer runs =/save-project-memory= with a specific fact.
+   2. Team-lead writes directly to =.claude/memory/= (developer-confirmed, no distillation needed).
+
+** Trade-offs Considered
+   - *Scratch as append-only vs. structured:* Append-only chosen. Structure (tags + agent
+     comment header) is enough for mechanical distillation without requiring agents to
+     maintain a schema mid-task.
+   - *Auto-distill on crash vs. manual:* Manual chosen. Auto-distill would require a
+     background process; manual keeps team-lead in control and avoids writing stale facts.
+   - *Scratch per-agent vs. shared:* Shared file chosen. Simpler; single-instance assumption
+     holds (one team per machine). Per-agent scratch would require merge at distillation time.
+
+* Acceptance Criteria & Test Plan                                      :test:
+
+** Given/When/Then scenarios
+
+*** Scenario: Agent writes during session, memory stays clean
+    - Given an active session with a team
+    - When homelander finds a security gap
+    - Then the finding is appended to =.claude/scratch.md=
+    - And =.claude/memory/agents/homelander.md= is NOT modified
+
+*** Scenario: /shutdown distills and clears scratch
+    - Given scratch contains 3 entries from 2 agents
+    - When developer runs =/shutdown=
+    - Then entries are written to the correct memory files with proper tags
+    - And scratch is cleared to empty header
+    - And the response lists exactly which files were written
+
+*** Scenario: Crash recovery on next session start
+    - Given scratch is non-empty from a previous session
+    - When a new session starts
+    - Then team-lead surfaces the unresolved items to the developer
+    - And no automatic write occurs without developer confirmation
+
+*** Scenario: /save-project-memory bypasses scratch
+    - Given the developer runs =/save-project-memory=
+    - When team-lead processes it
+    - Then the fact lands directly in =.claude/memory/=
+    - And scratch is not touched
+
+** Edge Cases
+   - *Empty scratch at shutdown:* =/shutdown= reports "nothing to distill" — no files written.
+   - *All entries are duplicates:* distillation writes nothing new; scratch still cleared.
+   - *Scratch contains a secret:* distillation must detect and warn — do not write to memory.
+   - *Scratch from a different project:* not possible (scratch is project-local).
+
+** Test Strategy (unit / integration / e2e)
+   - Manual verification: run a session, check scratch accumulates; run =/shutdown=, check
+     memory updated and scratch cleared.
+   - Crash simulation: write to scratch manually, start new session, confirm startup surfaces it.
+
+* Implementation Plan                                                  :impl:
+
+** Phases / Milestones
+
+*** TODO Phase 1: Scaffold scratch file
+    - [ ] Create =.claude/scratch.md= with empty header comment
+    - [ ] Add =.claude/scratch.md= to =.gitignore=
+
+*** TODO Phase 2: Update agent write protocol
+    - [ ] Update =common-prompt.md= — agents append to scratch, not memory
+    - [ ] Add scratch entry format (agent comment header + tag)
+
+*** TODO Phase 3: Update /shutdown to distill scratch
+    - [ ] Rewrite =.claude/commands/shutdown.md= to include distillation steps
+    - [ ] Add deduplication check against existing memory files
+    - [ ] Add scratch-clear step
+
+*** TODO Phase 4: Startup check
+    - [ ] Add scratch check instruction to =CLAUDE.md= (team-lead reads scratch on startup)
+    - [ ] Define the three developer responses: distill / carry / discard
+
+*** TODO Phase 5: Clarify /save-project-memory bypass
+    - [ ] Update =.claude/commands/memory/save-project-memory.md= — note it bypasses scratch
+
+** Rollout / Migration
+   - No migration of existing memory files needed.
+   - Existing =/save-project-memory= behavior unchanged.
+   - =/shutdown= gains new distillation step; old memory-flush step removed (replaced by distillation).
+
+** Rollback Strategy
+   - Remove scratch reference from =common-prompt.md= → agents write to memory directly again.
+   - =.claude/scratch.md= can remain without negative effect (gitignored).
+
+* Open Questions                                                        :spec:
+   All resolved (2026-05-23):
+
+   - [x] OQ-001 — *RESOLVED:* Timestamps are required in scratch entry headers.
+         Format: =<!-- agent: <name> | task: <desc> | YYYY-MM-DD HH:MM -->=
+   - [x] OQ-002 — *RESOLVED:* =/shutdown= writes all distilled entries at once without
+         per-entry confirmation. Developer reviews via =git diff= after shutdown completes.
+   - [x] OQ-003 — *RESOLVED:* =/shutdown= never commits. Committing is always the
+         developer's responsibility.
+
+* Risks & Mitigations                                                   :spec:
+   | Risk                                      | Likelihood | Impact | Mitigation                                              |
+   |-------------------------------------------+------------+--------+---------------------------------------------------------|
+   | Scratch grows very large in long sessions  | Medium     | Low    | Agents only write mandatory-category items (FR-002)     |
+   | Secret accidentally written to scratch    | Low        | Medium | Distillation checks before writing to memory            |
+   | Team-lead skips distillation at shutdown  | Low        | Medium | =/shutdown= command mandates it as step 1               |
+   | Developer never runs =/shutdown=           | High       | Medium | Startup check (FR-003) surfaces leftover scratch        |
+
+* References                                                            :docs:
+   - Original proposal: conversation 2026-05-23 (aleksandr.lerko + team-lead)
+   - Existing shutdown command: =.claude/commands/shutdown.md=
+   - Memory write rules: =.claude/common-prompt.md= §Memory Write Rules
+   - Current memory structure: =.claude/memory/MEMORY.md=
+
+* Changelog                                                             :docs:
+   - 2026-05-23 v0.2.0 — Closed OQ-001–OQ-003; timestamps mandatory, distill all at once, no auto-commit.
+   - 2026-05-23 v0.1.0 — Initial spec.

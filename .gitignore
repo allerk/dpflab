@@ -26,3 +26,4 @@ node_modules
 # Local notes
 CLAUDE_SETUP.md
 .claude/settings.local.json
+.claude/scratch.md
