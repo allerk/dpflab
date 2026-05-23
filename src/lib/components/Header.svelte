@@ -3,8 +3,8 @@
   import { page } from '$app/stores';
   import { getLocaleForUrl, localizeHref, deLocalizeHref } from '$lib/paraglide/runtime';
   import {
-    nav_home, nav_process, nav_pricing, nav_benefits, nav_faq, nav_contacts, nav_cta,
-    brand_tagline, contacts_phone, contacts_phone_href, contacts_whatsapp
+    nav_home, nav_process, nav_pricing, nav_benefits, nav_faq, nav_contacts,
+    brand_tagline, contacts_phone, contacts_phone_href
   } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
 
@@ -121,10 +121,6 @@
       </div>
 
       <a href={contacts_phone_href()} class="text-[14px] max-xl:text-[13px] font-semibold whitespace-nowrap">{contacts_phone()}</a>
-      <a href={contacts_whatsapp()} target="_blank" rel="noreferrer"
-         class="inline-flex items-center gap-2 bg-accent text-accent-fg font-semibold text-[13px] px-3.5 py-[9px] rounded-btn whitespace-nowrap hover:bg-accent-h transition-colors">
-        <Icon name="whatsapp" size={16}/> {nav_cta()}
-      </a>
     </div>
 
     <!-- Burger -->
@@ -173,10 +169,6 @@
           </div>
           <a href={contacts_phone_href()} class="text-[14px] font-semibold">{contacts_phone()}</a>
         </div>
-        <a href={contacts_whatsapp()} target="_blank" rel="noreferrer"
-           class="flex items-center justify-center gap-2 w-full bg-accent text-accent-fg font-semibold text-[15px] px-6 py-3.5 rounded-btn hover:bg-accent-h transition-colors">
-          <Icon name="whatsapp" size={16}/> {nav_cta()}
-        </a>
       </div>
     </div>
   {/if}

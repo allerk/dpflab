@@ -1,9 +1,8 @@
 <script lang="ts">
   import {
-    hero_title_words, hero_subtitle, hero_cta_primary, hero_cta_secondary,
+    hero_title_words, hero_subtitle, hero_cta_primary,
     hero_badge_1_title, hero_badge_1_text, hero_badge_2_title, hero_badge_2_text,
-    hero_badge_3_title, hero_badge_3_text, hero_image_alt,
-    contacts_whatsapp
+    hero_badge_3_title, hero_badge_3_text, hero_image_alt
   } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
 
@@ -34,10 +33,6 @@
         <a href="#contacts"
            class="inline-flex items-center justify-center gap-2 bg-accent text-accent-fg font-semibold text-[15px] px-6 py-3.5 rounded-btn whitespace-nowrap hover:bg-accent-h hover:-translate-y-px transition-[background,transform] max-xs:w-full">
           {hero_cta_primary()}
-        </a>
-        <a href={contacts_whatsapp()} target="_blank" rel="noreferrer"
-           class="inline-flex items-center justify-center gap-2 bg-white/[.08] text-fg border border-white/[.18] font-semibold text-[15px] px-6 py-3.5 rounded-btn whitespace-nowrap hover:bg-white/[.14] hover:-translate-y-px transition-[background,transform] max-xs:w-full">
-          <Icon name="whatsapp" size={16}/> {hero_cta_secondary()}
         </a>
       </div>
 
