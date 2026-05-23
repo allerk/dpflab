@@ -2,7 +2,7 @@
   import {
     brand_tagline,
     footer_copy, footer_rights, footer_link_1, footer_link_2,
-    contacts_whatsapp, contacts_email, contacts_phone_href, contacts_phone
+    contacts_email, contacts_phone_href, contacts_phone
   } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
 
@@ -32,10 +32,6 @@
     </div>
 
     <div class="flex gap-2.5 self-center">
-      <a href={contacts_whatsapp()} target="_blank" rel="noreferrer" aria-label="WhatsApp"
-         class="w-9 h-9 rounded-full flex items-center justify-center bg-white/[.05] hover:bg-accent hover:text-accent-fg transition-[background,color]">
-        <Icon name="whatsapp" size={18}/>
-      </a>
       <a href="mailto:{contacts_email()}" aria-label="Email"
          class="w-9 h-9 rounded-full flex items-center justify-center bg-white/[.05] hover:bg-accent hover:text-accent-fg transition-[background,color]">
         <Icon name="mail" size={18}/>
