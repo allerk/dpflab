@@ -101,6 +101,24 @@ If TaskCreate is adopted, the `.org` spec becomes the human-readable view and Ta
 
 ---
 
+## 6. Memory file rotation
+
+Goal: prevent agent memory files from growing unbounded and degrading context quality over months of development.
+
+**Problem:** with a changelog-per-session format, files grow linearly. At ~5 entries/session × 180 sessions = ~900 lines — enough to cause hallucinations (already observed in another project).
+
+**Proposed approach:**
+- Active file (`homelander.md`, `black-noir.md`, `team-lead.md`) keeps only:
+  - All `[DEFERRED]` and `[WARNING]` entries — until explicitly resolved
+  - All `[DECISION]` entries — permanent, architecturally important
+  - `[LEARNED]` entries — rolling window of last ~3 months
+- Older sessions move to `*-archive.md` (e.g. `homelander-archive.md`)
+- Rotation trigger: add a check to `shutdown.md` — if active file exceeds ~150 lines, archive sessions older than 3 months
+
+**Connection to item 1.3:** `write-memory.js` script could handle rotation automatically at write time.
+
+---
+
 ## Notes
 
 - Items 1.x should be done before containerisation — scripts are easier to test locally first
