@@ -5,6 +5,7 @@
 .idea
 .wrangler
 .playwright-mcp
+.claude/commands
 
 node_modules
 
@@ -25,4 +26,3 @@ node_modules
 
 # Local notes
 CLAUDE_SETUP.md
-.claude/settings.local.json
