@@ -6,7 +6,9 @@ metadata:
   agent: black-noir
 ---
 
-## Admin panel review — 2026-05-23
+## Session 1 — 2026-05-23 16:12 UTC
+
+[INFRA] GitHub self-approval is blocked when PR author and reviewer share the same `allerk` account. Future PRs opened by homelander under this account will always use `--comment` with explicit verdict wording. Consider a dedicated reviewer GitHub account if a formal approval workflow is required.
 
 [LEARNED] `hooks.server.ts:adminGuardHandle` (lines 20–63) is the **single primary auth boundary** covering ALL `/admin/*` routes (GET + POST). Individual `requireAdmin()` calls in load/actions are secondary defense-in-depth only — the hook runs before `resolve(event)`.
 
@@ -25,8 +27,4 @@ Split-brain risk if one copy diverges.
 
 [LEARNED] Dashboard home page (`src/routes/admin/(protected)/+page.svelte`) is **missing the "Site Images" section card** — all other sections are present there and in the sidebar.
 
-[LEARNED] As of 2026-05-23: `npm run check` → 0 errors, `npm test` → 47 passed (11 files). Clean baseline.
-
-## Scratchpad system test — 2026-05-23
-
-[WARNING] This is a test entry to verify distillation routing — should land in black-noir.md.
+[LEARNED] Test baseline as of Session 1: `npm run check` → 0 errors, `npm test` → 47 passed (11 files).
