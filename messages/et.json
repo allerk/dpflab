@@ -1,6 +1,9 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
 
+  "meta_title": "DPF filtri puhastus Eestis — alates 150€ | DPFLAB",
+  "meta_description": "DPF filtri puhastus Tallinnas alates 150€. Taastame kuni 98% läbilaskvuse 24 tunniga. Säästke kuni 80% vs uus filter. Kullerteenus üle Eesti.",
+
   "nav_home": "Avaleht",
   "nav_process": "Kuidas töötame",
   "nav_pricing": "Hinnad",
