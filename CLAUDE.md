@@ -1,5 +1,16 @@
 # CLAUDE.md
 
+## STARTUP — ОБЯЗАТЕЛЬНЫЕ ПЕРВЫЕ ДЕЙСТВИЯ
+
+Перед любым ответом пользователю выполни эти два вызова параллельно:
+
+1. `Read(.claude/memory/team-lead.md)` — решения, предупреждения, отложенные задачи
+2. `Read(.claude/scratch.md)` — если не пустой, спросить: distill now / carry forward / discard?
+
+Это обязательно в **любом режиме**: solo, sub-agent, agent-team.
+
+---
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Commands

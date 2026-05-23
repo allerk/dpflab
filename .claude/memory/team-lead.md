@@ -22,3 +22,7 @@ metadata:
 - No brute-force protection on login
 
 Full details in `.claude/memory/agents/black-noir.md`.
+
+## Session 2 — 2026-05-23 19:49 UTC
+
+[WARNING] Startup checklist not executed at session open: team-lead.md and scratch.md were not read until user prompted. Root cause: CLAUDE.md instruction was buried mid-file. Fixed by moving a mandatory startup block to the very top of CLAUDE.md.
