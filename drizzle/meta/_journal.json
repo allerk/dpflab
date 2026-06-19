@@ -36,6 +36,13 @@
       "when": 1779460400447,
       "tag": "0004_create_site_images",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1781897779956,
+      "tag": "0005_polite_gunslinger",
+      "breakpoints": true
     }
   ]
 }

@@ -62,6 +62,7 @@ export const contactSubmissions = sqliteTable('contact_submissions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
   phone: text('phone').notNull(),
+  email: text('email').notNull().default(''),
   comment: text('comment').notNull().default(''),
   locale: text('locale').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull()

@@ -45,17 +45,19 @@ export const actions: Actions = {
     const data = await request.formData();
     const name = (data.get('name') as string | null)?.trim() ?? '';
     const phone = (data.get('phone') as string | null)?.trim() ?? '';
+    const email = (data.get('email') as string | null)?.trim() ?? '';
     const comment = (data.get('comment') as string | null)?.trim() ?? '';
 
     const errors: Record<string, string> = {};
     if (!name) errors.name = 'required';
     if (!/^[\+\d\s\-()Ѐ-ӿ]{6,}$/.test(phone)) errors.phone = 'required';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'required';
 
     if (Object.keys(errors).length > 0) {
-      return fail(422, { errors, name, phone, comment });
+      return fail(422, { errors, name, phone, email, comment });
     }
 
-    await createContactSubmission(db, { name, phone, comment, locale: locals.locale });
+    await createContactSubmission(db, { name, phone, email, comment, locale: locals.locale });
 
     return { success: true };
   }
