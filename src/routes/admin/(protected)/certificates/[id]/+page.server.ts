@@ -1,12 +1,13 @@
 import { error, redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { requireAdmin } from '$lib/server/admin/require-admin.js';
-import { db } from '$lib/db/index.js';
+import { getDb } from '$lib/db/index.js';
 import { getCertificateRows, updateCertificate } from '$lib/db/repositories/certificates.js';
 import { makeLangStr, getLang } from '$lib/db/langstr.js';
 
 export const load: PageServerLoad = async (event) => {
   requireAdmin(event);
+  const db = getDb(event.platform);
   const id = parseInt(event.params.id, 10);
   if (isNaN(id)) error(404, 'Not found');
 
@@ -28,6 +29,7 @@ export const load: PageServerLoad = async (event) => {
 export const actions: Actions = {
   update: async (event) => {
     const { email } = requireAdmin(event);
+    const db = getDb(event.platform);
     const id = parseInt(event.params.id, 10);
     if (isNaN(id)) error(404, 'Not found');
 

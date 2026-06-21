@@ -1,21 +1,22 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
-import { unlink, writeFile, mkdir } from 'node:fs/promises';
-import { resolve, basename, extname } from 'node:path';
-import { listImages, ALLOWED_EXT } from '$lib/server/admin/images';
-import { db } from '$lib/db/index';
+import { basename, extname } from 'node:path';
+import { listImages, ALLOWED_EXT, contentTypeFor } from '$lib/server/admin/images';
+import { getDb } from '$lib/db/index';
 import { getBeforeAfterRows } from '$lib/db/repositories/before-after';
 import { getSiteImages } from '$lib/db/repositories/site-images';
 
-const IMAGES_DIR = resolve(process.cwd(), 'data/images');
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
 
-export const load: PageServerLoad = async () => {
-  return { files: await listImages() };
+export const load: PageServerLoad = async ({ platform }) => {
+  return { files: await listImages(platform) };
 };
 
 export const actions: Actions = {
-  upload: async ({ request }) => {
+  upload: async ({ request, platform }) => {
+    const bucket = platform?.env?.BUCKET;
+    if (!bucket) return fail(500, { error: 'no_bucket' });
+
     const data = await request.formData();
     const file = data.get('file') as File | null;
 
@@ -28,13 +29,18 @@ export const actions: Actions = {
     const filename = basename(file.name);
     const bytes = new Uint8Array(await file.arrayBuffer());
 
-    await mkdir(IMAGES_DIR, { recursive: true });
-    await writeFile(resolve(IMAGES_DIR, filename), bytes);
+    await bucket.put(filename, bytes, {
+      httpMetadata: { contentType: contentTypeFor(filename) }
+    });
 
-    return { files: await listImages() };
+    return { files: await listImages(platform) };
   },
 
-  delete: async ({ request }) => {
+  delete: async ({ request, platform }) => {
+    const bucket = platform?.env?.BUCKET;
+    if (!bucket) return fail(500, { error: 'no_bucket' });
+    const db = getDb(platform);
+
     const data = await request.formData();
     const filename = basename((data.get('filename') as string) ?? '');
     if (!filename) return fail(400, { error: 'no_filename' });
@@ -53,15 +59,11 @@ export const actions: Actions = {
     ];
 
     if (usedIn.length > 0) {
-      return fail(400, { error: 'in_use', filename, usedIn, files: await listImages() });
+      return fail(400, { error: 'in_use', filename, usedIn, files: await listImages(platform) });
     }
 
-    try {
-      await unlink(resolve(IMAGES_DIR, filename));
-    } catch {
-      // already gone — not an error
-    }
+    await bucket.delete(filename);
 
-    return { files: await listImages() };
+    return { files: await listImages(platform) };
   }
 };

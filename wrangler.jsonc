@@ -1,6 +1,36 @@
 {
+  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "dpflab",
-  "compatibility_date": "2025-01-01",
+  "compatibility_date": "2026-06-21",
   "compatibility_flags": ["nodejs_compat"],
-  "pages_build_output_dir": ".svelte-kit/cloudflare"
+  "main": ".svelte-kit/cloudflare/_worker.js",
+  // Serve only via the custom domain (which sits behind Cloudflare Access);
+  // disabling workers.dev prevents bypassing Access through the *.workers.dev URL.
+  "workers_dev": false,
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".svelte-kit/cloudflare"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    // Not secrets — the AUD tag and team domain are safe to keep in config.
+    "CF_ACCESS_TEAM_DOMAIN": "dpflab",
+    "CF_ACCESS_AUD": "b9c326b4ef29fca0bcf77b4d3847b9121e6a414e438865e896c5c5cfa559cf46"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "dpflab",
+      "database_id": "1cf109a2-4efd-48a5-b614-547a99125201",
+      "migrations_dir": "drizzle"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "dpflab-images"
+    }
+  ]
 }

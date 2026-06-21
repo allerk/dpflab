@@ -1,7 +1,7 @@
 import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { requireAdmin } from '$lib/server/admin/require-admin.js';
-import { db } from '$lib/db/index.js';
+import { getDb } from '$lib/db/index.js';
 import {
   getFaqRows,
   createFaqItem,
@@ -12,6 +12,7 @@ import { makeLangStr, getLang } from '$lib/db/langstr.js';
 
 export const load: PageServerLoad = async (event) => {
   requireAdmin(event);
+  const db = getDb(event.platform);
   const raw = await getFaqRows(db);
   const rows = raw.map((r) => ({
     id: r.id,
@@ -24,6 +25,7 @@ export const load: PageServerLoad = async (event) => {
 export const actions: Actions = {
   create: async (event) => {
     const { email } = requireAdmin(event);
+    const db = getDb(event.platform);
     const data = await event.request.formData();
     const questionRu = (data.get('question_ru') as string)?.trim() ?? '';
     const questionEt = (data.get('question_et') as string)?.trim() ?? '';
@@ -50,6 +52,7 @@ export const actions: Actions = {
 
   delete: async (event) => {
     const { email } = requireAdmin(event);
+    const db = getDb(event.platform);
     const data = await event.request.formData();
     const id = parseInt(data.get('id') as string, 10);
     if (isNaN(id)) return fail(400, { error: 'Invalid id' });
@@ -61,6 +64,7 @@ export const actions: Actions = {
 
   moveUp: async (event) => {
     const { email } = requireAdmin(event);
+    const db = getDb(event.platform);
     const data = await event.request.formData();
     const id = parseInt(data.get('id') as string, 10);
     if (isNaN(id)) return fail(400, { error: 'Invalid id' });
@@ -72,6 +76,7 @@ export const actions: Actions = {
 
   moveDown: async (event) => {
     const { email } = requireAdmin(event);
+    const db = getDb(event.platform);
     const data = await event.request.formData();
     const id = parseInt(data.get('id') as string, 10);
     if (isNaN(id)) return fail(400, { error: 'Invalid id' });
