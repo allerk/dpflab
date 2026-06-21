@@ -48,7 +48,7 @@
 </script>
 
 <section id="contacts" class="section bg-bg pb-10">
-  <div class="container grid grid-cols-[1.05fr_1fr] gap-12 items-start max-md:grid-cols-1 max-md:gap-7">
+  <div class="container grid grid-cols-[1.05fr_1fr] gap-12 items-stretch max-md:grid-cols-1 max-md:gap-7">
 
     <div>
       <h2 class="text-[clamp(24px,2.6vw,32px)] font-extrabold tracking-[0.02em] mb-1.5">{contact_title()}</h2>
