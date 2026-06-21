@@ -1,7 +1,22 @@
 <script lang="ts">
-  import type { ContentBundle } from '$lib/types';
+  import {
+    hero_title_words, hero_title_accent, hero_subtitle, hero_cta_primary,
+    hero_badge_1_title, hero_badge_1_text, hero_badge_2_title, hero_badge_2_text,
+    hero_badge_3_title, hero_badge_3_text, hero_image_alt
+  } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
-  export let t: ContentBundle;
+
+  export let image: string | null = null;
+
+  const badgeIcons = ['clock', 'shield', 'truck'];
+
+  $: titleWords = hero_title_words().split('|');
+  $: accentWord = hero_title_accent();
+  $: badges = [
+    { icon: badgeIcons[0], title: hero_badge_1_title(), text: hero_badge_1_text() },
+    { icon: badgeIcons[1], title: hero_badge_2_title(), text: hero_badge_2_text() },
+    { icon: badgeIcons[2], title: hero_badge_3_title(), text: hero_badge_3_text() }
+  ];
 </script>
 
 <section id="hero" class="relative py-14 pb-20 overflow-hidden
@@ -10,24 +25,20 @@
   <div class="container grid grid-cols-[1.1fr_1fr] gap-[60px] items-center max-md:grid-cols-1 max-md:gap-8">
 
     <div class="min-w-0">
-      <h1 class="text-[clamp(24px,7.5vw,60px)] font-black leading-[1.02] tracking-[-0.01em] mb-6">
-        {#each t.hero.title as w, i}{#if i > 0}{' '}{/if}<span class:text-accent={w === 'DPF'}>{w}</span>{/each}
+      <h1 class="text-[clamp(24px,7.5vw,60px)] font-black leading-[1.02] tracking-[-0.01em] mb-6 hyphens-auto">
+        {#each titleWords as w, i}{#if i > 0}{' '}{/if}<span class:text-accent={w === accentWord}>{w}</span>{/each}
       </h1>
-      <p class="text-[17px] text-fg-muted max-w-[520px] mb-8 max-sm:text-[15px]">{t.hero.subtitle}</p>
+      <p class="text-[17px] text-fg-muted max-w-[520px] mb-8 max-sm:text-[15px]">{hero_subtitle()}</p>
 
       <div class="flex gap-3 flex-wrap mb-12 max-xs:flex-col">
         <a href="#contacts"
            class="inline-flex items-center justify-center gap-2 bg-accent text-accent-fg font-semibold text-[15px] px-6 py-3.5 rounded-btn whitespace-nowrap hover:bg-accent-h hover:-translate-y-px transition-[background,transform] max-xs:w-full">
-          {t.hero.ctaPrimary}
-        </a>
-        <a href={t.contacts.whatsapp} target="_blank" rel="noreferrer"
-           class="inline-flex items-center justify-center gap-2 bg-white/[.08] text-fg border border-white/[.18] font-semibold text-[15px] px-6 py-3.5 rounded-btn whitespace-nowrap hover:bg-white/[.14] hover:-translate-y-px transition-[background,transform] max-xs:w-full">
-          <Icon name="whatsapp" size={16}/> {t.hero.ctaSecondary}
+          {hero_cta_primary()}
         </a>
       </div>
 
       <div class="grid grid-cols-3 gap-6 max-md:grid-cols-1 max-md:gap-3.5">
-        {#each t.hero.badges as b}
+        {#each badges as b}
           <div class="flex gap-3 items-start">
             <span class="w-10 h-10 rounded-full border border-accent text-accent flex items-center justify-center shrink-0">
               <Icon name={b.icon} size={20}/>
@@ -42,10 +53,14 @@
     </div>
 
     <div class="min-w-0 aspect-[4/3]">
-      <div class="placeholder w-full h-full">
-        [ {t.hero.imageAlt} ]<br/>
-        <span style="opacity:.6">1200×900 · фото DPF</span>
-      </div>
+      {#if image}
+        <img src="/images/{image}" alt={hero_image_alt()} class="w-full h-full object-cover rounded-card" />
+      {:else}
+        <div class="placeholder w-full h-full">
+          [ {hero_image_alt()} ]<br/>
+          <span style="opacity:.6">1200×900 · фото DPF</span>
+        </div>
+      {/if}
     </div>
   </div>
 </section>

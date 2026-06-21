@@ -1,0 +1,8 @@
+# Admin email whitelist — one address per line.
+# Lines beginning with # and blank lines are ignored.
+# Comparison is case-insensitive and trims surrounding whitespace.
+# Copy this file to admin-whitelist.txt and add real addresses.
+# The real file is gitignored; never commit it.
+#
+# alice@example.com
+# bob@example.com

@@ -1,0 +1,440 @@
+#+TITLE: Project-Level Memory System for Claude Code Agents
+#+AUTHOR: aleksandr.lerko
+#+DATE: 2026-05-23
+#+STARTUP: overview
+#+TODO: TODO(t) IN-PROGRESS(p) BLOCKED(b) | DONE(d) CANCELLED(c)
+#+TAGS: spec(s) design(d) impl(i) test(e) docs(o)
+#+OPTIONS: toc:2 num:t
+
+* Overview                                                              :spec:
+  :PROPERTIES:
+  :STATUS:   ready-for-impl
+  :VERSION:  0.2.0
+  :END:
+
+** Problem Statement
+   Claude Code's built-in memory system stores everything in
+   =~/.claude/projects/.../memory= — a machine-local, user-scoped directory.
+   This works for personal preferences and session context, but project-level
+   facts (architecture decisions, agent-specific context, shared conventions)
+   live outside version control and are invisible to teammates and CI agents.
+
+   The project needs a second memory tier that is git-tracked, project-scoped,
+   and accessible to every agent (human or automated) that clones the repo.
+
+** Goals
+   - Introduce =.claude/memory/= as the canonical store for project-level memory.
+   - Keep =~/.claude/projects/.../memory= strictly for personal, local,
+     user-scoped data (behavioral patterns, preferences, session context).
+   - Surface project memory to Claude agents on every run via the chain
+     =CLAUDE.md= → =.claude/memory/MEMORY.md= → individual topic files.
+   - Allow the developer to save project-level facts via a dedicated
+     slash-command (=.claude/commands/=) or by asking an agent directly.
+   - Make agents ask for clarification rather than guess when the target tier
+     is ambiguous.
+   - Mark any fact saved without explicit developer confirmation as speculative.
+
+** Non-Goals
+   - Replacing or modifying Claude Code's built-in memory infrastructure.
+   - Storing behavioral preferences, developer session context, or personal
+     workflow notes in =.claude/memory/= (those stay in =~/.claude/projects/.../memory=).
+   - Automatic/background migration of existing user-level memories.
+   - Syncing or cross-referencing user-level and project-level tiers.
+
+** Success Criteria
+   - =.claude/memory/= exists, is committed to git, and is not excluded by
+     =.gitignore=.
+   - =CLAUDE.md= → =.claude/memory/MEMORY.md= chain works: agents load
+     project-level context on every session start.
+   - A developer can save a project-level fact with a single slash-command or
+     explicit instruction; the resulting file lands in =.claude/memory/=.
+   - When scope is ambiguous, the agent blocks and asks — never falls back
+     silently.
+   - Facts saved without explicit confirmation carry a =⚠ SPECULATIVE= marker.
+
+* Context & Background                                                  :spec:
+** Current State
+   - =~/.claude/projects/-Users-aleksandr-lerko-dev-dpflab/memory/= already
+     exists and stores user-level memories (feedback, user profile, project
+     snapshots, references). Its =MEMORY.md= index is loaded as a
+     system-reminder on every session.
+   - =CLAUDE.md= is checked into the repo and read by Claude Code on every
+     invocation; it currently contains architecture notes but no reference to
+     any project-level memory directory.
+   - =.gitignore= excludes only machine-local files such as
+     =.claude/settings.local.json=; the =.claude/= directory itself is
+     tracked and =.claude/memory/= can be committed safely.
+   - No =.claude/memory/= directory exists yet.
+
+** Stakeholders / Users
+   - *Developer (aleksandr.lerko)* — primary author; decides what goes into
+     project memory and when.
+   - *Claude agents (homelander, black-noir, default claude)* — consumers of
+     project memory at session start; potential writers when instructed.
+   - *Future teammates / CI* — read-only consumers once the repo is shared.
+
+** Constraints & Assumptions
+   - Claude Code reads =CLAUDE.md= on every invocation (confirmed by project
+     conventions).
+   - =.claude/= is tracked by git; only =settings.local.json= (and similar
+     local overrides) are gitignored within it.
+   - Slash-commands in =.claude/commands/= are the standard Claude Code
+     mechanism for custom developer commands.
+   - The spec uses "agent" to mean any Claude Code persona (homelander,
+     black-noir, or the default assistant).
+
+* Requirements                                                          :spec:
+** Functional Requirements
+
+*** TODO FR-001: Create =.claude/memory/= directory structure
+    :PROPERTIES:
+    :PRIORITY: P0
+    :END:
+    Create the following layout at the repository root and commit it to git:
+
+    #+BEGIN_SRC text
+    .claude/
+    └── memory/
+        ├── MEMORY.md          ← project-level index (mirrors user-level pattern)
+        ├── agents/
+        │   ├── homelander.md  ← homelander-specific context
+        │   └── black-noir.md  ← black-noir-specific context
+        └── <topic>.md         ← general project facts (e.g. auth.md, db.md)
+    #+END_SRC
+
+*** TODO FR-002: Segregate user-level vs project-level memory
+    :PROPERTIES:
+    :PRIORITY: P0
+    :END:
+    - =~/.claude/projects/.../memory= stores only: behavioral patterns,
+      personal preferences, developer-session context, feedback about agent
+      tone/style.
+    - =.claude/memory/= stores only: project-level facts, architecture
+      decisions, shared conventions, per-agent codebase context.
+    - Neither tier may contain items that belong to the other.
+
+*** TODO FR-003: Wire =CLAUDE.md= → =.claude/memory/MEMORY.md=
+    :PROPERTIES:
+    :PRIORITY: P0
+    :END:
+    =CLAUDE.md= must contain a reference to =.claude/memory/MEMORY.md= so
+    that Claude Code loads the project-level index on every session start.
+    =.claude/memory/MEMORY.md= in turn lists (links to) each individual
+    memory file, so adding a new topic file requires only one line in
+    =MEMORY.md= — no changes to =CLAUDE.md=.
+
+*** TODO FR-004: Slash-command for saving project-level memory
+    :PROPERTIES:
+    :PRIORITY: P1
+    :END:
+    A custom slash-command must be created under =.claude/commands/= (Claude
+    Code's convention for project-level commands). The command is the primary
+    explicit mechanism for the developer to save a fact to =.claude/memory/=.
+
+    The agent must also respond correctly to a plain-language instruction
+    ("save this to project memory: …") as an equivalent alternative.
+
+    In both cases: write the file to =.claude/memory/= and state the exact
+    target path in the response.
+
+*** TODO FR-005: Explicit path mention on every project-memory write
+    :PROPERTIES:
+    :PRIORITY: P1
+    :END:
+    Whenever an agent writes to =.claude/memory/=, the response must include
+    the exact file path written (e.g. =.claude/memory/db.md=). No silent
+    writes permitted.
+
+*** TODO FR-006: Agent must update =MEMORY.md= index after every write
+    :PROPERTIES:
+    :PRIORITY: P1
+    :END:
+    After writing a new or updated topic file, the agent must also update
+    =.claude/memory/MEMORY.md= to reflect the change — mirroring the
+    user-level =MEMORY.md= maintenance pattern. The index entry format is:
+
+    #+BEGIN_SRC markdown
+    - [Title](file.md) — one-line hook (≤ 150 chars)
+    #+END_SRC
+
+*** TODO FR-007: Ambiguous-tier handling — block and ask, never fall back
+    :PROPERTIES:
+    :PRIORITY: P1
+    :END:
+    If an agent cannot determine whether a piece of information belongs in
+    =~/.claude/projects/.../memory= or =.claude/memory/=, it must:
+    1. Pause the save operation.
+    2. Warn the developer explicitly, naming both tiers.
+    3. Ask for clarification before writing anything.
+
+    The agent must *not* pick a tier silently or apply a heuristic fallback.
+
+*** TODO FR-008: Mark unconfirmed saves as speculative
+    :PROPERTIES:
+    :PRIORITY: P1
+    :END:
+    If the developer responds with "don't care" / no preference / stays silent
+    after an FR-007 clarification request, the agent may proceed but must
+    prepend the saved file with a clearly visible speculative marker:
+
+    #+BEGIN_SRC markdown
+    > ⚠ SPECULATIVE — tier/path chosen by agent without explicit developer
+    > confirmation. Review and move/delete if incorrect.
+    #+END_SRC
+
+*** TODO FR-009: Per-agent memory files under =agents/=
+    :PROPERTIES:
+    :PRIORITY: P2
+    :END:
+    Agent-specific facts live in =.claude/memory/agents/<agent-name>.md=.
+    Current agents: =homelander.md=, =black-noir.md=. Adding a new agent
+    persona requires creating a new file in that subdirectory and adding an
+    entry to =MEMORY.md=.
+
+** Non-Functional Requirements
+
+*** Performance
+    - No measurable impact on agent startup time; memory files are small
+      markdown files read once per session.
+
+*** Security
+    - Do not store secrets, credentials, or PII in =.claude/memory/= — it is
+      committed to git and may become public.
+
+*** Observability
+    - Every write to =.claude/memory/= is visible in =git log= (files tracked).
+
+*** Accessibility / i18n (if applicable)
+    - Not applicable to this feature.
+
+* Design                                                             :design:
+** Architecture Overview
+   Two-tier memory, load chain, and write paths:
+
+   #+BEGIN_SRC text
+   ┌──────────────────────────────────────────────────────────┐
+   │  Machine-local (NOT in git)                              │
+   │  ~/.claude/projects/<hash>/memory/                       │
+   │  • feedback, preferences, session context, agent style   │
+   │  • MEMORY.md → loaded as system-reminder each session    │
+   └──────────────────────────────────────────────────────────┘
+
+   ┌──────────────────────────────────────────────────────────┐
+   │  Repo (git-tracked)                                      │
+   │  CLAUDE.md                                               │
+   │    └─▶ .claude/memory/MEMORY.md  (project index)        │
+   │           ├─▶ .claude/memory/<topic>.md                  │
+   │           └─▶ .claude/memory/agents/<agent>.md           │
+   └──────────────────────────────────────────────────────────┘
+
+   Write path (developer → project memory):
+     /save-project-memory  OR  "save this to project memory: …"
+       └─▶ agent writes .claude/memory/<file>.md
+       └─▶ agent updates .claude/memory/MEMORY.md index
+       └─▶ agent states exact path in response
+       └─▶ developer commits to git
+   #+END_SRC
+
+** Data Model
+
+   Directory layout:
+   #+BEGIN_SRC text
+   .claude/
+   ├── commands/
+   │   └── save-project-memory.md   ← slash-command definition
+   └── memory/
+       ├── MEMORY.md                ← index (one line per file)
+       ├── agents/
+       │   ├── homelander.md
+       │   └── black-noir.md
+       ├── auth.md                  ← example topic file
+       └── db.md                    ← example topic file
+   #+END_SRC
+
+   Every memory file (topic or agent) uses this frontmatter format,
+   mirroring the user-level memory pattern:
+   #+BEGIN_SRC markdown
+   ---
+   name: <kebab-case-slug>
+   description: <one-line summary — used to assess relevance>
+   metadata:
+     type: <project | agent-specific>
+     agent: <agent-name | all>
+   ---
+
+   <body — rule/fact, then **Why:** and **How to apply:** lines>
+   #+END_SRC
+
+   =.claude/memory/MEMORY.md= index format (one entry per file, ≤ 150 chars):
+   #+BEGIN_SRC markdown
+   # Project Memory Index
+
+   - [Title](file.md) — one-line hook
+   - [Homelander context](agents/homelander.md) — full-stack dev persona rules
+   - [Black-noir context](agents/black-noir.md) — PR reviewer persona rules
+   #+END_SRC
+
+** Interfaces / API
+   - *Write path (explicit):* developer runs slash-command or gives plain
+     instruction → agent writes file + updates index → states path.
+   - *Write path (ambiguous):* agent pauses → asks for tier → writes after
+     confirmation, or writes with SPECULATIVE marker if no answer.
+   - *Read path:* Claude Code reads =CLAUDE.md= → sees project memory reference
+     → loads =.claude/memory/MEMORY.md= → content available as context.
+   - No programmatic API; all I/O is file-based markdown.
+
+** Key Flows
+
+   *Flow A — Developer saves a fact (explicit):*
+   1. Developer runs =/save-project-memory= or says "save this to project memory".
+   2. Agent determines correct topic file (or creates a new one).
+   3. Agent writes =.claude/memory/<topic>.md= and updates =MEMORY.md= index.
+   4. Agent states the exact file path in the response.
+   5. Developer reviews and commits to git.
+
+   *Flow B — Agent encounters ambiguous scope:*
+   1. Agent needs to store a fact; cannot determine user-level vs project-level.
+   2. Agent pauses, warns, asks: "Should this go to project memory
+      (=.claude/memory/=) or your personal memory (=~/.claude/...=)?"
+   3. Developer clarifies → agent writes to the specified tier.
+   4. If developer says "don't care" → agent writes with =⚠ SPECULATIVE= marker.
+
+   *Flow C — Session start (read):*
+   1. Claude Code reads =CLAUDE.md=.
+   2. Agent follows reference to =.claude/memory/MEMORY.md=.
+   3. Project-level context is available from the first message.
+
+** Trade-offs Considered
+   - *Single index vs. individual links in CLAUDE.md:* Single index chosen.
+     Adding new topic files requires only one line in =MEMORY.md=; =CLAUDE.md=
+     never needs to change for memory additions.
+   - *agents/ subdir vs. flat files with prefix:* Subdir chosen for
+     cleanliness; flat files with prefix (=agent-homelander.md=) would work
+     equally well but mix agent and topic files.
+   - *Speculative marker in-file vs. sidecar:* In-file chosen for visibility
+     — the marker is the first thing a reader sees.
+
+* Acceptance Criteria & Test Plan                                      :test:
+** Given/When/Then scenarios
+
+*** Scenario: Developer saves a project fact via slash-command
+    - Given the developer runs =/save-project-memory "We use SQLite via Drizzle,
+      never raw SQL"=
+    - When the agent processes the command
+    - Then a file is created or updated under =.claude/memory/=
+    - And =.claude/memory/MEMORY.md= is updated with a new index entry
+    - And the agent's response includes the exact file path written
+    - And the file does not contain a SPECULATIVE marker
+
+*** Scenario: Developer saves a fact via plain instruction
+    - Given the developer says "save this to project memory: auth uses JWT,
+      tokens expire in 1h"
+    - When the agent processes the instruction
+    - Then behavior is identical to the slash-command scenario above
+
+*** Scenario: Agent encounters ambiguous scope
+    - Given the developer asks the agent to "remember that deployments go to
+      zone.ee"
+    - When the agent cannot determine user-level vs. project-level
+    - Then the agent stops and explicitly asks which tier to use
+    - And no file is written until the developer responds
+
+*** Scenario: Developer answers "don't care" to scope question
+    - Given the agent asked for tier clarification
+    - When the developer responds "don't care" or gives no preference
+    - Then the agent writes the file to its best-guess location
+    - And the file is prefixed with the =⚠ SPECULATIVE= marker
+    - And the agent states both the path and speculative status in the response
+
+*** Scenario: Session start loads project memory
+    - Given =.claude/memory/MEMORY.md= lists at least one topic file
+    - And =CLAUDE.md= references =.claude/memory/MEMORY.md=
+    - When a new Claude Code session starts
+    - Then the agent's context includes the project-level facts
+
+** Edge Cases
+   - *Slug collision:* two facts for the same slug → agent merges into
+     existing file or asks developer which to keep.
+   - *Agent file for unknown persona:* writing to =agents/new-agent.md= for
+     a persona not yet listed in =MEMORY.md= → agent creates file and adds
+     index entry; no error.
+   - *=.gitignore= regression:* =.claude/memory/= accidentally excluded →
+     facts become local-only; caught by verifying =git status= after first commit.
+
+** Test Strategy (unit / integration / e2e)
+   - Manual verification: run slash-command, confirm file at stated path,
+     confirm index entry in =MEMORY.md=, confirm content appears in next session.
+   - Speculative flow: respond "don't care", inspect resulting file for marker.
+   - Git verification: =git log .claude/memory/= shows each write.
+
+* Implementation Plan                                                  :impl:
+** Phases / Milestones
+
+*** TODO Phase 1: Scaffold directory and wire CLAUDE.md
+    - [ ] Create =.claude/memory/= with initial =MEMORY.md= (empty index)
+    - [ ] Create =.claude/memory/agents/= with =homelander.md= and =black-noir.md=
+          stubs
+    - [ ] Verify =.claude/memory/= is not excluded by =.gitignore=
+    - [ ] Add reference to =.claude/memory/MEMORY.md= in =CLAUDE.md=
+    - [ ] Commit structure to git
+
+*** TODO Phase 2: Slash-command
+    - [ ] Create =.claude/commands/save-project-memory.md= with command
+          definition, instructions, and expected agent behavior (FR-004 through
+          FR-006)
+    - [ ] Test Flow A end-to-end
+
+*** TODO Phase 3: Ambiguity and speculative handling
+    - [ ] Document FR-007 and FR-008 rules in =CLAUDE.md= or a dedicated
+          project memory file
+    - [ ] Test Flow B end-to-end (ambiguous scope, then "don't care" response)
+
+*** TODO Phase 4: Per-agent memory population (P2)
+    - [ ] Populate =.claude/memory/agents/homelander.md= with initial context
+    - [ ] Populate =.claude/memory/agents/black-noir.md= with initial context
+    - [ ] Verify agents pick up their own context on session start
+
+** Rollout / Migration
+   - No migration of existing user-level memories needed.
+   - =CLAUDE.md= receives one additive section only; existing content unchanged.
+
+** Rollback Strategy
+   - Remove the =.claude/memory/MEMORY.md= reference from =CLAUDE.md=.
+   - The =.claude/memory/= directory can remain without negative effect.
+
+* Open Questions                                                        :spec:
+   All original open questions resolved (2026-05-23):
+
+   - [x] OQ-001 — *RESOLVED:* Single index file.
+         =CLAUDE.md= → =.claude/memory/MEMORY.md= → individual topic files.
+   - [x] OQ-002 — *RESOLVED:* Per-agent files live in =.claude/memory/agents/=
+         (e.g. =agents/homelander.md=, =agents/black-noir.md=).
+   - [x] OQ-003 — *RESOLVED:* =.gitignore= only excludes local override files
+         (e.g. =settings.local.json=); =.claude/memory/= is safe to commit.
+   - [x] OQ-004 — *RESOLVED:* Slash-command in =.claude/commands/= (Claude Code
+         convention). Plain-language instruction is an equivalent alternative.
+   - [x] OQ-005 — *RESOLVED:* Use the same writing pattern as user-level memory
+         (frontmatter + MEMORY.md index). Agent must update =MEMORY.md= after
+         every write.
+
+* Risks & Mitigations                                                   :spec:
+   | Risk                                          | Likelihood | Impact | Mitigation                                        |
+   |-----------------------------------------------+------------+--------+---------------------------------------------------|
+   | Secret accidentally written to project memory | Medium     | High   | "No secrets" rule in =CLAUDE.md=; PR review gate  |
+   | Agent writes to wrong tier silently           | Medium     | Medium | FR-007 enforcement; speculative marker (FR-008)   |
+   | =MEMORY.md= index drifts out of sync          | Medium     | Low    | FR-006: agent always updates index on write       |
+   | Memory files grow stale / contradictory       | High       | Low    | Periodic review; mark stale entries as DEPRECATED |
+   | =.gitignore= regression excludes memory dir   | Low        | High   | Verify in Phase 1 before first commit             |
+
+* References                                                            :docs:
+   - Original spec: inline (provided by aleksandr.lerko, 2026-05-23)
+   - Answers to OQ-001–OQ-005: conversation follow-up, 2026-05-23
+   - Existing user-level memory:
+     =~/.claude/projects/-Users-aleksandr-lerko-dev-dpflab/memory/MEMORY.md=
+   - Current =CLAUDE.md=: =/Users/aleksandr.lerko/dev/dpflab/CLAUDE.md=
+   - Agent team: homelander (full-stack dev), black-noir (PR reviewer)
+
+* Changelog                                                             :docs:
+   - 2026-05-23 v0.2.0 — Closed OQ-001–OQ-005; updated design, data model,
+     implementation plan, and risk table accordingly. Status: ready-for-impl.
+   - 2026-05-23 v0.1.0 — Initial conversion from human spec (inline).

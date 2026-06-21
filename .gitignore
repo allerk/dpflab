@@ -1,8 +1,10 @@
 /.svelte-kit
 /build
 /dist
+/src/lib/paraglide
 .idea
 .wrangler
+.playwright-mcp
 
 node_modules
 
@@ -10,5 +12,18 @@ node_modules
 .env
 .env.*
 
+# Database
+/data/*.db
+/data/*.db-shm
+/data/*.db-wal
+
+# Uploaded images
+/data/images/
+
+# Admin
+/config/admin-whitelist.txt
+
 # Local notes
 CLAUDE_SETUP.md
+.claude/settings.local.json
+.claude/scratch.md

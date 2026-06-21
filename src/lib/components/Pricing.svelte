@@ -1,17 +1,19 @@
 <script lang="ts">
-  import type { ContentBundle } from '$lib/types';
+  import { pricing_title, pricing_title_accent, pricing_footer } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
-  export let t: ContentBundle;
+  import type { PricingItem } from '$lib/db/repositories/pricing';
+
+  export let items: PricingItem[] = [];
 </script>
 
 <section id="pricing" class="section bg-bg">
   <div class="container">
     <h2 class="text-[clamp(28px,3.5vw,42px)] font-extrabold text-center tracking-[0.02em] mb-10 max-sm:text-[clamp(22px,6vw,28px)]">
-      {t.pricing.title} <span class="text-accent">{t.pricing.titleAccent}</span>
+      {pricing_title()} <span class="text-accent">{pricing_title_accent()}</span>
     </h2>
 
-    <div class="grid grid-cols-3 gap-6 max-md:grid-cols-1">
-      {#each t.pricing.items as it}
+    <div class="grid grid-cols-2 gap-6 max-w-[792px] mx-auto max-md:grid-cols-1 max-md:max-w-[400px]">
+      {#each items as it}
         <div class="bg-bg-card rounded-card shadow-[0_2px_8px_rgba(0,0,0,.3)] hover:shadow-[0_8px_28px_rgba(0,0,0,.4)] hover:-translate-y-[3px] transition-[transform,box-shadow] duration-200 px-7 py-8 flex flex-col items-center text-center">
           <div class="w-14 h-14 rounded-full border border-border text-accent flex items-center justify-center mb-4">
             <Icon name={it.icon} size={32}/>
@@ -26,6 +28,6 @@
       {/each}
     </div>
 
-    <p class="text-center text-[13px] text-fg-muted mt-8">{t.pricing.footer}</p>
+    <p class="text-center text-[13px] text-fg-muted mt-8">{pricing_footer()}</p>
   </div>
 </section>
