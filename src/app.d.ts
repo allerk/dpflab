@@ -1,4 +1,4 @@
-import type { D1Database, R2Bucket } from '@cloudflare/workers-types';
+import type { D1Database, R2Bucket, ExecutionContext } from '@cloudflare/workers-types';
 
 declare global {
   namespace App {
@@ -14,6 +14,7 @@ declare global {
         CF_ACCESS_AUD?: string;
         DEV_ADMIN_EMAIL?: string;
       };
+      context?: ExecutionContext;
     }
   }
 }
