@@ -1,6 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
-import { db } from '$lib/db/index';
+import { getDb } from '$lib/db/index';
 import { getFaqItems } from '$lib/db/repositories/faq';
 import { getPricingItems } from '$lib/db/repositories/pricing';
 import { getContacts } from '$lib/db/repositories/contacts';
@@ -8,8 +8,9 @@ import { getBeforeAfterRows } from '$lib/db/repositories/before-after';
 import { createContactSubmission } from '$lib/db/repositories/contact-submissions';
 import { getSiteImages } from '$lib/db/repositories/site-images';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, platform }) => {
   const locale = locals.locale;
+  const db = getDb(platform);
 
   try {
     const [faqItems, pricingItems, contactsRow, beforeAfterItems, siteImagesMap] =
@@ -35,7 +36,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-  default: async ({ request, locals }) => {
+  default: async ({ request, locals, platform }) => {
+    const db = getDb(platform);
     const data = await request.formData();
     const name = (data.get('name') as string | null)?.trim() ?? '';
     const phone = (data.get('phone') as string | null)?.trim() ?? '';

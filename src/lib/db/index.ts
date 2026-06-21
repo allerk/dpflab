@@ -1,13 +1,17 @@
-import { createClient } from '@libsql/client';
-import { drizzle } from 'drizzle-orm/libsql';
-import { migrate } from 'drizzle-orm/libsql/migrator';
-import { resolve } from 'path';
+import { drizzle } from 'drizzle-orm/d1';
 import * as schema from './schema';
+import type { Db } from './types';
 
-const url = process.env.DATABASE_URL ?? 'file:./data/dpflab.db';
-const client = createClient({ url });
-export const db = drizzle(client, { schema });
-
-// Runs once on module load (Node caches modules). Assumes drizzle/ folder is
-// present in process.cwd() — true both locally and on the Node server.
-await migrate(db, { migrationsFolder: resolve(process.cwd(), 'drizzle') });
+/**
+ * Builds a Drizzle client bound to the request-scoped Cloudflare D1 binding.
+ * On Workers there is no long-lived connection — the DB arrives per request via
+ * `event.platform.env.DB`. Migrations are applied out-of-band with
+ * `wrangler d1 migrations apply` (D1 has no runtime migrate()).
+ */
+export function getDb(platform: App.Platform | undefined): Db {
+  const d1 = platform?.env?.DB;
+  if (!d1) {
+    throw new Error('D1 binding "DB" is not available on platform.env');
+  }
+  return drizzle(d1, { schema });
+}

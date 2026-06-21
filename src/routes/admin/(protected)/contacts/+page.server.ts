@@ -1,11 +1,12 @@
 import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { requireAdmin } from '$lib/server/admin/require-admin.js';
-import { db } from '$lib/db/index.js';
+import { getDb } from '$lib/db/index.js';
 import { getContacts, updateContacts } from '$lib/db/repositories/contacts.js';
 
 export const load: PageServerLoad = async (event) => {
   requireAdmin(event);
+  const db = getDb(event.platform);
   const contacts = await getContacts(db);
   return { contacts };
 };
@@ -13,6 +14,7 @@ export const load: PageServerLoad = async (event) => {
 export const actions: Actions = {
   update: async (event) => {
     const { email } = requireAdmin(event);
+    const db = getDb(event.platform);
     const data = await event.request.formData();
 
     const phone = (data.get('phone') as string)?.trim() ?? '';

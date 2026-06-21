@@ -1,16 +1,18 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
-import { db } from '$lib/db/index';
+import { getDb } from '$lib/db/index';
 import { getSiteImages, setSiteImage, SITE_IMAGE_KEYS, type SiteImageKey } from '$lib/db/repositories/site-images';
 import { listImages } from '$lib/server/admin/images';
 
-export const load: PageServerLoad = async () => {
-  const [siteImagesMap, images] = await Promise.all([getSiteImages(db), listImages()]);
+export const load: PageServerLoad = async ({ platform }) => {
+  const db = getDb(platform);
+  const [siteImagesMap, images] = await Promise.all([getSiteImages(db), listImages(platform)]);
   return { siteImagesMap, images };
 };
 
 export const actions: Actions = {
-  save: async ({ request }) => {
+  save: async ({ request, platform }) => {
+    const db = getDb(platform);
     const data = await request.formData();
     const key = data.get('key') as string | null;
     const filename = (data.get('filename') as string | null) || null;
@@ -21,7 +23,7 @@ export const actions: Actions = {
 
     await setSiteImage(db, key as SiteImageKey, filename);
 
-    const [siteImagesMap, images] = await Promise.all([getSiteImages(db), listImages()]);
+    const [siteImagesMap, images] = await Promise.all([getSiteImages(db), listImages(platform)]);
     return { siteImagesMap, images, saved: key };
   }
 };

@@ -1,19 +1,21 @@
 import type { Actions, PageServerLoad } from './$types';
 import { error, redirect } from '@sveltejs/kit';
-import { db } from '$lib/db/index';
+import { getDb } from '$lib/db/index';
 import { getBeforeAfterRows, updateBeforeAfterItem } from '$lib/db/repositories/before-after';
 import { listImages } from '$lib/server/admin/images';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, platform }) => {
+  const db = getDb(platform);
   const id = Number(params.id);
-  const [rows, images] = await Promise.all([getBeforeAfterRows(db), listImages()]);
+  const [rows, images] = await Promise.all([getBeforeAfterRows(db), listImages(platform)]);
   const row = rows.find((r) => r.id === id);
   if (!row) error(404);
   return { row, images };
 };
 
 export const actions: Actions = {
-  default: async ({ request, params }) => {
+  default: async ({ request, params, platform }) => {
+    const db = getDb(platform);
     const id = Number(params.id);
     const data = await request.formData();
     const sliderEnabled = data.get('slider_enabled') === 'on';

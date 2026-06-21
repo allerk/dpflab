@@ -1,0 +1,11 @@
+# Local secrets/vars for `wrangler dev` / vite dev (Miniflare).
+# Copy to `.dev.vars` (gitignored) and fill in.
+
+# Local-dev admin bypass — there is no Cloudflare Access edge on localhost, so
+# any /admin request is treated as this identity. NEVER set this in production.
+DEV_ADMIN_EMAIL=you@example.com
+
+# Production admin auth is handled by Cloudflare Access (no secrets in code).
+# These are set as Worker vars in production (wrangler.jsonc / dashboard), not here:
+#   CF_ACCESS_TEAM_DOMAIN=yourteam       # -> yourteam.cloudflareaccess.com
+#   CF_ACCESS_AUD=<application-audience-tag>

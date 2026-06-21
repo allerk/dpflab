@@ -1,40 +1,27 @@
 import { error } from '@sveltejs/kit';
-import { readFile } from 'node:fs/promises';
-import { resolve, basename, extname } from 'node:path';
+import { basename } from 'node:path';
+import { contentTypeFor } from '$lib/server/admin/images';
 import type { RequestHandler } from './$types';
 
-const MIME: Record<string, string> = {
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.png': 'image/png',
-  '.webp': 'image/webp',
-  '.gif': 'image/gif',
-  '.svg': 'image/svg+xml',
-  '.avif': 'image/avif'
-};
-
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ params, platform }) => {
   // Prevent path traversal — basename strips any directory component
   const filename = basename(params.file);
-  const ext = extname(filename).toLowerCase();
-  const mime = MIME[ext];
-
+  const mime = contentTypeFor(filename);
   if (!mime) error(404, 'Not found');
 
-  const filePath = resolve(process.cwd(), 'data/images', filename);
+  const bucket = platform?.env?.BUCKET;
+  if (!bucket) error(404, 'Not found');
 
-  let ab: ArrayBuffer;
-  try {
-    const buf = await readFile(filePath);
-    ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
-  } catch {
-    error(404, 'Not found');
-  }
+  const object = await bucket.get(filename);
+  if (!object) error(404, 'Not found');
 
-  return new Response(ab, {
+  // R2's ReadableStream (workers-types) is structurally the DOM stream at
+  // runtime, but the two TS definitions differ — cast through BodyInit.
+  return new Response(object.body as unknown as BodyInit, {
     headers: {
       'Content-Type': mime,
-      'Cache-Control': 'public, max-age=31536000, immutable'
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      etag: object.httpEtag
     }
   });
 };
