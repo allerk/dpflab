@@ -10,9 +10,9 @@ declare global {
       env?: {
         DB: D1Database;
         BUCKET: R2Bucket;
-        ADMIN_PASSWORD?: string;
-        ADMIN_SESSION_SECRET?: string;
-        ADMIN_WHITELIST?: string;
+        CF_ACCESS_TEAM_DOMAIN?: string;
+        CF_ACCESS_AUD?: string;
+        DEV_ADMIN_EMAIL?: string;
       };
     }
   }

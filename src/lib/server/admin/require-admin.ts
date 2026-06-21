@@ -1,15 +1,13 @@
 import type { RequestEvent } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
-import { isWhitelisted } from './whitelist.js';
 
+/**
+ * Asserts the request carries an authenticated admin identity (set by the
+ * Cloudflare Access hook). The allow-list is enforced by the Access policy at
+ * the edge, so there is no per-email check here.
+ */
 export function requireAdmin(event: RequestEvent): { email: string } {
   if (!event.locals.admin) {
-    error(401, 'Unauthorized');
-  }
-  if (!isWhitelisted(event.locals.admin.email, event.platform?.env?.ADMIN_WHITELIST)) {
-    console.warn(
-      `[admin] ${new Date().toISOString()} non-whitelisted ${event.locals.admin.email} path=${event.url.pathname}`
-    );
     error(403, 'Access denied');
   }
   return { email: event.locals.admin.email };

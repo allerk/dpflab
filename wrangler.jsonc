@@ -1,15 +1,24 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "dpflab",
-  "compatibility_date": "2025-01-01",
+  "compatibility_date": "2026-06-21",
   "compatibility_flags": ["nodejs_compat"],
   "main": ".svelte-kit/cloudflare/_worker.js",
+  // Serve only via the custom domain (which sits behind Cloudflare Access);
+  // disabling workers.dev prevents bypassing Access through the *.workers.dev URL.
+  "workers_dev": false,
   "assets": {
     "binding": "ASSETS",
     "directory": ".svelte-kit/cloudflare"
   },
   "observability": {
     "enabled": true
+  },
+  "vars": {
+    // Set real values in Фаза 6 (or via dashboard). Not secrets — the AUD tag
+    // and team domain are safe to keep in config.
+    "CF_ACCESS_TEAM_DOMAIN": "PLACEHOLDER_TEAM",
+    "CF_ACCESS_AUD": "PLACEHOLDER_AUD"
   },
   "d1_databases": [
     {
