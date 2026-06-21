@@ -37,6 +37,39 @@ await db.insert(faq).values([
       ru: 'Да, мы предоставляем услугу вывоза и обратной доставки DPF-фильтра. В большинстве случаев мы забираем фильтр и возвращаем его обратно в тот же день. Максимальный срок выполнения услуги с момента вывоза до обратной доставки составляет 24 часа.'
     }),
     sortOrder: 2
+  },
+  {
+    question: makeLangStr({
+      et: 'Kas teenus sobib kõikidele automarkidele?',
+      ru: 'Подходит ли услуга для всех марок авто?'
+    }),
+    answer: makeLangStr({
+      et: 'Jah, töötame kõikide DPF ja FAP filtritega — nii sõidu- kui ka veoautodele.',
+      ru: 'Да, мы работаем со всеми типами DPF и FAP фильтров — как для легковых, так и для грузовых автомобилей.'
+    }),
+    sortOrder: 3
+  },
+  {
+    question: makeLangStr({
+      et: 'Mis on hinna sees?',
+      ru: 'Что входит в стоимость?'
+    }),
+    answer: makeLangStr({
+      et: 'Diagnostika, sügav hüdrodünaamiline puhastus, läbilaskvuse test ja teostatud tööde raport.',
+      ru: 'Диагностика, глубокая гидродинамическая очистка, тест пропускной способности и отчёт о выполненных работах.'
+    }),
+    sortOrder: 4
+  },
+  {
+    question: makeLangStr({
+      et: 'Kas annate garantii?',
+      ru: 'Даёте ли гарантию?'
+    }),
+    answer: makeLangStr({
+      et: 'Jah, anname garantii puhastuse tulemusele. Taastame läbilaskvuse kuni 98%.',
+      ru: 'Да, мы предоставляем гарантию на результат очистки. Восстанавливаем пропускную способность до 98%.'
+    }),
+    sortOrder: 5
   }
 ]);
 
