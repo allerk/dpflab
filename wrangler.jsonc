@@ -6,8 +6,7 @@
   "main": ".svelte-kit/cloudflare/_worker.js",
   // Serve only via the custom domain (which sits behind Cloudflare Access);
   // disabling workers.dev prevents bypassing Access through the *.workers.dev URL.
-  // TEMP: true for first-deploy smoke test until the custom domain is attached.
-  "workers_dev": true,
+  "workers_dev": false,
   "assets": {
     "binding": "ASSETS",
     "directory": ".svelte-kit/cloudflare"
@@ -16,10 +15,9 @@
     "enabled": true
   },
   "vars": {
-    // Set real values in Фаза 6 (or via dashboard). Not secrets — the AUD tag
-    // and team domain are safe to keep in config.
-    "CF_ACCESS_TEAM_DOMAIN": "PLACEHOLDER_TEAM",
-    "CF_ACCESS_AUD": "PLACEHOLDER_AUD"
+    // Not secrets — the AUD tag and team domain are safe to keep in config.
+    "CF_ACCESS_TEAM_DOMAIN": "dpflab",
+    "CF_ACCESS_AUD": "b9c326b4ef29fca0bcf77b4d3847b9121e6a414e438865e896c5c5cfa559cf46"
   },
   "d1_databases": [
     {
