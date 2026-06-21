@@ -34,7 +34,7 @@ export const actions: Actions = {
 
     // Always run both checks; never reveal which check failed (avoids enumeration)
     const pwOk = constantTimeEqual(password, adminPassword);
-    const listed = isWhitelisted(email);
+    const listed = isWhitelisted(email, env.ADMIN_WHITELIST);
 
     if (!pwOk || !listed) {
       console.warn(
@@ -46,7 +46,7 @@ export const actions: Actions = {
     const token = signSession({ email, iat: Math.floor(Date.now() / 1000) }, sessionSecret);
     cookies.set('admin_session', token, {
       httpOnly: true,
-      secure: env.NODE_ENV === 'production',
+      secure: url.protocol === 'https:',
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 7

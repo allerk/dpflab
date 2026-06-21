@@ -1,8 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
-import { parse } from '../../src/lib/server/admin/whitelist';
+import { describe, it, expect } from 'vitest';
+import { parse, isWhitelisted } from '../../src/lib/server/admin/whitelist';
 
 describe('parse', () => {
   it('returns emails in lowercase', () => {
@@ -42,38 +39,31 @@ describe('parse', () => {
     expect(result.has('bob@example.com')).toBe(true);
     expect(result.size).toBe(2);
   });
+
+  it('splits comma-separated lists (env var format)', () => {
+    const result = parse('alice@example.com, bob@example.com');
+    expect(result.size).toBe(2);
+  });
 });
 
-describe('isWhitelisted (via temp file)', () => {
-  let tmpFile: string;
-  const orig = process.env.ADMIN_WHITELIST_PATH;
-
-  beforeEach(() => {
-    tmpFile = path.join(os.tmpdir(), `whitelist-test-${Date.now()}.txt`);
-    process.env.ADMIN_WHITELIST_PATH = tmpFile;
+describe('isWhitelisted', () => {
+  it('returns false when the whitelist is undefined', () => {
+    expect(isWhitelisted('any@example.com', undefined)).toBe(false);
   });
 
-  afterEach(() => {
-    if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
-    if (orig === undefined) delete process.env.ADMIN_WHITELIST_PATH;
-    else process.env.ADMIN_WHITELIST_PATH = orig;
-    // Reset the module cache so the next test starts fresh
+  it('returns false when the whitelist is empty', () => {
+    expect(isWhitelisted('any@example.com', '')).toBe(false);
   });
 
-  it('returns false when the file is missing', async () => {
-    const { isWhitelisted } = await import('../../src/lib/server/admin/whitelist?t=' + Date.now());
-    expect(isWhitelisted('any@example.com')).toBe(false);
+  it('returns true for a listed address (case-insensitive)', () => {
+    expect(isWhitelisted('Alice@Example.COM', 'alice@example.com')).toBe(true);
   });
 
-  it('returns true for a listed address (case-insensitive)', async () => {
-    fs.writeFileSync(tmpFile, 'alice@example.com\n');
-    const { isWhitelisted } = await import('../../src/lib/server/admin/whitelist?t=' + Date.now());
-    expect(isWhitelisted('Alice@Example.COM')).toBe(true);
+  it('returns false for an unlisted address', () => {
+    expect(isWhitelisted('bob@example.com', 'alice@example.com')).toBe(false);
   });
 
-  it('returns false for an unlisted address', async () => {
-    fs.writeFileSync(tmpFile, 'alice@example.com\n');
-    const { isWhitelisted } = await import('../../src/lib/server/admin/whitelist?t=' + Date.now());
-    expect(isWhitelisted('bob@example.com')).toBe(false);
+  it('supports comma-separated lists', () => {
+    expect(isWhitelisted('bob@example.com', 'alice@example.com, bob@example.com')).toBe(true);
   });
 });

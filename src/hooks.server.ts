@@ -48,7 +48,7 @@ const adminGuardHandle: Handle = async ({ event, resolve }) => {
     redirect(302, `${localePrefix}/admin/login?return=${encodeURIComponent(event.url.pathname)}`);
   }
 
-  if (!isWhitelisted(event.locals.admin.email)) {
+  if (!isWhitelisted(event.locals.admin.email, env.ADMIN_WHITELIST)) {
     console.warn(
       `[admin] ${new Date().toISOString()} non-whitelisted ${event.locals.admin.email} path=${event.url.pathname}`
     );

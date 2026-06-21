@@ -1,0 +1,7 @@
+# Local secrets for `wrangler dev` / vite dev (Miniflare).
+# Copy to `.dev.vars` (gitignored) and fill in. In production these are set via
+# `wrangler secret put <NAME>`.
+
+ADMIN_PASSWORD=change-me-locally
+ADMIN_SESSION_SECRET=generate-with-node-crypto-randomBytes-32-base64url
+ADMIN_WHITELIST=you@example.com
