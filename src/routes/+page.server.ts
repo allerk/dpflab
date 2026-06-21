@@ -2,9 +2,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
 import { db } from '$lib/db/index';
 import { getFaqItems } from '$lib/db/repositories/faq';
-import { getReviews } from '$lib/db/repositories/reviews';
 import { getPricingItems } from '$lib/db/repositories/pricing';
-import { getCertificates } from '$lib/db/repositories/certificates';
 import { getContacts } from '$lib/db/repositories/contacts';
 import { getBeforeAfterRows } from '$lib/db/repositories/before-after';
 import { createContactSubmission } from '$lib/db/repositories/contact-submissions';
@@ -14,25 +12,21 @@ export const load: PageServerLoad = async ({ locals }) => {
   const locale = locals.locale;
 
   try {
-    const [faqItems, reviewItems, pricingItems, certificateItems, contactsRow, beforeAfterItems, siteImagesMap] =
+    const [faqItems, pricingItems, contactsRow, beforeAfterItems, siteImagesMap] =
       await Promise.all([
         getFaqItems(db, locale),
-        getReviews(db),
         getPricingItems(db, locale),
-        getCertificates(db, locale),
         getContacts(db),
         getBeforeAfterRows(db),
         getSiteImages(db)
       ]);
 
-    return { locale, faqItems, reviewItems, pricingItems, certificateItems, contactsRow, beforeAfterItems, siteImagesMap };
+    return { locale, faqItems, pricingItems, contactsRow, beforeAfterItems, siteImagesMap };
   } catch {
     return {
       locale,
       faqItems: [],
-      reviewItems: [],
       pricingItems: [],
-      certificateItems: [],
       contactsRow: null,
       beforeAfterItems: [],
       siteImagesMap: { hero_main: null, why_main: null, contact_workshop: null }

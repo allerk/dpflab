@@ -1,1 +1,0 @@
-ALTER TABLE `contact_submissions` ADD `email` text DEFAULT '' NOT NULL;

@@ -85,7 +85,7 @@
             {#if phoneError}<span class="text-[12px] text-danger">{phoneError}</span>{/if}
           </div>
           <div class="flex flex-col gap-1">
-            <input type="email" name="email" placeholder={contact_field_email()}
+            <input type="email" name="email" placeholder={contact_field_email()} required
                    value={form?.email ?? ''}
                    class="{inputBase} {emailError ? inputError : ''}"/>
             {#if emailError}<span class="text-[12px] text-danger">{emailError}</span>{/if}

@@ -5,7 +5,7 @@ import { contactSubmissions } from '../schema';
 export type SubmissionInput = {
   name: string;
   phone: string;
-  email?: string;
+  email: string;
   comment?: string;
   locale: string;
 };
@@ -24,7 +24,7 @@ export async function createContactSubmission(db: Db, input: SubmissionInput): P
   await db.insert(contactSubmissions).values({
     name: input.name,
     phone: input.phone,
-    email: input.email ?? '',
+    email: input.email,
     comment: input.comment ?? '',
     locale: input.locale,
     createdAt: new Date()
