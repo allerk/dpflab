@@ -12,7 +12,7 @@
       {pricing_title()} <span class="text-accent">{pricing_title_accent()}</span>
     </h2>
 
-    <div class="grid grid-cols-3 gap-6 max-md:grid-cols-1">
+    <div class="grid grid-cols-2 gap-6 max-w-[792px] mx-auto max-md:grid-cols-1 max-md:max-w-[400px]">
       {#each items as it}
         <div class="bg-bg-card rounded-card shadow-[0_2px_8px_rgba(0,0,0,.3)] hover:shadow-[0_8px_28px_rgba(0,0,0,.4)] hover:-translate-y-[3px] transition-[transform,box-shadow] duration-200 px-7 py-8 flex flex-col items-center text-center">
           <div class="w-14 h-14 rounded-full border border-border text-accent flex items-center justify-center mb-4">
