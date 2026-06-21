@@ -18,14 +18,25 @@ await db.delete(contacts);
 await db.insert(faq).values([
   {
     question: makeLangStr({
-      et: 'Kui kaua võtab DPF puhastus aega?',
-      ru: 'Сколько времени занимает очистка DPF?'
+      et: 'Kui kaua kestab puhastus?',
+      ru: 'Сколько длится чистка?'
     }),
     answer: makeLangStr({
-      et: 'Standardne puhastus — 24 tundi. Kiirtellimuse korral teostame töö kiiremini lisatasu eest.',
-      ru: 'Стандартная очистка — 24 часа. При срочном заказе мы можем выполнить работу быстрее за дополнительную плату.'
+      et: 'Tsükkel kestab keskmiselt 1–2,5 tundi sõltuvalt filtri tüübist ja seisukorrast.',
+      ru: 'Цикл в среднем 1–2,5 часа в зависимости от типа и состояния фильтра.'
     }),
     sortOrder: 1
+  },
+  {
+    question: makeLangStr({
+      et: 'Kas pakute DPF-filtri äraveo ja tagasitoomise teenust?',
+      ru: 'Предоставляете ли вы услугу вывоза и обратной доставки DPF-фильтра?'
+    }),
+    answer: makeLangStr({
+      et: 'Jah, pakume DPF-filtri äraveo ja tagasitoomise teenust. Enamasti toome filtri ära ja tagastame selle samal päeval. Teenuse maksimaalne täitmisaeg alates äraveost kuni tagasitoomiseni on 24 tundi.',
+      ru: 'Да, мы предоставляем услугу вывоза и обратной доставки DPF-фильтра. В большинстве случаев мы забираем фильтр и возвращаем его обратно в тот же день. Максимальный срок выполнения услуги с момента вывоза до обратной доставки составляет 24 часа.'
+    }),
+    sortOrder: 2
   },
   {
     question: makeLangStr({
@@ -36,7 +47,7 @@ await db.insert(faq).values([
       et: 'Jah, töötame kõikide DPF ja FAP filtritega — nii sõidu- kui ka veoautodele.',
       ru: 'Да, мы работаем со всеми типами DPF и FAP фильтров — как для легковых, так и для грузовых автомобилей.'
     }),
-    sortOrder: 2
+    sortOrder: 3
   },
   {
     question: makeLangStr({
@@ -47,7 +58,7 @@ await db.insert(faq).values([
       et: 'Diagnostika, sügav hüdrodünaamiline puhastus, läbilaskvuse test ja teostatud tööde raport.',
       ru: 'Диагностика, глубокая гидродинамическая очистка, тест пропускной способности и отчёт о выполненных работах.'
     }),
-    sortOrder: 3
+    sortOrder: 4
   },
   {
     question: makeLangStr({
@@ -58,42 +69,7 @@ await db.insert(faq).values([
       et: 'Jah, anname garantii puhastuse tulemusele. Taastame läbilaskvuse kuni 98%.',
       ru: 'Да, мы предоставляем гарантию на результат очистки. Восстанавливаем пропускную способность до 98%.'
     }),
-    sortOrder: 4
-  },
-  {
-    question: makeLangStr({
-      et: 'Kas on võimalik filtri kohaletoomine?',
-      ru: 'Возможен ли забор и доставка фильтра?'
-    }),
-    answer: makeLangStr({
-      et: 'Jah, meil töötab kullerteenus üle kogu Eesti. Hind sõltub piirkonnast.',
-      ru: 'Да, у нас работает курьерская служба по всей Эстонии. Стоимость зависит от региона.'
-    }),
     sortOrder: 5
-  }
-]);
-
-await db.insert(reviews).values([
-  {
-    stars: 5,
-    text: 'Быстро, качественно и по адекватной цене. Фильтр как новый, машина поехала совсем иначе!',
-    author: 'Aleksei, Tallinn',
-    locale: 'ru',
-    sortOrder: 1
-  },
-  {
-    stars: 5,
-    text: 'Сотрудничаем с DPFLAB на постоянной основе. Всегда быстро забирают и возвращают фильтры.',
-    author: 'AutoPro OÜ',
-    locale: 'ru',
-    sortOrder: 2
-  },
-  {
-    stars: 5,
-    text: 'Suurepärane teenus! Tulid kohale, puhastasid ja tõid tagasi. Soovitan!',
-    author: 'Igor, Tartu',
-    locale: 'et',
-    sortOrder: 3
   }
 ]);
 
@@ -101,55 +77,25 @@ await db.insert(pricing).values([
   {
     icon: 'filter',
     title: makeLangStr({ et: 'DPF filtri puhastus', ru: 'Очистка DPF фильтра' }),
-    price: 'от 150€',
+    price: 'от 100€',
     cta: makeLangStr({ et: 'Tellida', ru: 'Заказать' }),
     sortOrder: 1
   },
   {
-    icon: 'scope',
-    title: makeLangStr({ et: 'Filtri diagnostika', ru: 'Диагностика фильтра' }),
-    price: 'от 30€',
-    cta: makeLangStr({ et: 'Tellida', ru: 'Заказать' }),
-    sortOrder: 2
-  },
-  {
-    icon: 'bolt',
-    title: makeLangStr({ et: 'Kiirpuhastus (24h)', ru: 'Срочная очистка (24ч)' }),
+    icon: 'truck',
+    title: makeLangStr({ et: 'Veoauto DPF puhastus', ru: 'Очистка DPF грузового авто' }),
     price: 'от 200€',
     cta: makeLangStr({ et: 'Tellida', ru: 'Заказать' }),
-    sortOrder: 3
-  }
-]);
-
-await db.insert(certificates).values([
-  {
-    title: makeLangStr({ et: 'ISO 9001', ru: 'ISO 9001' }),
-    text: makeLangStr({ et: 'Kvaliteedisertifikaat', ru: 'Сертификат качества' }),
-    sortOrder: 1
-  },
-  {
-    title: makeLangStr({ et: 'Garantii 12 kuud', ru: 'Гарантия 12 мес.' }),
-    text: makeLangStr({ et: 'Kõikidele töödele', ru: 'На все виды работ' }),
     sortOrder: 2
-  },
-  {
-    title: makeLangStr({ et: 'Tootja partner', ru: 'Партнёр производителя' }),
-    text: makeLangStr({ et: 'Volitatud teenindus', ru: 'Авторизованный сервис' }),
-    sortOrder: 3
-  },
-  {
-    title: makeLangStr({ et: 'Iga filtri kohta raport', ru: 'Отчёт по каждому фильтру' }),
-    text: makeLangStr({ et: 'Läbilaskvuse testiga', ru: 'С тестом пропускной способности' }),
-    sortOrder: 4
   }
 ]);
 
 await db.insert(contacts).values({
-  phone: '+372 5850 7200',
-  phoneHref: 'tel:+37258507200',
-  whatsapp: 'https://wa.me/37258507200',
+  phone: '+372 5555 5014',
+  phoneHref: 'tel:+37255555014',
+  whatsapp: 'https://wa.me/37255555014',
   email: 'info@dpflab.ee',
-  address: 'Tallinn, Estonia',
+  address: 'Saha-Loo tee 36, Iru, 74206',
   weekdaysOpen: '09:00',
   weekdaysClose: '18:00',
   saturdayOpen: '10:00',

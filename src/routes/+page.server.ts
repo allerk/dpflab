@@ -2,9 +2,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
 import { db } from '$lib/db/index';
 import { getFaqItems } from '$lib/db/repositories/faq';
-import { getReviews } from '$lib/db/repositories/reviews';
 import { getPricingItems } from '$lib/db/repositories/pricing';
-import { getCertificates } from '$lib/db/repositories/certificates';
 import { getContacts } from '$lib/db/repositories/contacts';
 import { getBeforeAfterRows } from '$lib/db/repositories/before-after';
 import { createContactSubmission } from '$lib/db/repositories/contact-submissions';
@@ -14,25 +12,21 @@ export const load: PageServerLoad = async ({ locals }) => {
   const locale = locals.locale;
 
   try {
-    const [faqItems, reviewItems, pricingItems, certificateItems, contactsRow, beforeAfterItems, siteImagesMap] =
+    const [faqItems, pricingItems, contactsRow, beforeAfterItems, siteImagesMap] =
       await Promise.all([
         getFaqItems(db, locale),
-        getReviews(db),
         getPricingItems(db, locale),
-        getCertificates(db, locale),
         getContacts(db),
         getBeforeAfterRows(db),
         getSiteImages(db)
       ]);
 
-    return { locale, faqItems, reviewItems, pricingItems, certificateItems, contactsRow, beforeAfterItems, siteImagesMap };
+    return { locale, faqItems, pricingItems, contactsRow, beforeAfterItems, siteImagesMap };
   } catch {
     return {
       locale,
       faqItems: [],
-      reviewItems: [],
       pricingItems: [],
-      certificateItems: [],
       contactsRow: null,
       beforeAfterItems: [],
       siteImagesMap: { hero_main: null, why_main: null, contact_workshop: null }
@@ -45,17 +39,19 @@ export const actions: Actions = {
     const data = await request.formData();
     const name = (data.get('name') as string | null)?.trim() ?? '';
     const phone = (data.get('phone') as string | null)?.trim() ?? '';
+    const email = (data.get('email') as string | null)?.trim() ?? '';
     const comment = (data.get('comment') as string | null)?.trim() ?? '';
 
     const errors: Record<string, string> = {};
     if (!name) errors.name = 'required';
     if (!/^[\+\d\s\-()Ѐ-ӿ]{6,}$/.test(phone)) errors.phone = 'required';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'required';
 
     if (Object.keys(errors).length > 0) {
-      return fail(422, { errors, name, phone, comment });
+      return fail(422, { errors, name, phone, email, comment });
     }
 
-    await createContactSubmission(db, { name, phone, comment, locale: locals.locale });
+    await createContactSubmission(db, { name, phone, email, comment, locale: locals.locale });
 
     return { success: true };
   }

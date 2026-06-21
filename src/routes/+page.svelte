@@ -6,9 +6,8 @@
   import Pricing from '$lib/components/Pricing.svelte';
   import Benefits from '$lib/components/Benefits.svelte';
   import BeforeAfter from '$lib/components/BeforeAfter.svelte';
-  import Reviews from '$lib/components/Reviews.svelte';
   import FAQ from '$lib/components/FAQ.svelte';
-  import Certificates from '$lib/components/Certificates.svelte';
+  import Stages from '$lib/components/Stages.svelte';
   import ContactForm from '$lib/components/ContactForm.svelte';
   import Footer from '$lib/components/Footer.svelte';
   import { meta_title, meta_description } from '$lib/paraglide/messages';
@@ -59,9 +58,8 @@
   <Pricing items={data.pricingItems} />
   <Benefits />
   <BeforeAfter items={data.beforeAfterItems} />
-  <Reviews items={data.reviewItems} />
+  <Stages />
   <FAQ items={data.faqItems} />
-  <Certificates items={data.certificateItems} />
-  <ContactForm contactsRow={data.contactsRow} locale={data.locale} {form} workshopImage={data.siteImagesMap.contact_workshop} />
+  <ContactForm contactsRow={data.contactsRow} locale={data.locale} {form} />
 </main>
 <Footer />

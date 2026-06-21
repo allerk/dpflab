@@ -5,6 +5,7 @@ import { contactSubmissions } from '../schema';
 export type SubmissionInput = {
   name: string;
   phone: string;
+  email: string;
   comment?: string;
   locale: string;
 };
@@ -13,6 +14,7 @@ export type SubmissionRow = {
   id: number;
   name: string;
   phone: string;
+  email: string;
   comment: string;
   locale: string;
   createdAt: Date;
@@ -22,6 +24,7 @@ export async function createContactSubmission(db: Db, input: SubmissionInput): P
   await db.insert(contactSubmissions).values({
     name: input.name,
     phone: input.phone,
+    email: input.email,
     comment: input.comment ?? '',
     locale: input.locale,
     createdAt: new Date()
@@ -34,6 +37,7 @@ export async function getContactSubmissions(db: Db): Promise<SubmissionRow[]> {
       id: contactSubmissions.id,
       name: contactSubmissions.name,
       phone: contactSubmissions.phone,
+      email: contactSubmissions.email,
       comment: contactSubmissions.comment,
       locale: contactSubmissions.locale,
       createdAt: contactSubmissions.createdAt

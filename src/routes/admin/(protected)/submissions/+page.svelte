@@ -44,6 +44,7 @@
             <th class="text-left px-4 py-2.5 font-medium text-fg-muted">Дата</th>
             <th class="text-left px-4 py-2.5 font-medium text-fg-muted">Имя</th>
             <th class="text-left px-4 py-2.5 font-medium text-fg-muted">Телефон</th>
+            <th class="text-left px-4 py-2.5 font-medium text-fg-muted">Email</th>
             <th class="text-left px-4 py-2.5 font-medium text-fg-muted">Комментарий</th>
             <th class="text-left px-4 py-2.5 font-medium text-fg-muted">Язык</th>
             <th class="px-4 py-2.5"></th>
@@ -55,6 +56,7 @@
               <td class="px-4 py-2.5 whitespace-nowrap text-fg-muted">{formatDate(row.createdAt)}</td>
               <td class="px-4 py-2.5 font-medium">{row.name}</td>
               <td class="px-4 py-2.5">{row.phone}</td>
+              <td class="px-4 py-2.5">{#if row.email}<a href="mailto:{row.email}" class="hover:text-accent transition-colors">{row.email}</a>{:else}<span class="text-fg-muted">—</span>{/if}</td>
               <td class="px-4 py-2.5 max-w-xs truncate text-fg-muted">{row.comment}</td>
               <td class="px-4 py-2.5 uppercase text-xs text-fg-muted">{row.locale}</td>
               <td class="px-4 py-2.5">

@@ -1,6 +1,6 @@
 <script lang="ts">
   import {
-    hero_title_words, hero_subtitle, hero_cta_primary,
+    hero_title_words, hero_title_accent, hero_subtitle, hero_cta_primary,
     hero_badge_1_title, hero_badge_1_text, hero_badge_2_title, hero_badge_2_text,
     hero_badge_3_title, hero_badge_3_text, hero_image_alt
   } from '$lib/paraglide/messages';
@@ -11,6 +11,7 @@
   const badgeIcons = ['clock', 'shield', 'truck'];
 
   $: titleWords = hero_title_words().split('|');
+  $: accentWord = hero_title_accent();
   $: badges = [
     { icon: badgeIcons[0], title: hero_badge_1_title(), text: hero_badge_1_text() },
     { icon: badgeIcons[1], title: hero_badge_2_title(), text: hero_badge_2_text() },
@@ -25,7 +26,7 @@
 
     <div class="min-w-0">
       <h1 class="text-[clamp(24px,7.5vw,60px)] font-black leading-[1.02] tracking-[-0.01em] mb-6 hyphens-auto">
-        {#each titleWords as w, i}{#if i > 0}{' '}{/if}<span class:text-accent={w === 'DPF'}>{w}</span>{/each}
+        {#each titleWords as w, i}{#if i > 0}{' '}{/if}<span class:text-accent={w === accentWord}>{w}</span>{/each}
       </h1>
       <p class="text-[17px] text-fg-muted max-w-[520px] mb-8 max-sm:text-[15px]">{hero_subtitle()}</p>
 

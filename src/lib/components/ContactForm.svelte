@@ -1,8 +1,8 @@
 <script lang="ts">
   import {
     contact_title, contact_subtitle, contact_contacts_title,
-    contact_field_name, contact_field_phone, contact_field_comment, contact_field_submit,
-    contact_success, contact_valid_name, contact_valid_phone
+    contact_field_name, contact_field_phone, contact_field_email, contact_field_comment, contact_field_submit,
+    contact_success, contact_valid_name, contact_valid_phone, contact_valid_email
   } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
   import { enhance } from '$app/forms';
@@ -10,8 +10,7 @@
 
   export let contactsRow: ContactsRow | null = null;
   export let locale: string = 'et';
-  export let form: { errors?: Record<string, string>; name?: string; phone?: string; comment?: string; success?: boolean } | null = null;
-  export let workshopImage: string | null = null;
+  export let form: { errors?: Record<string, string>; name?: string; phone?: string; email?: string; comment?: string; success?: boolean } | null = null;
 
   let clientErrors: Record<string, string> = {};
   let submitted = false;
@@ -19,6 +18,7 @@
   $: if (form?.success) submitted = true;
   $: nameError = clientErrors.name ?? (form?.errors?.name ? contact_valid_name() : '');
   $: phoneError = clientErrors.phone ?? (form?.errors?.phone ? contact_valid_phone() : '');
+  $: emailError = clientErrors.email ?? (form?.errors?.email ? contact_valid_email() : '');
 
   // 2024-01-01 is Monday; mondayOffset 1=Mon ... 6=Sat lands on 2024-01-{offset}
   const weekdayLabel = (l: string, mondayOffset: number) => {
@@ -35,10 +35,11 @@
     ? `${weekdayLabel(locale, 6)}: ${contactsRow.saturdayOpen} – ${contactsRow.saturdayClose}`
     : '';
 
-  const validate = (name: string, phone: string) => {
+  const validate = (name: string, phone: string, email: string) => {
     const e: Record<string, string> = {};
     if (!name.trim()) e.name = contact_valid_name();
     if (!/^[\+\d\s\-()]{6,}$/.test(phone.trim())) e.phone = contact_valid_phone();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) e.email = contact_valid_email();
     return e;
   };
 
@@ -47,7 +48,7 @@
 </script>
 
 <section id="contacts" class="section bg-bg pb-10">
-  <div class="container grid grid-cols-[1.05fr_1fr] gap-12 items-start max-md:grid-cols-1 max-md:gap-7">
+  <div class="container grid grid-cols-[1.05fr_1fr] gap-12 items-stretch max-md:grid-cols-1 max-md:gap-7">
 
     <div>
       <h2 class="text-[clamp(24px,2.6vw,32px)] font-extrabold tracking-[0.02em] mb-1.5">{contact_title()}</h2>
@@ -66,7 +67,8 @@
           use:enhance={({ formData, cancel }) => {
             const name = formData.get('name') as string ?? '';
             const phone = formData.get('phone') as string ?? '';
-            clientErrors = validate(name, phone);
+            const email = formData.get('email') as string ?? '';
+            clientErrors = validate(name, phone, email);
             if (Object.keys(clientErrors).length > 0) cancel();
           }}
         >
@@ -81,6 +83,12 @@
                    value={form?.phone ?? ''}
                    class="{inputBase} {phoneError ? inputError : ''}"/>
             {#if phoneError}<span class="text-[12px] text-danger">{phoneError}</span>{/if}
+          </div>
+          <div class="flex flex-col gap-1">
+            <input type="email" name="email" placeholder={contact_field_email()} required
+                   value={form?.email ?? ''}
+                   class="{inputBase} {emailError ? inputError : ''}"/>
+            {#if emailError}<span class="text-[12px] text-danger">{emailError}</span>{/if}
           </div>
           <div class="flex flex-col gap-1">
             <textarea name="comment" placeholder={contact_field_comment()} rows="3"
@@ -115,11 +123,6 @@
             </div>
           </li>
         </ul>
-      {/if}
-      {#if workshopImage}
-        <img src="/images/{workshopImage}" alt="DPFLAB workshop" class="w-full aspect-[16/8] mt-1.5 object-cover rounded-card" />
-      {:else}
-        <div class="placeholder aspect-[16/8] mt-1.5">[ DPFLAB · фото мастерской / здания ]</div>
       {/if}
     </div>
   </div>
