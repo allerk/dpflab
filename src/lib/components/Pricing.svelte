@@ -22,7 +22,7 @@
             <Icon name={it.icon} size={32}/>
           </div>
           <h3 class="text-[16px] font-semibold mb-4">{it.title}</h3>
-          <div class="text-[32px] font-extrabold mb-6">{locale === 'ru' ? 'от' : 'alates'}{it.price}</div>
+          <div class="text-[32px] font-extrabold mb-6">{locale === 'ru' ? 'от ' : 'alates '}{it.price}</div>
           <a href="#contacts"
              class="flex items-center justify-center w-full bg-accent text-accent-fg font-semibold text-[15px] px-6 py-3.5 rounded-btn whitespace-nowrap hover:bg-accent-h hover:-translate-y-px transition-[background,transform]">
             {it.cta}
