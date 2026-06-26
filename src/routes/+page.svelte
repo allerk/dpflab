@@ -55,7 +55,7 @@
   <Hero image={data.siteImagesMap.hero_main} />
   <WhyImportant image={data.siteImagesMap.why_main} />
   <Process />
-  <Pricing items={data.pricingItems} />
+  <Pricing items={data.pricingItems} locale={data.locale} />
   <Benefits />
   <BeforeAfter items={data.beforeAfterItems} />
   <Stages />
