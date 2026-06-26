@@ -23,7 +23,8 @@
 
   $: rows = (form as { rows?: typeof data.rows } | null)?.rows ?? data.rows;
 
-  let sliderEnabled = true;
+  // currently disabled feature, so it's always false
+  let sliderEnabled = false;
 
   onMount(() => {
     document.querySelectorAll<HTMLFormElement>('form[data-confirm]').forEach((f) => {
@@ -116,8 +117,9 @@
     <h2 class="font-semibold mb-4">{admin_before_after_add()}</h2>
     <form method="POST" action="?/create" class="space-y-4">
       <label class="flex items-center gap-2 cursor-pointer select-none">
-        <input type="checkbox" name="slider_enabled" bind:checked={sliderEnabled} class="accent-accent w-4 h-4" />
-        <span class="text-sm">{admin_before_after_slider()}</span>
+        <input disabled type="checkbox" name="slider_enabled" bind:checked={sliderEnabled} class="accent-accent w-4 h-4" />
+        <span class="line-through text-sm">{admin_before_after_slider()}</span>
+        <span class="font-bold">- временно не работает</span>
       </label>
       {#if sliderEnabled}
         <div class="grid grid-cols-2 gap-4">
