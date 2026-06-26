@@ -12,7 +12,7 @@
       <h2 class="text-[clamp(28px,3.5vw,42px)] font-extrabold text-center tracking-[0.02em] mb-10 max-sm:text-[clamp(22px,6vw,28px)]">{gallery_title()}</h2>
       <div class="flex flex-wrap justify-center gap-3">
         {#each items as item}
-          <div class="w-[calc(20%-9.6px)] max-md:w-[calc(50%-6px)] max-xs:w-full">
+          <div class="w-[calc(50%-9.6px)] max-md:w-[calc(50%-6px)] max-xs:w-full">
             <BeforeAfterCard
               sliderEnabled={item.sliderEnabled}
               imageBefore={item.imageBefore}
