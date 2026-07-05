@@ -7,6 +7,7 @@
     brand_tagline, contacts_phone, contacts_phone_href
   } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
+  import { asset } from '$app/paths';
 
   const LANGUAGES = [
     { code: 'ru', label: 'Русский', short: 'RU' },
@@ -75,8 +76,8 @@
   <!-- Desktop bar -->
   <div class="container flex items-center gap-5 py-3.5 px-6 max-xs:py-5 max-xs:px-4">
     <a href="/" class="flex flex-col leading-[1.05] shrink-0" on:click={closeMenu}>
-      <span class="font-black text-[22px] tracking-[0.02em] after:content-['.'] after:text-accent">DPFLAB</span>
-      <span class="text-[9px] tracking-[0.18em] text-fg-muted uppercase mt-0.5">{brand_tagline()}</span>
+        <img src={asset('/header_logo.svg')} alt="DPFLAB" class="h-12 w-auto" />
+<!--        <span class="text-[9px] tracking-[0.18em] text-fg-muted uppercase mt-0.5">{brand_tagline()}</span>-->
     </a>
 
     <nav class="hidden lg:flex gap-[18px] shrink-0 max-xl:gap-[14px]" aria-label="Main">
