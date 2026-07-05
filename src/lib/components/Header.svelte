@@ -76,7 +76,7 @@
   <!-- Desktop bar -->
   <div class="container flex items-center gap-5 py-3.5 px-6 max-xs:py-5 max-xs:px-4">
     <a href="/" class="flex flex-col leading-[1.05] shrink-0" on:click={closeMenu}>
-        <img src={asset('/header_logo.svg')} alt="DPFLAB" class="h-12 w-auto" />
+        <img src={asset('/header_logo.svg')} alt="DPFLAB" class="h-8 w-auto" />
     </a>
 
     <nav class="hidden lg:flex gap-[18px] shrink-0 max-xl:gap-[14px]" aria-label="Main">
