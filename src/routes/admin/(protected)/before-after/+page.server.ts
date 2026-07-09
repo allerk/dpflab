@@ -19,7 +19,9 @@ export const actions: Actions = {
   create: async ({ request, platform }) => {
     const db = getDb(platform);
     const data = await request.formData();
-    const sliderEnabled = data.get('slider_enabled') === 'on';
+    // currently disabled feature, so it's always false
+    // const sliderEnabled = data.get('slider_enabled') === 'on';
+    const sliderEnabled = false;
     const imageBefore = (data.get('image_before') as string)?.trim() || null;
     const imageAfter = (data.get('image_after') as string)?.trim() || null;
     await createBeforeAfterItem(db, { sliderEnabled, imageBefore, imageAfter });
