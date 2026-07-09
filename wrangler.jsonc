@@ -1,12 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "dpflab",
   "compatibility_date": "2026-06-21",
   "compatibility_flags": ["nodejs_compat"],
   "main": ".svelte-kit/cloudflare/_worker.js",
-  // Serve only via the custom domain (which sits behind Cloudflare Access);
-  // disabling workers.dev prevents bypassing Access through the *.workers.dev URL.
-  "workers_dev": false,
   "assets": {
     "binding": "ASSETS",
     "directory": ".svelte-kit/cloudflare"
@@ -14,23 +10,57 @@
   "observability": {
     "enabled": true
   },
-  "vars": {
-    // Not secrets — the AUD tag and team domain are safe to keep in config.
-    "CF_ACCESS_TEAM_DOMAIN": "dpflab",
-    "CF_ACCESS_AUD": "b9c326b4ef29fca0bcf77b4d3847b9121e6a414e438865e896c5c5cfa559cf46"
-  },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "dpflab",
-      "database_id": "1cf109a2-4efd-48a5-b614-547a99125201",
-      "migrations_dir": "drizzle"
+  "env": {
+    "prod": {
+      "name": "dpflab",
+      // Serve only via the custom domain (which sits behind Cloudflare Access);
+      // disabling workers.dev prevents bypassing Access through the *.workers.dev URL.
+      "workers_dev": false,
+      "vars": {
+        // Not secrets — the AUD tag and team domain are safe to keep in config.
+        "CF_ACCESS_TEAM_DOMAIN": "dpflab",
+        "CF_ACCESS_AUD": "b9c326b4ef29fca0bcf77b4d3847b9121e6a414e438865e896c5c5cfa559cf46"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "dpflab",
+          "database_id": "1cf109a2-4efd-48a5-b614-547a99125201",
+          "migrations_dir": "drizzle"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "BUCKET",
+          "bucket_name": "dpflab-images"
+        }
+      ]
+    },
+    "develop": {
+      "name": "dpflab-develop",
+      // Expose the develop Worker on workers.dev until/if a separate custom
+      // domain is attached for staging.
+      "workers_dev": true,
+      "vars": {
+        // Reuse the same team; if admin access is needed on develop, create a
+        // separate Cloudflare Access app and replace the AUD below.
+        "CF_ACCESS_TEAM_DOMAIN": "dpflab",
+        "CF_ACCESS_AUD": "b9c326b4ef29fca0bcf77b4d3847b9121e6a414e438865e896c5c5cfa559cf46"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "dpflab-develop",
+          "database_id": "e81037a9-d2b2-41d0-bb5c-d44376df3492",
+          "migrations_dir": "drizzle"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "BUCKET",
+          "bucket_name": "dpflab-images-develop"
+        }
+      ]
     }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "BUCKET",
-      "bucket_name": "dpflab-images"
-    }
-  ]
+  }
 }

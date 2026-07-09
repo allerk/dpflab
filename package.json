@@ -6,16 +6,20 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "preview": "npm run build && wrangler dev",
-    "deploy": "npm run build && wrangler deploy",
+    "preview": "npm run build && wrangler dev --env prod",
+    "preview:develop": "npm run build && wrangler dev --env develop",
+    "deploy": "npm run build && wrangler deploy --env prod",
+    "deploy:develop": "npm run build && wrangler deploy --env develop",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply dpflab --local",
-    "db:migrate:remote": "wrangler d1 migrations apply dpflab --remote",
+    "db:migrate:remote": "wrangler d1 migrations apply dpflab --remote --env prod",
+    "db:migrate:remote:develop": "wrangler d1 migrations apply dpflab-develop --remote --env develop",
     "db:seed:local": "wrangler d1 execute dpflab --local --file=./seed.sql",
-    "db:seed:remote": "wrangler d1 execute dpflab --remote --file=./seed.sql"
+    "db:seed:remote": "wrangler d1 execute dpflab --remote --env prod --file=./seed.sql",
+    "db:seed:remote:develop": "wrangler d1 execute dpflab-develop --remote --env develop --file=./seed.sql"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260621.1",
