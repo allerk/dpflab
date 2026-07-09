@@ -18,7 +18,9 @@ export const actions: Actions = {
     const db = getDb(platform);
     const id = Number(params.id);
     const data = await request.formData();
-    const sliderEnabled = data.get('slider_enabled') === 'on';
+    // currently disabled feature, so it's always false
+    // const sliderEnabled = data.get('slider_enabled') === 'on';
+    const sliderEnabled = false;
     const imageBefore = (data.get('image_before') as string)?.trim() || null;
     const imageAfter = (data.get('image_after') as string)?.trim() || null;
     await updateBeforeAfterItem(db, id, { sliderEnabled, imageBefore, imageAfter });

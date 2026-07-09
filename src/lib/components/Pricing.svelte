@@ -2,8 +2,11 @@
   import { pricing_title, pricing_title_accent, pricing_footer } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
   import type { PricingItem } from '$lib/db/repositories/pricing';
-
-  export let items: PricingItem[] = [];
+  interface PricingProps {
+      items: PricingItem[];
+      locale: string;
+  }
+  const { items, locale }: PricingProps = $props();
 </script>
 
 <section id="pricing" class="section bg-bg">
@@ -19,7 +22,7 @@
             <Icon name={it.icon} size={32}/>
           </div>
           <h3 class="text-[16px] font-semibold mb-4">{it.title}</h3>
-          <div class="text-[32px] font-extrabold mb-6">{it.price}</div>
+          <div class="text-[32px] font-extrabold mb-6">{locale === 'ru' ? 'от ' : 'alates '}{it.price}</div>
           <a href="#contacts"
              class="flex items-center justify-center w-full bg-accent text-accent-fg font-semibold text-[15px] px-6 py-3.5 rounded-btn whitespace-nowrap hover:bg-accent-h hover:-translate-y-px transition-[background,transform]">
             {it.cta}

@@ -27,15 +27,17 @@
   <form method="POST" class="bg-bg-card rounded-card p-5 border border-border space-y-5">
     <label class="flex items-center gap-2 cursor-pointer select-none">
       <input
+        disabled
         type="checkbox"
         name="slider_enabled"
         bind:checked={sliderEnabled}
         class="accent-accent w-4 h-4"
       />
-      <span class="text-sm">
-        {admin_before_after_slider()} —
+      <span class="line-through text-sm">
+        {admin_before_after_slider()} -
         {sliderEnabled ? admin_before_after_slider_on() : admin_before_after_slider_off()}
       </span>
+      <span class="font-bold">- временно не работает</span>
     </label>
 
     {#if sliderEnabled}
