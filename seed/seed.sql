@@ -24,8 +24,8 @@ INSERT INTO faq (question, answer, sort_order) VALUES
  5);
 
 INSERT INTO pricing (icon, title, price, cta, sort_order) VALUES
-('filter', '{"et":"DPF filtri puhastus","ru":"Очистка DPF фильтра"}', 'от 100€', '{"et":"Tellida","ru":"Заказать"}', 1),
-('truck', '{"et":"Veoauto DPF puhastus","ru":"Очистка DPF грузового авто"}', 'от 200€', '{"et":"Tellida","ru":"Заказать"}', 2);
+('filter', '{"et":"DPF filtri puhastus","ru":"Очистка DPF фильтра"}', '100€', '{"et":"Tellida","ru":"Заказать"}', 1),
+('truck', '{"et":"Veoauto DPF puhastus","ru":"Очистка DPF грузового авто"}', '200€', '{"et":"Tellida","ru":"Заказать"}', 2);
 
 INSERT INTO contacts (phone, phone_href, whatsapp, email, address, weekdays_open, weekdays_close, saturday_open, saturday_close) VALUES
 ('+372 5555 5014', 'tel:+37255555014', 'https://wa.me/37255555014', 'info@dpflab.ee', 'Saha-Loo tee 36, Iru, 74206', '09:00', '18:00', '10:00', '15:00');

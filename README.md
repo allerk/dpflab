@@ -1,6 +1,6 @@
 # DPFLAB — SvelteKit
 
-Landing page for DPFLAB, a DPF filter cleaning service in Estonia. Built with SvelteKit, Tailwind CSS v4, Paraglide JS v2, and SQLite/Drizzle. Supports Russian (default) and Estonian locales via URL-based routing (`/` and `/et`).
+Landing page for DPFLAB, a DPF filter cleaning service in Estonia. Built with SvelteKit, Tailwind CSS v4, Paraglide JS v2, and Cloudflare D1/Drizzle. Supports Russian (default) and Estonian locales via URL-based routing (`/` and `/et`).
 
 ## Project structure
 
@@ -8,9 +8,9 @@ Landing page for DPFLAB, a DPF filter cleaning service in Estonia. Built with Sv
 messages/
   ru.json               ← Paraglide static copy — Russian
   et.json               ← Paraglide static copy — Estonian
-data/
-  dpflab.db             ← SQLite database (gitignored)
-drizzle/                ← SQL migration files (committed)
+drizzle/                ← Cloudflare D1 migration files (committed)
+seed/seed.sql           ← local/remote D1 seed content
+wrangler.jsonc          ← Cloudflare Worker, D1 and R2 environments
 wiki/
   translation-strategy.md  ← i18n design doc
 src/
@@ -24,9 +24,8 @@ src/
     Icon.svelte         ← all icons via a single switch
     db/
       schema.ts         ← Drizzle table definitions
-      index.ts          ← DB client + auto-migrate on startup
+      index.ts          ← request-scoped Cloudflare D1 client
       types.ts          ← shared Db type alias
-      seed.ts           ← idempotent seed script
       repositories/     ← one file per table (faq, reviews, pricing, …)
     components/
       Header.svelte         ← sticky nav, language switcher, mobile drawer
@@ -51,43 +50,62 @@ tests/
   db/                   ← repository unit tests
 ```
 
-## First-time setup
+## Local startup
+
+The application runs locally as a Cloudflare Worker with a local-only D1
+database and R2 bucket. The `local` environment in `wrangler.jsonc` is
+separate from both `prod` and `develop`; none of the commands below use
+remote Cloudflare resources.
 
 ```bash
 npm install
-npm run db:migrate   # create tables in data/dpflab.db
-npm run db:seed      # populate with initial content
+npm run db:migrate:local  # create the local D1 schema
+npm run db:seed:local     # load initial content
 npm run dev
 ```
+
+Open http://localhost:8787. `npm run dev` builds the application and starts
+the local Worker. It loads local secrets from `.dev.vars`; keep that file out
+of version control.
+
+To reset only local D1 and R2 data, stop the Worker and run:
+
+```bash
+rm -rf .wrangler/state/v3/d1 .wrangler/state/v3/r2
+```
+
+Then run the migration and seed commands above again.
 
 ## Database workflow
 
 ```bash
 # After changing src/lib/db/schema.ts:
 npm run db:generate   # generates a new SQL file in drizzle/
-npm run db:migrate    # applies it to data/dpflab.db
+npm run db:migrate:local  # applies it to the local D1 database
 
-# Re-seed content (idempotent — safe to run multiple times):
-npm run db:seed
+# Re-seed local content:
+npm run db:seed:local
 ```
 
-Migrations run automatically on server startup — no manual step needed in production after deploy.
+Remote D1 operations are explicit and use different commands:
+`npm run db:migrate:remote`, `npm run db:migrate:remote:develop`,
+`npm run db:seed:remote`, and `npm run db:seed:remote:develop`.
 
-## Deployment (zone.ee / any Node host)
+## Deployment
 
 ```bash
-npm run build
-node build/index.js   # PORT env var, default 3000
+npm run deploy          # production Worker
+npm run deploy:develop  # develop Worker
 ```
 
-Deploy `build/` and `drizzle/` together. The SQLite file path defaults to `./data/dpflab.db` relative to `process.cwd()`; override with the `DATABASE_URL` env var (`file:/absolute/path/to/dpflab.db`).
+Apply the corresponding remote D1 migration before deploying a schema change.
 
 ## i18n
 
 Two layers — see [`wiki/translation-strategy.md`](wiki/translation-strategy.md) for the full design.
 
 - **Paraglide** (`messages/*.json`) — static UI chrome: nav, buttons, headings, form labels.
-- **SQLite** — editable business content: FAQ, reviews, pricing, certificates, contact details.
+- **Cloudflare D1** — editable business content: FAQ, reviews, pricing, certificates, contact details.
 
 Locale is detected from the URL: `/` → Russian, `/et` → Estonian. Language switching triggers a full page reload so the server applies the correct locale.
 
@@ -100,7 +118,7 @@ npm test          # run all tests once
 npm run test:watch  # watch mode
 ```
 
-Tests live in `tests/` (outside `src/`). Repository tests use an in-memory SQLite database seeded from the real migration files.
+Tests live in `tests/` (outside `src/`). Repository tests use an in-memory D1-compatible database seeded from the real migration files.
 
 ## Design system
 
