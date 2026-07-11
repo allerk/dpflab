@@ -211,6 +211,7 @@
   "admin_action_save": "Salvesta",
   "admin_action_add": "Lisa",
   "admin_action_edit": "Muuda",
+  "admin_action_view": "Ava",
   "admin_action_delete": "Kustuta",
   "admin_action_cancel": "Tühista",
   "admin_action_back": "← Tagasi",

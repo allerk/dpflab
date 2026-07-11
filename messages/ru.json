@@ -211,6 +211,7 @@
   "admin_action_save": "Сохранить",
   "admin_action_add": "Добавить",
   "admin_action_edit": "Редактировать",
+  "admin_action_view": "Открыть",
   "admin_action_delete": "Удалить",
   "admin_action_cancel": "Отмена",
   "admin_action_back": "← Назад",

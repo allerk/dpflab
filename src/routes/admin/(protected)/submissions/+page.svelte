@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import DeleteConfirmationModal from '$lib/components/admin/DeleteConfirmationModal.svelte';
   import {
     admin_submissions_title,
+    admin_action_view,
     admin_action_delete,
-    admin_confirm_delete,
     admin_no_items
   } from '$lib/paraglide/messages';
   import type { PageData } from './$types';
@@ -12,13 +12,29 @@
 
   $: rows = data.rows;
 
-  onMount(() => {
-    document.querySelectorAll<HTMLFormElement>('form[data-confirm]').forEach((f) => {
-      f.addEventListener('submit', (e) => {
-        if (!confirm(f.dataset.confirm)) e.preventDefault();
-      });
-    });
-  });
+  let deleteModalOpen = false;
+  let pendingDeleteForm: HTMLFormElement | null = null;
+  let allowDelete = false;
+
+  function handleDeleteSubmit(event: SubmitEvent) {
+    if (allowDelete) {
+      allowDelete = false;
+      return;
+    }
+
+    event.preventDefault();
+    pendingDeleteForm = event.currentTarget as HTMLFormElement;
+    deleteModalOpen = true;
+  }
+
+  function closeDeleteModal() {
+    deleteModalOpen = false;
+    pendingDeleteForm = null;
+  }
+
+  function confirmDelete() {
+    allowDelete = true;
+  }
 
   function formatDate(d: Date) {
     return new Intl.DateTimeFormat('ru', {
@@ -59,8 +75,11 @@
               <td class="px-4 py-2.5">{#if row.email}<a href="mailto:{row.email}" class="hover:text-accent transition-colors">{row.email}</a>{:else}<span class="text-fg-muted">—</span>{/if}</td>
               <td class="px-4 py-2.5 max-w-xs truncate text-fg-muted">{row.comment}</td>
               <td class="px-4 py-2.5 uppercase text-xs text-fg-muted">{row.locale}</td>
-              <td class="px-4 py-2.5">
-                <form method="POST" action="?/delete" data-confirm={admin_confirm_delete()}>
+              <td class="px-4 py-2.5 whitespace-nowrap">
+                <a href="/admin/submissions/{row.id}" class="text-xs px-2.5 py-1 rounded border border-border hover:bg-bg-card transition-colors mr-2">
+                  {admin_action_view()}
+                </a>
+                <form method="POST" action="?/delete" class="inline" on:submit={handleDeleteSubmit}>
                   <input type="hidden" name="id" value={row.id} />
                   <button type="submit"
                     class="text-xs px-2.5 py-1 rounded border border-danger text-danger hover:bg-danger/10 transition-colors cursor-pointer">
@@ -76,3 +95,9 @@
   {/if}
 </div>
 
+<DeleteConfirmationModal
+  open={deleteModalOpen}
+  form={pendingDeleteForm}
+  onclose={closeDeleteModal}
+  onconfirm={confirmDelete}
+/>
