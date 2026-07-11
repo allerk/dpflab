@@ -77,11 +77,11 @@
         <tbody>
           {#each rows as row, i}
             <tr class="border-b border-border last:border-0 {i % 2 === 0 ? 'bg-bg' : 'bg-bg-card'}">
-              <td class="px-4 py-2.5 align-top whitespace-nowrap text-fg-muted">{formatDate(row.createdAt)}</td>
-              <td class="px-4 py-2.5 align-top font-medium">{row.name}</td>
-              <td class="px-4 py-2.5 align-top">{row.phone}</td>
-              <td class="px-4 py-2.5 align-top">{#if row.email}<a href="mailto:{row.email}" class="hover:text-accent transition-colors">{row.email}</a>{:else}<span class="text-fg-muted">—</span>{/if}</td>
-              <td class="px-4 py-2.5 align-top max-w-xs text-fg-muted">
+              <td class="px-4 py-2.5 whitespace-nowrap text-fg-muted" class:align-top={expandedCommentId === row.id}>{formatDate(row.createdAt)}</td>
+              <td class="px-4 py-2.5 font-medium" class:align-top={expandedCommentId === row.id}>{row.name}</td>
+              <td class="px-4 py-2.5" class:align-top={expandedCommentId === row.id}>{row.phone}</td>
+              <td class="px-4 py-2.5" class:align-top={expandedCommentId === row.id}>{#if row.email}<a href="mailto:{row.email}" class="hover:text-accent transition-colors">{row.email}</a>{:else}<span class="text-fg-muted">—</span>{/if}</td>
+              <td class="px-4 py-2.5 max-w-xs text-fg-muted" class:align-top={expandedCommentId === row.id}>
                 {#if expandedCommentId === row.id}
                   <p class="whitespace-pre-wrap break-words">
                     {row.comment}<button
@@ -90,7 +90,7 @@
                       aria-label={admin_action_hide_comment()}
                       aria-expanded="true"
                       on:click={() => toggleComment(row.id)}
-                    ><Icon name="eye" size={16} /></button>
+                    ><Icon name="eye-off" size={16} /></button>
                   </p>
                 {:else}
                   <div class="flex items-center gap-1 min-w-0">
@@ -109,8 +109,8 @@
                   </div>
                 {/if}
               </td>
-              <td class="px-4 py-2.5 align-top uppercase text-xs text-fg-muted">{row.locale}</td>
-              <td class="px-4 py-2.5 align-top whitespace-nowrap">
+              <td class="px-4 py-2.5 uppercase text-xs text-fg-muted" class:align-top={expandedCommentId === row.id}>{row.locale}</td>
+              <td class="px-4 py-2.5 whitespace-nowrap" class:align-top={expandedCommentId === row.id}>
                 <a href="/admin/submissions/{row.id}" class="text-xs px-2.5 py-1 rounded border border-border hover:bg-bg-card transition-colors mr-2">
                   {admin_action_view()}
                 </a>
