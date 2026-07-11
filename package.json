@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "npm run build && wrangler dev --env local",
     "build": "vite build",
-    "preview": "npm run build && wrangler dev --env prod",
+    "preview": "npm run build && wrangler dev --env local",
     "preview:develop": "npm run build && wrangler dev --env develop",
     "deploy": "npm run build && wrangler deploy --env prod",
     "deploy:develop": "npm run build && wrangler deploy --env develop",
@@ -14,12 +14,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
-    "db:migrate:local": "wrangler d1 migrations apply dpflab --local",
+    "db:migrate:local": "wrangler d1 migrations apply dpflab-local --local --env local",
     "db:migrate:remote": "wrangler d1 migrations apply dpflab --remote --env prod",
     "db:migrate:remote:develop": "wrangler d1 migrations apply dpflab-develop --remote --env develop",
-    "db:seed:local": "wrangler d1 execute dpflab --local --file=./seed.sql",
-    "db:seed:remote": "wrangler d1 execute dpflab --remote --env prod --file=./seed.sql",
-    "db:seed:remote:develop": "wrangler d1 execute dpflab-develop --remote --env develop --file=./seed.sql"
+    "db:seed:local": "wrangler d1 execute dpflab-local --local --env local --file=./seed/seed.sql",
+    "db:seed:remote": "wrangler d1 execute dpflab --remote --env prod --file=./seed/seed.sql",
+    "db:seed:remote:develop": "wrangler d1 execute dpflab-develop --remote --env develop --file=./seed/seed.sql"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260621.1",

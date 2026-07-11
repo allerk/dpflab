@@ -11,6 +11,28 @@
     "enabled": true
   },
   "env": {
+    "local": {
+      "name": "dpflab-local",
+      "workers_dev": false,
+      "vars": {
+        "CF_ACCESS_TEAM_DOMAIN": "dpflab",
+        "CF_ACCESS_AUD": "b9c326b4ef29fca0bcf77b4d3847b9121e6a414e438865e896c5c5cfa559cf46"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "dpflab-local",
+          "database_id": "00000000-0000-4000-8000-000000000001",
+          "migrations_dir": "drizzle"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "BUCKET",
+          "bucket_name": "dpflab-images-local"
+        }
+      ]
+    },
     "prod": {
       "name": "dpflab",
       // Serve only via the custom domain (which sits behind Cloudflare Access);
