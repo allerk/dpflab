@@ -94,7 +94,7 @@
                   </p>
                 {:else}
                   <div class="flex items-center gap-1 min-w-0">
-                    <span class="min-w-0 truncate">{row.comment || '—'}</span>
+                    <span class="min-w-0 overflow-hidden whitespace-nowrap">{row.comment || '—'}</span>
                     {#if row.comment}
                     <button
                       type="button"
