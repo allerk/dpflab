@@ -111,16 +111,18 @@
               </td>
               <td class="px-4 py-2.5 uppercase text-xs text-fg-muted" class:align-top={expandedCommentId === row.id}>{row.locale}</td>
               <td class="px-4 py-2.5 whitespace-nowrap" class:align-top={expandedCommentId === row.id}>
-                <a href="/admin/submissions/{row.id}" class="text-xs px-2.5 py-1 rounded border border-border hover:bg-bg-card transition-colors mr-2">
-                  {admin_action_view()}
-                </a>
-                <form method="POST" action="?/delete" class="inline" on:submit={handleDeleteSubmit}>
-                  <input type="hidden" name="id" value={row.id} />
-                  <button type="submit"
-                    class="text-xs px-2.5 py-1 rounded border border-danger text-danger hover:bg-danger/10 transition-colors cursor-pointer">
-                    {admin_action_delete()}
-                  </button>
-                </form>
+                <div class="flex items-start gap-2">
+                  <a href="/admin/submissions/{row.id}" class="inline-flex items-center text-xs px-2.5 py-1 rounded border border-border hover:bg-bg-card transition-colors">
+                    {admin_action_view()}
+                  </a>
+                  <form method="POST" action="?/delete" class="inline-flex" on:submit={handleDeleteSubmit}>
+                    <input type="hidden" name="id" value={row.id} />
+                    <button type="submit"
+                      class="text-xs px-2.5 py-1 rounded border border-danger text-danger hover:bg-danger/10 transition-colors cursor-pointer">
+                      {admin_action_delete()}
+                    </button>
+                  </form>
+                </div>
               </td>
             </tr>
           {/each}
