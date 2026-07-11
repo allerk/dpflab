@@ -77,31 +77,40 @@
         <tbody>
           {#each rows as row, i}
             <tr class="border-b border-border last:border-0 {i % 2 === 0 ? 'bg-bg' : 'bg-bg-card'}">
-              <td class="px-4 py-2.5 whitespace-nowrap text-fg-muted">{formatDate(row.createdAt)}</td>
-              <td class="px-4 py-2.5 font-medium">{row.name}</td>
-              <td class="px-4 py-2.5">{row.phone}</td>
-              <td class="px-4 py-2.5">{#if row.email}<a href="mailto:{row.email}" class="hover:text-accent transition-colors">{row.email}</a>{:else}<span class="text-fg-muted">—</span>{/if}</td>
-              <td class="px-4 py-2.5 max-w-xs text-fg-muted">
-                <div class="flex items-center gap-1 min-w-0">
-                  <span class="min-w-0 truncate">{row.comment || '—'}</span>
-                  {#if row.comment}
+              <td class="px-4 py-2.5 align-top whitespace-nowrap text-fg-muted">{formatDate(row.createdAt)}</td>
+              <td class="px-4 py-2.5 align-top font-medium">{row.name}</td>
+              <td class="px-4 py-2.5 align-top">{row.phone}</td>
+              <td class="px-4 py-2.5 align-top">{#if row.email}<a href="mailto:{row.email}" class="hover:text-accent transition-colors">{row.email}</a>{:else}<span class="text-fg-muted">—</span>{/if}</td>
+              <td class="px-4 py-2.5 align-top max-w-xs text-fg-muted">
+                {#if expandedCommentId === row.id}
+                  <p class="whitespace-pre-wrap break-words">
+                    {row.comment}<button
+                      type="button"
+                      class="inline-flex ml-1 align-text-bottom text-fg-muted hover:text-fg transition-colors cursor-pointer"
+                      aria-label={admin_action_hide_comment()}
+                      aria-expanded="true"
+                      on:click={() => toggleComment(row.id)}
+                    ><Icon name="eye" size={16} /></button>
+                  </p>
+                {:else}
+                  <div class="flex items-center gap-1 min-w-0">
+                    <span class="min-w-0 truncate">{row.comment || '—'}</span>
+                    {#if row.comment}
                     <button
                       type="button"
                       class="shrink-0 p-1 text-fg-muted hover:text-fg transition-colors cursor-pointer"
-                      aria-label={expandedCommentId === row.id ? admin_action_hide_comment() : admin_action_show_comment()}
-                      aria-expanded={expandedCommentId === row.id}
+                      aria-label={admin_action_show_comment()}
+                      aria-expanded="false"
                       on:click={() => toggleComment(row.id)}
                     >
                       <Icon name="eye" size={16} />
                     </button>
-                  {/if}
-                </div>
-                {#if expandedCommentId === row.id}
-                  <p class="mt-2 whitespace-pre-wrap break-words">{row.comment}</p>
+                    {/if}
+                  </div>
                 {/if}
               </td>
-              <td class="px-4 py-2.5 uppercase text-xs text-fg-muted">{row.locale}</td>
-              <td class="px-4 py-2.5 whitespace-nowrap">
+              <td class="px-4 py-2.5 align-top uppercase text-xs text-fg-muted">{row.locale}</td>
+              <td class="px-4 py-2.5 align-top whitespace-nowrap">
                 <a href="/admin/submissions/{row.id}" class="text-xs px-2.5 py-1 rounded border border-border hover:bg-bg-card transition-colors mr-2">
                   {admin_action_view()}
                 </a>
