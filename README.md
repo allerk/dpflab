@@ -64,9 +64,9 @@ npm run db:seed:local     # load initial content
 npm run dev
 ```
 
-Open http://localhost:8787. `npm run preview` starts the same local Worker
-after a production build. Both commands load local secrets from `.dev.vars`;
-keep that file out of version control.
+Open http://localhost:8787. `npm run dev` builds the application and starts
+the local Worker. It loads local secrets from `.dev.vars`; keep that file out
+of version control.
 
 To reset only local D1 and R2 data, stop the Worker and run:
 

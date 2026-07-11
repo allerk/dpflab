@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "npm run build && wrangler dev --env local",
     "build": "vite build",
-    "preview": "npm run build && wrangler dev --env local",
     "preview:develop": "npm run build && wrangler dev --env develop",
     "deploy": "npm run build && wrangler deploy --env prod",
     "deploy:develop": "npm run build && wrangler deploy --env develop",
