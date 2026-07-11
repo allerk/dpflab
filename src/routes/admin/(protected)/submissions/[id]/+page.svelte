@@ -69,7 +69,7 @@
     </div>
     <div class="px-5 py-4">
       <dt class="text-sm text-fg-muted">Комментарий</dt>
-      <dd class="mt-1 whitespace-pre-wrap">{data.row.comment || '—'}</dd>
+      <dd class="mt-1 whitespace-pre-wrap break-words">{data.row.comment || '—'}</dd>
     </div>
   </dl>
 
