@@ -1,8 +1,11 @@
 <script lang="ts">
   import DeleteConfirmationModal from '$lib/components/admin/DeleteConfirmationModal.svelte';
+  import Icon from '$lib/Icon.svelte';
   import {
     admin_submissions_title,
     admin_action_view,
+    admin_action_show_comment,
+    admin_action_hide_comment,
     admin_action_delete,
     admin_no_items
   } from '$lib/paraglide/messages';
@@ -15,6 +18,11 @@
   let deleteModalOpen = false;
   let pendingDeleteForm: HTMLFormElement | null = null;
   let allowDelete = false;
+  let expandedCommentId: number | null = null;
+
+  function toggleComment(id: number) {
+    expandedCommentId = expandedCommentId === id ? null : id;
+  }
 
   function handleDeleteSubmit(event: SubmitEvent) {
     if (allowDelete) {
@@ -73,7 +81,22 @@
               <td class="px-4 py-2.5 font-medium">{row.name}</td>
               <td class="px-4 py-2.5">{row.phone}</td>
               <td class="px-4 py-2.5">{#if row.email}<a href="mailto:{row.email}" class="hover:text-accent transition-colors">{row.email}</a>{:else}<span class="text-fg-muted">—</span>{/if}</td>
-              <td class="px-4 py-2.5 max-w-xs truncate text-fg-muted">{row.comment}</td>
+              <td class="px-4 py-2.5 max-w-xs text-fg-muted">
+                <div class="flex items-center gap-1 min-w-0">
+                  <span class="min-w-0 truncate">{row.comment || '—'}</span>
+                  {#if row.comment}
+                    <button
+                      type="button"
+                      class="shrink-0 p-1 text-fg-muted hover:text-fg transition-colors cursor-pointer"
+                      aria-label={expandedCommentId === row.id ? admin_action_hide_comment() : admin_action_show_comment()}
+                      aria-expanded={expandedCommentId === row.id}
+                      on:click={() => toggleComment(row.id)}
+                    >
+                      <Icon name="eye" size={16} />
+                    </button>
+                  {/if}
+                </div>
+              </td>
               <td class="px-4 py-2.5 uppercase text-xs text-fg-muted">{row.locale}</td>
               <td class="px-4 py-2.5 whitespace-nowrap">
                 <a href="/admin/submissions/{row.id}" class="text-xs px-2.5 py-1 rounded border border-border hover:bg-bg-card transition-colors mr-2">
@@ -88,6 +111,13 @@
                 </form>
               </td>
             </tr>
+            {#if expandedCommentId === row.id}
+              <tr class="border-b border-border {i % 2 === 0 ? 'bg-bg' : 'bg-bg-card'}">
+                <td colspan="7" class="px-4 py-3">
+                  <p class="whitespace-pre-wrap break-words text-fg-muted">{row.comment}</p>
+                </td>
+              </tr>
+            {/if}
           {/each}
         </tbody>
       </table>
