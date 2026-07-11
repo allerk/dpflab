@@ -96,6 +96,9 @@
                     </button>
                   {/if}
                 </div>
+                {#if expandedCommentId === row.id}
+                  <p class="mt-2 whitespace-pre-wrap break-words">{row.comment}</p>
+                {/if}
               </td>
               <td class="px-4 py-2.5 uppercase text-xs text-fg-muted">{row.locale}</td>
               <td class="px-4 py-2.5 whitespace-nowrap">
@@ -111,13 +114,6 @@
                 </form>
               </td>
             </tr>
-            {#if expandedCommentId === row.id}
-              <tr class="border-b border-border {i % 2 === 0 ? 'bg-bg' : 'bg-bg-card'}">
-                <td colspan="7" class="px-4 py-3">
-                  <p class="whitespace-pre-wrap break-words text-fg-muted">{row.comment}</p>
-                </td>
-              </tr>
-            {/if}
           {/each}
         </tbody>
       </table>
