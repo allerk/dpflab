@@ -41,8 +41,17 @@
       "vars": {
         // Not secrets — the AUD tag and team domain are safe to keep in config.
         "CF_ACCESS_TEAM_DOMAIN": "dpflab",
-        "CF_ACCESS_AUD": "b9c326b4ef29fca0bcf77b4d3847b9121e6a414e438865e896c5c5cfa559cf46"
+        "CF_ACCESS_AUD": "b9c326b4ef29fca0bcf77b4d3847b9121e6a414e438865e896c5c5cfa559cf46",
+        "APP_ENV": "prod",
+        "NOTIFICATION_FROM_EMAIL": "info@dpflab.ee"
       },
+      "send_email": [
+        {
+          "name": "ADMIN_EMAIL",
+          "destination_address": "info@dpflab.ee",
+          "allowed_sender_addresses": ["info@dpflab.ee"]
+        }
+      ],
       "d1_databases": [
         {
           "binding": "DB",
@@ -67,8 +76,17 @@
         // Reuse the same team; if admin access is needed on develop, create a
         // separate Cloudflare Access app and replace the AUD below.
         "CF_ACCESS_TEAM_DOMAIN": "dpflab",
-        "CF_ACCESS_AUD": "b9c326b4ef29fca0bcf77b4d3847b9121e6a414e438865e896c5c5cfa559cf46"
+        "CF_ACCESS_AUD": "b9c326b4ef29fca0bcf77b4d3847b9121e6a414e438865e896c5c5cfa559cf46",
+        "APP_ENV": "develop",
+        "NOTIFICATION_FROM_EMAIL": "info@dpflab.ee"
       },
+      "send_email": [
+        {
+          "name": "ADMIN_EMAIL",
+          "destination_address": "alexandr.lerko@gmail.com",
+          "allowed_sender_addresses": ["info@dpflab.ee"]
+        }
+      ],
       "d1_databases": [
         {
           "binding": "DB",
