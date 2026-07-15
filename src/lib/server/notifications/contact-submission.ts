@@ -1,28 +1,23 @@
 export type ContactSubmissionNotificationEnv = {
-  ADMIN_EMAIL?: {
-    send(message: {
-      from: string;
-      to?: undefined;
-      subject: string;
-      text: string;
-    }): Promise<unknown>;
-  };
   APP_ENV?: 'develop' | 'prod';
   NOTIFICATION_FROM_EMAIL?: string;
+  NOTIFICATION_RECIPIENT_EMAIL?: string;
+  RESEND_API_KEY?: string;
 };
 
 type NotificationInput = {
   id: number;
   origin: string;
   env?: ContactSubmissionNotificationEnv;
+  fetchFn?: typeof fetch;
 };
 
 type NotificationContext = {
   waitUntil(promise: Promise<unknown>): void;
 };
 
-export async function sendContactSubmissionNotification({ id, origin, env }: NotificationInput): Promise<void> {
-  if (!env?.ADMIN_EMAIL || !env.NOTIFICATION_FROM_EMAIL) {
+export async function sendContactSubmissionNotification({ id, origin, env, fetchFn = fetch }: NotificationInput): Promise<void> {
+  if (!env?.RESEND_API_KEY || !env.NOTIFICATION_FROM_EMAIL || !env.NOTIFICATION_RECIPIENT_EMAIL) {
     console.warn('[notifications] event=contact_submission_email_unavailable', { id });
     return;
   }
@@ -31,12 +26,21 @@ export async function sendContactSubmissionNotification({ id, origin, env }: Not
   const text = `Поступила новая заявка.\n${new URL(`/admin/submissions/${id}`, origin).href}`;
 
   try {
-    await env.ADMIN_EMAIL.send({
-      from: env.NOTIFICATION_FROM_EMAIL,
-      to: undefined,
-      subject,
-      text
+    const response = await fetchFn('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: env.NOTIFICATION_FROM_EMAIL,
+        to: [env.NOTIFICATION_RECIPIENT_EMAIL],
+        subject,
+        text
+      })
     });
+
+    if (!response.ok) throw new Error(`Resend responded with ${response.status}`);
   } catch (error) {
     console.error('[notifications] event=contact_submission_email_failed', { id, error });
   }
