@@ -1,9 +1,12 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import DeleteConfirmationModal from '$lib/components/admin/DeleteConfirmationModal.svelte';
+  import Icon from '$lib/Icon.svelte';
   import {
     admin_submissions_title,
+    admin_action_view,
+    admin_action_show_comment,
+    admin_action_hide_comment,
     admin_action_delete,
-    admin_confirm_delete,
     admin_no_items
   } from '$lib/paraglide/messages';
   import type { PageData } from './$types';
@@ -12,13 +15,34 @@
 
   $: rows = data.rows;
 
-  onMount(() => {
-    document.querySelectorAll<HTMLFormElement>('form[data-confirm]').forEach((f) => {
-      f.addEventListener('submit', (e) => {
-        if (!confirm(f.dataset.confirm)) e.preventDefault();
-      });
-    });
-  });
+  let deleteModalOpen = false;
+  let pendingDeleteForm: HTMLFormElement | null = null;
+  let allowDelete = false;
+  let expandedCommentId: number | null = null;
+
+  function toggleComment(id: number) {
+    expandedCommentId = expandedCommentId === id ? null : id;
+  }
+
+  function handleDeleteSubmit(event: SubmitEvent) {
+    if (allowDelete) {
+      allowDelete = false;
+      return;
+    }
+
+    event.preventDefault();
+    pendingDeleteForm = event.currentTarget as HTMLFormElement;
+    deleteModalOpen = true;
+  }
+
+  function closeDeleteModal() {
+    deleteModalOpen = false;
+    pendingDeleteForm = null;
+  }
+
+  function confirmDelete() {
+    allowDelete = true;
+  }
 
   function formatDate(d: Date) {
     return new Intl.DateTimeFormat('ru', {
@@ -53,20 +77,52 @@
         <tbody>
           {#each rows as row, i}
             <tr class="border-b border-border last:border-0 {i % 2 === 0 ? 'bg-bg' : 'bg-bg-card'}">
-              <td class="px-4 py-2.5 whitespace-nowrap text-fg-muted">{formatDate(row.createdAt)}</td>
-              <td class="px-4 py-2.5 font-medium">{row.name}</td>
-              <td class="px-4 py-2.5">{row.phone}</td>
-              <td class="px-4 py-2.5">{#if row.email}<a href="mailto:{row.email}" class="hover:text-accent transition-colors">{row.email}</a>{:else}<span class="text-fg-muted">—</span>{/if}</td>
-              <td class="px-4 py-2.5 max-w-xs truncate text-fg-muted">{row.comment}</td>
-              <td class="px-4 py-2.5 uppercase text-xs text-fg-muted">{row.locale}</td>
-              <td class="px-4 py-2.5">
-                <form method="POST" action="?/delete" data-confirm={admin_confirm_delete()}>
-                  <input type="hidden" name="id" value={row.id} />
-                  <button type="submit"
-                    class="text-xs px-2.5 py-1 rounded border border-danger text-danger hover:bg-danger/10 transition-colors cursor-pointer">
-                    {admin_action_delete()}
-                  </button>
-                </form>
+              <td class="px-4 py-2.5 whitespace-nowrap text-fg-muted" class:align-top={expandedCommentId === row.id}>{formatDate(row.createdAt)}</td>
+              <td class="px-4 py-2.5 font-medium" class:align-top={expandedCommentId === row.id}>{row.name}</td>
+              <td class="px-4 py-2.5" class:align-top={expandedCommentId === row.id}>{row.phone}</td>
+              <td class="px-4 py-2.5" class:align-top={expandedCommentId === row.id}>{#if row.email}<a href="mailto:{row.email}" class="hover:text-accent transition-colors">{row.email}</a>{:else}<span class="text-fg-muted">—</span>{/if}</td>
+              <td class="px-4 py-2.5 max-w-xs text-fg-muted" class:align-top={expandedCommentId === row.id}>
+                {#if expandedCommentId === row.id}
+                  <p class="whitespace-pre-wrap break-words">
+                    {row.comment}<button
+                      type="button"
+                      class="inline-flex ml-1 align-text-bottom text-fg-muted hover:text-fg transition-colors cursor-pointer"
+                      aria-label={admin_action_hide_comment()}
+                      aria-expanded="true"
+                      on:click={() => toggleComment(row.id)}
+                    ><Icon name="eye-off" size={16} /></button>
+                  </p>
+                {:else}
+                  <div class="flex items-center gap-1 min-w-0">
+                    <span class="min-w-0 overflow-hidden whitespace-nowrap">{row.comment || '—'}</span>
+                    {#if row.comment}
+                    <button
+                      type="button"
+                      class="shrink-0 p-1 text-fg-muted hover:text-fg transition-colors cursor-pointer"
+                      aria-label={admin_action_show_comment()}
+                      aria-expanded="false"
+                      on:click={() => toggleComment(row.id)}
+                    >
+                      <Icon name="eye" size={16} />
+                    </button>
+                    {/if}
+                  </div>
+                {/if}
+              </td>
+              <td class="px-4 py-2.5 uppercase text-xs text-fg-muted" class:align-top={expandedCommentId === row.id}>{row.locale}</td>
+              <td class="px-4 py-2.5 whitespace-nowrap" class:align-top={expandedCommentId === row.id}>
+                <div class="flex items-start gap-2">
+                  <a href="/admin/submissions/{row.id}" class="inline-flex items-center text-xs px-2.5 py-1 rounded border border-border hover:bg-bg-card transition-colors">
+                    {admin_action_view()}
+                  </a>
+                  <form method="POST" action="?/delete" class="inline-flex" on:submit={handleDeleteSubmit}>
+                    <input type="hidden" name="id" value={row.id} />
+                    <button type="submit"
+                      class="text-xs px-2.5 py-1 rounded border border-danger text-danger hover:bg-danger/10 transition-colors cursor-pointer">
+                      {admin_action_delete()}
+                    </button>
+                  </form>
+                </div>
               </td>
             </tr>
           {/each}
@@ -76,3 +132,9 @@
   {/if}
 </div>
 
+<DeleteConfirmationModal
+  open={deleteModalOpen}
+  form={pendingDeleteForm}
+  onclose={closeDeleteModal}
+  onconfirm={confirmDelete}
+/>
