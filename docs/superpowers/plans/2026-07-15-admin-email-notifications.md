@@ -115,7 +115,7 @@ export async function sendContactSubmissionNotification({ id, origin, env }: Not
   const url = new URL('/admin/submissions/' + id, origin).href;
   try {
     await env.ADMIN_EMAIL.send({
-      from: env.NOTIFICATION_FROM_EMAIL, subject,
+      from: env.NOTIFICATION_FROM_EMAIL, to: undefined, subject,
       text: 'Поступила новая заявка.\n' + url
     });
   } catch (error) {
@@ -124,7 +124,7 @@ export async function sendContactSubmissionNotification({ id, origin, env }: Not
 }
 ```
 
-Type `ADMIN_EMAIL` against the installed Workers Email Service API, and use its binding-configured recipient rather than accepting a form-provided recipient.
+Type `ADMIN_EMAIL` against the installed Workers Email Service API. With `destination_address`, pass `to: undefined`; Cloudflare substitutes the binding-configured recipient, so the application neither stores nor accepts a recipient address.
 
 - [ ] **Step 4: Run tests and type check**
 
@@ -212,4 +212,3 @@ git commit -m "chore: configure email notifications"
 - Спецификация покрыта задачами: окружения и получатели, TEST-тема, ID, ссылка, отсутствие ПДн, фоновая отправка, локальное отключение и обработка ошибок.
 - Адреса не выдумываются: они остаются конфигурацией Cloudflare.
 - Имена согласованы: `ADMIN_EMAIL`, `APP_ENV`, `NOTIFICATION_FROM_EMAIL`, `sendContactSubmissionNotification`, `createContactSubmission`.
-
