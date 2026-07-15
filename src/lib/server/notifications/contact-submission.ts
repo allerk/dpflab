@@ -17,6 +17,10 @@ type NotificationInput = {
   env?: ContactSubmissionNotificationEnv;
 };
 
+type NotificationContext = {
+  waitUntil(promise: Promise<unknown>): void;
+};
+
 export async function sendContactSubmissionNotification({ id, origin, env }: NotificationInput): Promise<void> {
   if (!env?.ADMIN_EMAIL || !env.NOTIFICATION_FROM_EMAIL) {
     console.warn('[notifications] event=contact_submission_email_unavailable', { id });
@@ -36,4 +40,17 @@ export async function sendContactSubmissionNotification({ id, origin, env }: Not
   } catch (error) {
     console.error('[notifications] event=contact_submission_email_failed', { id, error });
   }
+}
+
+export async function scheduleContactSubmissionNotification(
+  input: NotificationInput & { context?: NotificationContext }
+): Promise<void> {
+  const notification = sendContactSubmissionNotification(input);
+
+  if (input.context) {
+    input.context.waitUntil(notification);
+    return;
+  }
+
+  await notification;
 }

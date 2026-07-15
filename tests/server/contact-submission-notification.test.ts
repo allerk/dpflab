@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { sendContactSubmissionNotification } from '../../src/lib/server/notifications/contact-submission';
+import {
+  scheduleContactSubmissionNotification,
+  sendContactSubmissionNotification
+} from '../../src/lib/server/notifications/contact-submission';
 
 describe('sendContactSubmissionNotification', () => {
   afterEach(() => {
@@ -52,5 +55,21 @@ describe('sendContactSubmissionNotification', () => {
       '[notifications] event=contact_submission_email_failed',
       { id: 3, error }
     );
+  });
+
+  it('uses waitUntil when the Worker execution context is available', async () => {
+    const send = vi.fn().mockResolvedValue({ messageId: 'email-1' });
+    const waitUntil = vi.fn();
+
+    await scheduleContactSubmissionNotification({
+      id: 4,
+      origin: 'https://dpflab.ee',
+      env: { ADMIN_EMAIL: { send }, NOTIFICATION_FROM_EMAIL: 'info@dpflab.ee' },
+      context: { waitUntil }
+    });
+
+    expect(waitUntil).toHaveBeenCalledTimes(1);
+    await waitUntil.mock.calls[0][0];
+    expect(send).toHaveBeenCalledTimes(1);
   });
 });
