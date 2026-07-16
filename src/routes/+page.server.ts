@@ -7,6 +7,7 @@ import { getContacts } from '$lib/db/repositories/contacts';
 import { getBeforeAfterRows } from '$lib/db/repositories/before-after';
 import { createContactSubmission } from '$lib/db/repositories/contact-submissions';
 import { getSiteImages } from '$lib/db/repositories/site-images';
+import { scheduleContactSubmissionNotification } from '$lib/server/notifications/contact-submission';
 
 export const load: PageServerLoad = async ({ locals, platform }) => {
   const locale = locals.locale;
@@ -53,7 +54,13 @@ export const actions: Actions = {
       return fail(422, { errors, name, phone, email, comment });
     }
 
-    await createContactSubmission(db, { name, phone, email, comment, locale: locals.locale });
+    const id = await createContactSubmission(db, { name, phone, email, comment, locale: locals.locale });
+    await scheduleContactSubmissionNotification({
+      id,
+      origin: new URL(request.url).origin,
+      env: platform?.env,
+      context: platform?.context
+    });
 
     return { success: true };
   }

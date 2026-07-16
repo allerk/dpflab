@@ -20,15 +20,17 @@ export type SubmissionRow = {
   createdAt: Date;
 };
 
-export async function createContactSubmission(db: Db, input: SubmissionInput): Promise<void> {
-  await db.insert(contactSubmissions).values({
+export async function createContactSubmission(db: Db, input: SubmissionInput): Promise<number> {
+  const [created] = await db.insert(contactSubmissions).values({
     name: input.name,
     phone: input.phone,
     email: input.email,
     comment: input.comment ?? '',
     locale: input.locale,
     createdAt: new Date()
-  });
+  }).returning({ id: contactSubmissions.id });
+
+  return created.id;
 }
 
 export async function getContactSubmissions(db: Db): Promise<SubmissionRow[]> {
