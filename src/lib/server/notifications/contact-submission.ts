@@ -40,9 +40,24 @@ export async function sendContactSubmissionNotification({ id, origin, env, fetch
       })
     });
 
-    if (!response.ok) throw new Error(`Resend responded with ${response.status}`);
+    if (!response.ok) {
+      const body = (await response.json().catch(() => ({}))) as { name?: unknown; message?: unknown };
+
+      console.error('[notifications] event=contact_submission_email_failed', {
+        id,
+        status: response.status,
+        error: {
+          name: typeof body.name === 'string' ? body.name : 'unknown_error',
+          message: typeof body.message === 'string' ? body.message : `Resend responded with ${response.status}`
+        }
+      });
+      return;
+    }
   } catch (error) {
-    console.error('[notifications] event=contact_submission_email_failed', { id, error });
+    console.error('[notifications] event=contact_submission_email_failed', {
+      id,
+      error: error instanceof Error ? error.message : String(error)
+    });
   }
 }
 

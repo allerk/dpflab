@@ -74,7 +74,34 @@ describe('sendContactSubmissionNotification', () => {
     expect(warningLog).toHaveBeenCalled();
     expect(errorLog).toHaveBeenCalledWith(
       '[notifications] event=contact_submission_email_failed',
-      { id: 3, error }
+      { id: 3, error: 'delivery failed' }
+    );
+  });
+
+  it('logs structured Resend error details when delivery is rejected', async () => {
+    const errorLog = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await sendContactSubmissionNotification({
+      id: 5,
+      origin: 'https://dpflab.ee',
+      env: {
+        NOTIFICATION_FROM_EMAIL: 'info@dpflab.ee',
+        NOTIFICATION_RECIPIENT_EMAIL: 'info@dpflab.ee',
+        RESEND_API_KEY: 're_test'
+      },
+      fetchFn: vi.fn().mockResolvedValue(new Response(JSON.stringify({
+        name: 'validation_error',
+        message: 'Invalid API key'
+      }), { status: 401 }))
+    });
+
+    expect(errorLog).toHaveBeenCalledWith(
+      '[notifications] event=contact_submission_email_failed',
+      {
+        id: 5,
+        status: 401,
+        error: { name: 'validation_error', message: 'Invalid API key' }
+      }
     );
   });
 
