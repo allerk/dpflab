@@ -11,7 +11,7 @@ describe('createContactSubmission', () => {
   });
 
   it('inserts a submission row', async () => {
-    await createContactSubmission(db, {
+    const id = await createContactSubmission(db, {
       name: 'Alice',
       phone: '+372 5000 0000',
       email: 'alice@example.com',
@@ -20,6 +20,7 @@ describe('createContactSubmission', () => {
     });
 
     const rows = await db.select().from(contactSubmissions);
+    expect(id).toBe(1);
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ name: 'Alice', phone: '+372 5000 0000', email: 'alice@example.com', comment: 'Hello', locale: 'ru' });
     expect(rows[0].createdAt).toBeInstanceOf(Date);
