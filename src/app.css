@@ -15,7 +15,7 @@
 
   --color-danger:      #ef4444;
 
-  --font-family-sans:  "Inter", system-ui, sans-serif;
+  --font-family-sans:  system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --radius-btn:        8px;
   --radius-card:       10px;
@@ -49,6 +49,9 @@
   :root {
     --spacing-section: 52px;
     --spacing-header:  72px;
+  }
+  body {
+    padding-bottom: calc(62px + env(safe-area-inset-bottom));
   }
 }
 

@@ -101,7 +101,7 @@ npm run deploy          # production Worker
 npm run deploy:develop  # develop Worker
 ```
 
-Apply the corresponding remote D1 migration before deploying a schema change. Migration `0006_expand_contact_submissions.sql` must be applied before deploying the qualified form.
+Apply the corresponding remote D1 migrations before deploying a schema change.
 
 ## i18n
 
@@ -116,9 +116,16 @@ To add a language: add its tag to `project.inlang/settings.json` → `languageTa
 
 ## Lead attribution and analytics
 
-The contact form stores qualification answers together with `utm_*`, `fbclid`, landing page, referrer, privacy notice version, and analytics-consent state. Optional Meta Pixel loading is blocked until the visitor accepts analytics.
+The contact form stores qualification answers together with `utm_*`, Meta campaign/ad identifiers, `fbclid`, `_fbp`, `_fbc`, landing page, referrer, privacy notice version, and analytics-consent state. Attribution is retained in first-party storage for 30 days. Optional Meta Pixel loading and CAPI delivery are blocked until the visitor accepts analytics.
 
-Set the non-secret Worker variable `META_PIXEL_ID` in the relevant Cloudflare environment to enable the Pixel. Without it, the site and form work normally and no Meta script is loaded.
+`META_PIXEL_ID` and `META_GRAPH_API_VERSION` are non-secret Worker variables in `wrangler.jsonc`. Set the CAPI token only through Cloudflare secrets:
+
+```bash
+npx wrangler secret put META_CAPI_TOKEN --env develop
+npx wrangler secret put META_CAPI_TOKEN --env prod
+```
+
+The browser and server use the same event ID for Lead deduplication. Pipeline updates send `QualifiedLead`, `Schedule`, and `Purchase` events when CAPI is configured; the completed order amount is sent in EUR. Without the CAPI secret, the site, form, Pixel and admin pipeline continue to work normally.
 
 ## Testing
 

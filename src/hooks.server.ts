@@ -4,6 +4,7 @@ import { error } from '@sveltejs/kit';
 import { paraglideMiddleware } from '$lib/paraglide/server';
 import { getTextDirection } from '$lib/paraglide/runtime';
 import { getAccessEmail } from '$lib/server/admin/access';
+import { publicCacheUrl } from '$lib/server/cache-key';
 
 // Minimal view of the Cloudflare edge cache (`caches.default`), which — unlike a
 // plain Cache-Control header — is what actually caches Worker-generated responses
@@ -13,22 +14,36 @@ type EdgeCache = {
   put(req: Request, res: Response): Promise<void>;
 };
 
+const environmentHeadersHandle: Handle = async ({ event, resolve }) => {
+  const response = await resolve(event);
+  if (event.platform?.env?.APP_ENV !== 'develop') return response;
+
+  const developResponse = new Response(response.body, response);
+  developResponse.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+  return developResponse;
+};
+
 /**
  * Edge-caches public GET pages by URL. Locale is URL-based (`/` ru, `/et` et,
- * strategy ['url','baseLocale']), so the URL is a safe cache key. Admin is never
- * cached; non-GET (e.g. the contact form POST) bypasses the cache.
+ * strategy ['url','baseLocale']). Advertising identifiers do not affect HTML and
+ * are removed from the cache key so each click does not create a separate object.
+ * Develop, admin and non-GET requests bypass the cache.
  */
 const edgeCacheHandle: Handle = async ({ event, resolve }) => {
   const pathname = new URL(event.request.url).pathname;
   const isAdmin = pathname.startsWith('/admin') || pathname.startsWith('/et/admin');
-  if (event.request.method !== 'GET' || isAdmin) {
+  if (
+    event.request.method !== 'GET' ||
+    isAdmin ||
+    event.platform?.env?.APP_ENV === 'develop'
+  ) {
     return resolve(event);
   }
 
   const cache = (globalThis as unknown as { caches?: { default?: EdgeCache } }).caches?.default;
   if (!cache) return resolve(event);
 
-  const cacheKey = new Request(event.request.url, { method: 'GET' });
+  const cacheKey = new Request(publicCacheUrl(event.request.url), { method: 'GET' });
   const hit = await cache.match(cacheKey);
   if (hit) return hit;
 
@@ -78,4 +93,9 @@ const adminGuardHandle: Handle = async ({ event, resolve }) => {
   return response;
 };
 
-export const handle: Handle = sequence(edgeCacheHandle, paraglideHandle, adminGuardHandle);
+export const handle: Handle = sequence(
+  environmentHeadersHandle,
+  edgeCacheHandle,
+  paraglideHandle,
+  adminGuardHandle
+);

@@ -12,6 +12,7 @@ import { createContactSubmission } from '$lib/db/repositories/contact-submission
 import { getSiteImages } from '$lib/db/repositories/site-images';
 import type { SiteImagesMap } from '$lib/db/repositories/site-images';
 import { scheduleContactSubmissionNotification } from '$lib/server/notifications/contact-submission';
+import { scheduleMetaLeadEvent } from '$lib/server/analytics/meta-capi';
 
 const PRIVACY_VERSION = '2026-07-23';
 const CLIENT_TYPES = new Set(['private', 'workshop', 'fleet']);
@@ -132,7 +133,13 @@ export const actions: Actions = {
       utmCampaign: textValue(data, 'utmCampaign', 240),
       utmContent: textValue(data, 'utmContent', 240),
       utmTerm: textValue(data, 'utmTerm', 240),
+      utmId: textValue(data, 'utmId', 240),
+      campaignId: textValue(data, 'campaignId', 120),
+      adsetId: textValue(data, 'adsetId', 120),
+      adId: textValue(data, 'adId', 120),
       fbclid: textValue(data, 'fbclid', 300),
+      fbp: textValue(data, 'fbp', 300),
+      fbc: textValue(data, 'fbc', 300),
       landingPage: textValue(data, 'landingPage', 500),
       referrer: textValue(data, 'referrer', 500)
     };
@@ -190,13 +197,30 @@ export const actions: Actions = {
       analyticsConsent,
       locale: locals.locale
     });
-    await scheduleContactSubmissionNotification({
-      id,
-      origin: new URL(request.url).origin,
-      env: platform?.env,
-      context: platform?.context
-    });
+    const eventId = `site-lead-${id}`;
+    await Promise.all([
+      scheduleContactSubmissionNotification({
+        id,
+        origin: new URL(request.url).origin,
+        env: platform?.env,
+        context: platform?.context
+      }),
+      scheduleMetaLeadEvent({
+        eventId,
+        request,
+        name,
+        phone,
+        email,
+        locale: locals.locale,
+        serviceType,
+        fbp: attribution.fbp,
+        fbc: attribution.fbc,
+        analyticsConsent,
+        env: platform?.env,
+        context: platform?.context
+      })
+    ]);
 
-    return { success: true, eventId: `site-lead-${id}` };
+    return { success: true, eventId };
   }
 };

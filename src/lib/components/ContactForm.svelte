@@ -5,9 +5,11 @@
   import type { ContactsRow } from '$lib/db/repositories/contacts';
   import {
     consentEventName,
+    getMetaBrowserIdentifiers,
     hasAnalyticsConsent,
     trackMetaEvent,
-    trackMetaLead
+    trackMetaLead,
+    trackMetaStandardEvent
   } from '$lib/analytics';
   import {
     contact_back,
@@ -114,7 +116,8 @@
   export let form: ContactActionData | null = null;
 
   const TOTAL_STEPS = 3;
-  const ATTRIBUTION_KEY = 'dpflab_attribution_v1';
+  const ATTRIBUTION_KEY = 'dpflab_attribution_v2';
+  const ATTRIBUTION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
   const serviceOptions: { value: string; label: Message }[] = [
     { value: 'dpf', label: contact_service_dpf },
@@ -191,7 +194,13 @@
   let utmCampaign = '';
   let utmContent = '';
   let utmTerm = '';
+  let utmId = '';
+  let campaignId = '';
+  let adsetId = '';
+  let adId = '';
   let fbclid = '';
+  let fbp = '';
+  let fbc = '';
   let landingPage = '';
   let referrer = '';
 
@@ -242,33 +251,76 @@
     ? `${weekdayLabel(locale, 6)}: ${contactsRow.saturdayOpen} – ${contactsRow.saturdayClose}`
     : '';
 
+  const firstParam = (params: URLSearchParams, ...keys: string[]) => {
+    for (const key of keys) {
+      const value = params.get(key)?.trim();
+      if (value) return value;
+    }
+    return '';
+  };
+
+  const refreshMetaBrowserIds = () => {
+    const identifiers = getMetaBrowserIdentifiers();
+    fbp = identifiers.fbp;
+    fbc =
+      identifiers.fbc ||
+      (analyticsConsent && fbclid ? `fb.1.${Date.now()}.${fbclid}`.slice(0, 300) : '');
+  };
+
   onMount(() => {
     analyticsConsent = hasAnalyticsConsent();
 
     const params = new URLSearchParams(window.location.search);
-    let stored: Record<string, string> = {};
+    let stored: Record<string, string | number> = {};
     try {
-      stored = JSON.parse(window.sessionStorage.getItem(ATTRIBUTION_KEY) ?? '{}') as Record<string, string>;
+      const parsed = JSON.parse(window.localStorage.getItem(ATTRIBUTION_KEY) ?? '{}') as Record<
+        string,
+        string | number
+      >;
+      stored = Number(parsed.expiresAt ?? 0) > Date.now() ? parsed : {};
     } catch {
       stored = {};
     }
 
     const attribution = {
-      utmSource: params.get('utm_source') ?? stored.utmSource ?? '',
-      utmMedium: params.get('utm_medium') ?? stored.utmMedium ?? '',
-      utmCampaign: params.get('utm_campaign') ?? stored.utmCampaign ?? '',
-      utmContent: params.get('utm_content') ?? stored.utmContent ?? '',
-      utmTerm: params.get('utm_term') ?? stored.utmTerm ?? '',
-      fbclid: params.get('fbclid') ?? stored.fbclid ?? '',
-      landingPage: stored.landingPage ?? `${window.location.pathname}${window.location.search}`,
-      referrer: stored.referrer ?? document.referrer
+      utmSource: firstParam(params, 'utm_source') || String(stored.utmSource ?? ''),
+      utmMedium: firstParam(params, 'utm_medium') || String(stored.utmMedium ?? ''),
+      utmCampaign: firstParam(params, 'utm_campaign') || String(stored.utmCampaign ?? ''),
+      utmContent: firstParam(params, 'utm_content') || String(stored.utmContent ?? ''),
+      utmTerm: firstParam(params, 'utm_term') || String(stored.utmTerm ?? ''),
+      utmId: firstParam(params, 'utm_id') || String(stored.utmId ?? ''),
+      campaignId:
+        firstParam(params, 'campaign_id', 'campaignid') || String(stored.campaignId ?? ''),
+      adsetId: firstParam(params, 'adset_id', 'adsetid') || String(stored.adsetId ?? ''),
+      adId: firstParam(params, 'ad_id', 'adid') || String(stored.adId ?? ''),
+      fbclid: firstParam(params, 'fbclid') || String(stored.fbclid ?? ''),
+      landingPage:
+        String(stored.landingPage ?? '') ||
+        `${window.location.pathname}${window.location.search}`,
+      referrer: String(stored.referrer ?? '') || document.referrer,
+      expiresAt: Date.now() + ATTRIBUTION_TTL_MS
     };
 
-    ({ utmSource, utmMedium, utmCampaign, utmContent, utmTerm, fbclid, landingPage, referrer } = attribution);
-    window.sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
+    ({
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      utmContent,
+      utmTerm,
+      utmId,
+      campaignId,
+      adsetId,
+      adId,
+      fbclid,
+      landingPage,
+      referrer
+    } = attribution);
+    window.localStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
+    refreshMetaBrowserIds();
 
     const updateConsent = (event: Event) => {
       analyticsConsent = (event as CustomEvent).detail === 'accepted';
+      refreshMetaBrowserIds();
     };
     window.addEventListener(consentEventName(), updateConsent);
     return () => window.removeEventListener(consentEventName(), updateConsent);
@@ -371,10 +423,20 @@
             <p class="mt-5 text-[13px] text-fg-muted">{contact_success_next()}</p>
             {#if contactsRow}
               <div class="flex flex-wrap gap-2.5 mt-6">
-                <a href={contactsRow.phoneHref} class="inline-flex items-center gap-2 bg-accent text-accent-fg font-semibold text-[13px] px-4 py-2.5 rounded-btn">
+                <a
+                  href={contactsRow.phoneHref}
+                  on:click={() => trackMetaStandardEvent('Contact', { channel: 'phone', placement: 'form_success', locale })}
+                  class="inline-flex items-center gap-2 bg-accent text-accent-fg font-semibold text-[13px] px-4 py-2.5 rounded-btn"
+                >
                   <Icon name="phone" size={16}/>{contactsRow.phone}
                 </a>
-                <a href={contactsRow.whatsapp} target="_blank" rel="noreferrer" class="inline-flex items-center gap-2 border border-border font-semibold text-[13px] px-4 py-2.5 rounded-btn hover:border-accent transition-colors">
+                <a
+                  href={contactsRow.whatsapp}
+                  target="_blank"
+                  rel="noreferrer"
+                  on:click={() => trackMetaStandardEvent('Contact', { channel: 'whatsapp', placement: 'form_success', locale })}
+                  class="inline-flex items-center gap-2 border border-border font-semibold text-[13px] px-4 py-2.5 rounded-btn hover:border-accent transition-colors"
+                >
                   <Icon name="whatsapp" size={16}/>WhatsApp
                 </a>
               </div>
@@ -410,7 +472,10 @@
                 return;
               }
 
+              refreshMetaBrowserIds();
               formData.set('analyticsConsent', analyticsConsent ? 'yes' : 'no');
+              formData.set('fbp', fbp);
+              formData.set('fbc', fbc);
               return async ({ update }) => {
                 await update({ reset: false });
               };
@@ -421,7 +486,13 @@
             <input type="hidden" name="utmCampaign" value={utmCampaign} />
             <input type="hidden" name="utmContent" value={utmContent} />
             <input type="hidden" name="utmTerm" value={utmTerm} />
+            <input type="hidden" name="utmId" value={utmId} />
+            <input type="hidden" name="campaignId" value={campaignId} />
+            <input type="hidden" name="adsetId" value={adsetId} />
+            <input type="hidden" name="adId" value={adId} />
             <input type="hidden" name="fbclid" value={fbclid} />
+            <input type="hidden" name="fbp" value={fbp} />
+            <input type="hidden" name="fbc" value={fbc} />
             <input type="hidden" name="landingPage" value={landingPage} />
             <input type="hidden" name="referrer" value={referrer} />
 
@@ -640,13 +711,13 @@
           {#if contactsRow}
             <ul class="list-none p-0 m-0 flex flex-col gap-3">
               <li class="flex gap-3 items-center text-[13px]">
-                <Icon name="phone" size={17}/><a href={contactsRow.phoneHref} class="hover:text-accent transition-colors">{contactsRow.phone}</a>
+                <Icon name="phone" size={17}/><a href={contactsRow.phoneHref} on:click={() => trackMetaStandardEvent('Contact', { channel: 'phone', placement: 'contact_card', locale })} class="hover:text-accent transition-colors">{contactsRow.phone}</a>
               </li>
               <li class="flex gap-3 items-center text-[13px]">
-                <Icon name="whatsapp" size={17}/><a href={contactsRow.whatsapp} target="_blank" rel="noreferrer" class="hover:text-accent transition-colors">WhatsApp</a>
+                <Icon name="whatsapp" size={17}/><a href={contactsRow.whatsapp} target="_blank" rel="noreferrer" on:click={() => trackMetaStandardEvent('Contact', { channel: 'whatsapp', placement: 'contact_card', locale })} class="hover:text-accent transition-colors">WhatsApp</a>
               </li>
               <li class="flex gap-3 items-center text-[13px]">
-                <Icon name="mail" size={17}/><a href="mailto:{contactsRow.email}" class="hover:text-accent transition-colors">{contactsRow.email}</a>
+                <Icon name="mail" size={17}/><a href="mailto:{contactsRow.email}" on:click={() => trackMetaStandardEvent('Contact', { channel: 'email', placement: 'contact_card', locale })} class="hover:text-accent transition-colors">{contactsRow.email}</a>
               </li>
               <li class="flex gap-3 items-start text-[12px] text-fg-muted">
                 <Icon name="map" size={17}/><span>{contactsRow.address}</span>

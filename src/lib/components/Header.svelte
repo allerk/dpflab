@@ -8,6 +8,10 @@
   } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
   import { asset } from '$app/paths';
+  import type { ContactsRow } from '$lib/db/repositories/contacts';
+  import { trackMetaStandardEvent } from '$lib/analytics';
+
+  export let contactsRow: ContactsRow | null = null;
 
   const LANGUAGES = [
     { code: 'ru', label: 'Русский', short: 'RU' },
@@ -123,7 +127,16 @@
         {/if}
       </div>
 
-      <a href={contacts_phone_href()} class="text-[14px] max-xl:text-[13px] font-semibold whitespace-nowrap">{contacts_phone()}</a>
+      <a
+        href={contactsRow?.phoneHref ?? contacts_phone_href()}
+        class="text-[14px] max-xl:text-[13px] font-semibold whitespace-nowrap"
+        on:click={() =>
+          trackMetaStandardEvent('Contact', {
+            channel: 'phone',
+            placement: 'header',
+            locale: currentLocale
+          })}
+      >{contactsRow?.phone ?? contacts_phone()}</a>
     </div>
 
     <!-- Burger -->
@@ -170,7 +183,16 @@
               </ul>
             {/if}
           </div>
-          <a href={contacts_phone_href()} class="text-[14px] font-semibold">{contacts_phone()}</a>
+          <a
+            href={contactsRow?.phoneHref ?? contacts_phone_href()}
+            class="text-[14px] font-semibold"
+            on:click={() =>
+              trackMetaStandardEvent('Contact', {
+                channel: 'phone',
+                placement: 'mobile_menu',
+                locale: currentLocale
+              })}
+          >{contactsRow?.phone ?? contacts_phone()}</a>
         </div>
       </div>
     </div>
