@@ -11,6 +11,7 @@
   import ContactForm from '$lib/components/ContactForm.svelte';
   import Footer from '$lib/components/Footer.svelte';
   import CookieConsent from '$lib/components/CookieConsent.svelte';
+  import MobileContactDock from '$lib/components/MobileContactDock.svelte';
   import { meta_title, meta_description } from '$lib/paraglide/messages';
   import type { PageData, ActionData } from './$types';
 
@@ -21,6 +22,22 @@
   $: canonicalUrl = data.locale === 'ru' ? `${BASE_URL}/` : `${BASE_URL}/${data.locale}`;
   $: ogLocale = data.locale === 'et' ? 'et_EE' : data.locale === 'en' ? 'en_GB' : 'ru_RU';
   $: ogLocaleAlts = ['ru_RU', 'et_EE', 'en_GB'].filter((value) => value !== ogLocale);
+  $: structuredData = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'AutomotiveBusiness',
+    name: 'DPFLAB',
+    url: canonicalUrl,
+    image: `${BASE_URL}/hero-dpf-1000.webp`,
+    telephone: data.contactsRow?.phone ?? '+372 5555 5014',
+    email: data.contactsRow?.email ?? 'info@dpflab.ee',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'Saha-Loo tee 36',
+      addressLocality: 'Iru',
+      postalCode: '74206',
+      addressCountry: 'EE'
+    }
+  });
 </script>
 
 <svelte:head>
@@ -43,20 +60,21 @@
   {#each ogLocaleAlts as localeAlt}
     <meta property="og:locale:alternate" content={localeAlt} />
   {/each}
-  <meta property="og:image" content="{BASE_URL}/images/og-dpflab.jpg" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
+  <meta property="og:image" content="{BASE_URL}/hero-dpf-1000.webp" />
+  <meta property="og:image:width" content="1000" />
+  <meta property="og:image:height" content="750" />
   <meta property="og:image:alt" content={meta_title()} />
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={meta_title()} />
   <meta name="twitter:description" content={meta_description()} />
-  <meta name="twitter:image" content="{BASE_URL}/images/og-dpflab.jpg" />
+  <meta name="twitter:image" content="{BASE_URL}/hero-dpf-1000.webp" />
+  <script type="application/ld+json">{structuredData}</script>
 </svelte:head>
 
-<Header />
+<Header contactsRow={data.contactsRow} />
 <main>
-  <Hero image={data.siteImagesMap.hero_main} />
+  <Hero image={data.siteImagesMap.hero_main} locale={data.locale} />
   <WhyImportant image={data.siteImagesMap.why_main} />
   <Process />
   <Pricing items={data.pricingItems} locale={data.locale} />
@@ -67,4 +85,5 @@
   <ContactForm contactsRow={data.contactsRow} locale={data.locale} {form} />
 </main>
 <Footer locale={data.locale} contactsRow={data.contactsRow} />
+<MobileContactDock locale={data.locale} contactsRow={data.contactsRow} />
 <CookieConsent metaPixelId={data.metaPixelId} />

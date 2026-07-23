@@ -43,6 +43,8 @@
         "CF_ACCESS_TEAM_DOMAIN": "dpflab",
         "CF_ACCESS_AUD": "b9c326b4ef29fca0bcf77b4d3847b9121e6a414e438865e896c5c5cfa559cf46",
         "APP_ENV": "prod",
+        "META_PIXEL_ID": "1358232535765480",
+        "META_GRAPH_API_VERSION": "v25.0",
         "NOTIFICATION_FROM_EMAIL": "info@dpflab.ee",
         "NOTIFICATION_RECIPIENT_EMAIL": "info@dpflab.ee"
       },
@@ -72,6 +74,8 @@
         "CF_ACCESS_TEAM_DOMAIN": "dpflab",
         "CF_ACCESS_AUD": "b9c326b4ef29fca0bcf77b4d3847b9121e6a414e438865e896c5c5cfa559cf46",
         "APP_ENV": "develop",
+        "META_PIXEL_ID": "1358232535765480",
+        "META_GRAPH_API_VERSION": "v25.0",
         "NOTIFICATION_FROM_EMAIL": "info@dpflab.ee",
         "NOTIFICATION_RECIPIENT_EMAIL": "alexandr.lerko@gmail.com"
       },

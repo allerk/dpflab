@@ -4,7 +4,8 @@ import { contactSubmissions } from '../../src/lib/db/schema';
 import {
   getContactSubmissions,
   getContactSubmission,
-  deleteContactSubmission
+  deleteContactSubmission,
+  updateContactSubmissionPipeline
 } from '../../src/lib/db/repositories/contact-submissions';
 
 describe('contact-submissions write functions', () => {
@@ -52,5 +53,49 @@ describe('contact-submissions write functions', () => {
 
     const after = await getContactSubmissions(db);
     expect(after).toHaveLength(0);
+  });
+
+  it('updates the pipeline and records milestone timestamps once', async () => {
+    await db.insert(contactSubmissions).values({
+      name: 'Lead',
+      phone: '+372 5555 5014',
+      comment: '',
+      locale: 'ru',
+      createdAt: new Date()
+    });
+    const [created] = await getContactSubmissions(db);
+
+    await updateContactSubmissionPipeline(db, created.id, {
+      status: 'contacted',
+      assignedTo: 'Egor',
+      orderAmountCents: 0,
+      lossReason: '',
+      adminNotes: 'Called'
+    });
+    const contacted = await getContactSubmission(db, created.id);
+    expect(contacted).toMatchObject({
+      status: 'contacted',
+      assignedTo: 'Egor',
+      adminNotes: 'Called'
+    });
+    expect(contacted?.firstContactedAt).toBeInstanceOf(Date);
+
+    const firstContactedAt = contacted?.firstContactedAt?.getTime();
+    await updateContactSubmissionPipeline(db, created.id, {
+      status: 'qualified',
+      assignedTo: 'Egor',
+      orderAmountCents: 15_000,
+      lossReason: 'must be cleared',
+      adminNotes: 'Booked diagnostic'
+    });
+    const qualified = await getContactSubmission(db, created.id);
+    expect(qualified).toMatchObject({
+      status: 'qualified',
+      orderAmountCents: 15_000,
+      lossReason: ''
+    });
+    expect(qualified?.firstContactedAt?.getTime()).toBe(firstContactedAt);
+    expect(qualified?.qualifiedAt).toBeInstanceOf(Date);
+    expect(qualified?.updatedAt).toBeInstanceOf(Date);
   });
 });

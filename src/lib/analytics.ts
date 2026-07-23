@@ -86,8 +86,36 @@ export function trackMetaEvent(
   else fbq('trackCustom', eventName, parameters);
 }
 
-export function trackMetaLead(eventId: string): void {
+export function trackMetaStandardEvent(
+  eventName: string,
+  parameters: Record<string, string | number | boolean> = {},
+  eventId?: string
+): void {
   if (!browser || !hasAnalyticsConsent()) return;
   const fbq = (window as AnalyticsWindow).fbq;
-  fbq?.('track', 'Lead', {}, { eventID: eventId });
+  if (!fbq) return;
+
+  if (eventId) fbq('track', eventName, parameters, { eventID: eventId });
+  else fbq('track', eventName, parameters);
+}
+
+export function getMetaBrowserIdentifiers(): { fbp: string; fbc: string } {
+  if (!browser || !hasAnalyticsConsent()) return { fbp: '', fbc: '' };
+
+  const cookies = new Map(
+    document.cookie
+      .split(';')
+      .map((part) => part.trim().split('='))
+      .filter(([key, value]) => Boolean(key && value))
+      .map(([key, ...value]) => [key, decodeURIComponent(value.join('='))])
+  );
+
+  return {
+    fbp: cookies.get('_fbp')?.slice(0, 300) ?? '',
+    fbc: cookies.get('_fbc')?.slice(0, 300) ?? ''
+  };
+}
+
+export function trackMetaLead(eventId: string): void {
+  trackMetaStandardEvent('Lead', {}, eventId);
 }

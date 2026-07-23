@@ -6,14 +6,19 @@
   } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
   import { publicImageUrl } from '$lib/image-url';
+  import { asset } from '$app/paths';
+  import { trackMetaEvent } from '$lib/analytics';
 
   export let image: string | null = null;
+  export let locale: string = 'ru';
 
   const badgeIcons = ['clock', 'shield', 'truck'];
+  const CURRENT_HERO_FILENAME = 'E5470B3C-B3BA-461A-8393-FC02A1EC1AF7.PNG';
 
   $: titleWords = hero_title_words().split('|');
   $: accentWord = hero_title_accent();
   $: imageSrc = publicImageUrl(image);
+  $: useOptimizedHero = Boolean(image?.includes(CURRENT_HERO_FILENAME));
   $: badges = [
     { icon: badgeIcons[0], title: hero_badge_1_title(), text: hero_badge_1_text() },
     { icon: badgeIcons[1], title: hero_badge_2_title(), text: hero_badge_2_text() },
@@ -34,6 +39,7 @@
 
       <div class="flex gap-3 flex-wrap mb-12 max-xs:flex-col">
         <a href="#contacts"
+           on:click={() => trackMetaEvent('LeadFormIntent', { placement: 'hero', locale })}
            class="inline-flex items-center justify-center gap-2 bg-accent text-accent-fg font-semibold text-[15px] px-6 py-3.5 rounded-btn whitespace-nowrap hover:bg-accent-h hover:-translate-y-px transition-[background,transform] max-xs:w-full">
           {hero_cta_primary()}
         </a>
@@ -55,8 +61,36 @@
     </div>
 
     <div class="min-w-0 aspect-[4/3]">
-      {#if imageSrc}
-        <img src={imageSrc} alt={hero_image_alt()} class="w-full h-full object-cover rounded-card" />
+      {#if useOptimizedHero}
+        <picture class="block h-full">
+          <source
+            media="(max-width: 600px)"
+            srcset={asset('/hero-dpf-640.webp')}
+            width="640"
+            height="480"
+          />
+          <img
+            src={asset('/hero-dpf-1000.webp')}
+            alt={hero_image_alt()}
+            width="1000"
+            height="750"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+            class="w-full h-full object-cover rounded-card"
+          />
+        </picture>
+      {:else if imageSrc}
+        <img
+          src={imageSrc}
+          alt={hero_image_alt()}
+          width="1200"
+          height="900"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+          class="w-full h-full object-cover rounded-card"
+        />
       {:else}
         <div class="placeholder w-full h-full">
           [ {hero_image_alt()} ]<br/>

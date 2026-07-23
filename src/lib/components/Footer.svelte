@@ -7,6 +7,7 @@
   } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
   import { openConsentSettings } from '$lib/analytics';
+  import { trackMetaStandardEvent } from '$lib/analytics';
   import type { ContactsRow } from '$lib/db/repositories/contacts';
 
   export let locale: string = 'ru';
@@ -41,15 +42,18 @@
     <div class="flex gap-2.5 self-center">
       {#if contactsRow?.whatsapp}
         <a href={contactsRow.whatsapp} target="_blank" rel="noreferrer" aria-label="WhatsApp"
+           on:click={() => trackMetaStandardEvent('Contact', { channel: 'whatsapp', placement: 'footer', locale })}
            class="w-9 h-9 rounded-full flex items-center justify-center bg-white/[.05] hover:bg-accent hover:text-accent-fg transition-[background,color]">
           <Icon name="whatsapp" size={18}/>
         </a>
       {/if}
-      <a href="mailto:{contacts_email()}" aria-label="Email"
+      <a href="mailto:{contactsRow?.email ?? contacts_email()}" aria-label="Email"
+         on:click={() => trackMetaStandardEvent('Contact', { channel: 'email', placement: 'footer', locale })}
          class="w-9 h-9 rounded-full flex items-center justify-center bg-white/[.05] hover:bg-accent hover:text-accent-fg transition-[background,color]">
         <Icon name="mail" size={18}/>
       </a>
-      <a href={contacts_phone_href()} aria-label="Phone"
+      <a href={contactsRow?.phoneHref ?? contacts_phone_href()} aria-label="Phone"
+         on:click={() => trackMetaStandardEvent('Contact', { channel: 'phone', placement: 'footer', locale })}
          class="w-9 h-9 rounded-full flex items-center justify-center bg-white/[.05] hover:bg-accent hover:text-accent-fg transition-[background,color]">
         <Icon name="phone" size={18}/>
       </a>
