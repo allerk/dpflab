@@ -4,9 +4,13 @@ import { getDb } from '$lib/db/index';
 import { getFaqItems } from '$lib/db/repositories/faq';
 import { getPricingItems } from '$lib/db/repositories/pricing';
 import { getContacts } from '$lib/db/repositories/contacts';
-import { getBeforeAfterRows } from '$lib/db/repositories/before-after';
+import {
+  getBeforeAfterRows,
+  type BeforeAfterRow
+} from '$lib/db/repositories/before-after';
 import { createContactSubmission } from '$lib/db/repositories/contact-submissions';
 import { getSiteImages } from '$lib/db/repositories/site-images';
+import type { SiteImagesMap } from '$lib/db/repositories/site-images';
 import { scheduleContactSubmissionNotification } from '$lib/server/notifications/contact-submission';
 
 const PRIVACY_VERSION = '2026-07-23';
@@ -16,6 +20,40 @@ const FILTER_STATES = new Set(['removed', 'workshop', 'installed', 'unsure']);
 const URGENCY_OPTIONS = new Set(['today', 'days_1_3', 'this_week', 'consultation']);
 const CONTACT_OPTIONS = new Set(['phone', 'whatsapp', 'email']);
 const SYMPTOM_OPTIONS = new Set(['warning', 'power', 'regeneration', 'smoke', 'other']);
+
+const DEVELOP_SITE_IMAGE_FALLBACKS: Pick<SiteImagesMap, 'hero_main' | 'why_main'> = {
+  hero_main: 'https://dpflab.ee/images/E5470B3C-B3BA-461A-8393-FC02A1EC1AF7.PNG',
+  why_main:
+    'https://dpflab.ee/images/%D0%94%D0%B8%D0%B7%D0%B0%D0%B8%CC%86%D0%BD%20%D0%B1%D0%B5%D0%B7%20%D0%BD%D0%B0%D0%B7%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F-5.png'
+};
+
+const DEVELOP_BEFORE_AFTER_FALLBACK: BeforeAfterRow = {
+  id: -1,
+  sliderEnabled: false,
+  imageBefore: 'https://dpflab.ee/images/2026-06-21%2020.04.06%20(1).jpg',
+  imageAfter: null,
+  sortOrder: 1
+};
+
+const displaySiteImages = (
+  appEnv: string | undefined,
+  siteImagesMap: SiteImagesMap
+): SiteImagesMap =>
+  appEnv === 'develop'
+    ? {
+        ...siteImagesMap,
+        hero_main: siteImagesMap.hero_main ?? DEVELOP_SITE_IMAGE_FALLBACKS.hero_main,
+        why_main: siteImagesMap.why_main ?? DEVELOP_SITE_IMAGE_FALLBACKS.why_main
+      }
+    : siteImagesMap;
+
+const displayBeforeAfter = (
+  appEnv: string | undefined,
+  beforeAfterItems: BeforeAfterRow[]
+): BeforeAfterRow[] =>
+  appEnv === 'develop' && beforeAfterItems.length === 0
+    ? [DEVELOP_BEFORE_AFTER_FALLBACK]
+    : beforeAfterItems;
 
 const textValue = (data: FormData, key: string, maxLength = 500) =>
   ((data.get(key) as string | null)?.trim() ?? '').slice(0, maxLength);
@@ -38,15 +76,29 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
         getSiteImages(db)
       ]);
 
-    return { locale, faqItems, pricingItems, contactsRow, beforeAfterItems, siteImagesMap, metaPixelId };
+    return {
+      locale,
+      faqItems,
+      pricingItems,
+      contactsRow,
+      beforeAfterItems: displayBeforeAfter(platform?.env?.APP_ENV, beforeAfterItems),
+      siteImagesMap: displaySiteImages(platform?.env?.APP_ENV, siteImagesMap),
+      metaPixelId
+    };
   } catch {
+    const emptySiteImages: SiteImagesMap = {
+      hero_main: null,
+      why_main: null,
+      contact_workshop: null
+    };
+
     return {
       locale,
       faqItems: [],
       pricingItems: [],
       contactsRow: null,
-      beforeAfterItems: [],
-      siteImagesMap: { hero_main: null, why_main: null, contact_workshop: null },
+      beforeAfterItems: displayBeforeAfter(platform?.env?.APP_ENV, []),
+      siteImagesMap: displaySiteImages(platform?.env?.APP_ENV, emptySiteImages),
       metaPixelId
     };
   }

@@ -5,6 +5,7 @@
     hero_badge_3_title, hero_badge_3_text, hero_image_alt
   } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
+  import { publicImageUrl } from '$lib/image-url';
 
   export let image: string | null = null;
 
@@ -12,6 +13,7 @@
 
   $: titleWords = hero_title_words().split('|');
   $: accentWord = hero_title_accent();
+  $: imageSrc = publicImageUrl(image);
   $: badges = [
     { icon: badgeIcons[0], title: hero_badge_1_title(), text: hero_badge_1_text() },
     { icon: badgeIcons[1], title: hero_badge_2_title(), text: hero_badge_2_text() },
@@ -53,8 +55,8 @@
     </div>
 
     <div class="min-w-0 aspect-[4/3]">
-      {#if image}
-        <img src="/images/{image}" alt={hero_image_alt()} class="w-full h-full object-cover rounded-card" />
+      {#if imageSrc}
+        <img src={imageSrc} alt={hero_image_alt()} class="w-full h-full object-cover rounded-card" />
       {:else}
         <div class="placeholder w-full h-full">
           [ {hero_image_alt()} ]<br/>
