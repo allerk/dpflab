@@ -14,6 +14,7 @@ declare global {
         CF_ACCESS_TEAM_DOMAIN?: string;
         CF_ACCESS_AUD?: string;
         DEV_ADMIN_EMAIL?: string;
+        META_PIXEL_ID?: string;
       } & ContactSubmissionNotificationEnv;
       context?: ExecutionContext;
     }

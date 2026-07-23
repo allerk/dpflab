@@ -3,8 +3,10 @@
     admin_faq_title,
     admin_faq_question_ru,
     admin_faq_question_et,
+    admin_faq_question_en,
     admin_faq_answer_ru,
     admin_faq_answer_et,
+    admin_faq_answer_en,
     admin_action_save,
     admin_action_back,
     admin_error_required
@@ -24,7 +26,7 @@
   <h1 class="text-2xl font-bold mb-6">{admin_faq_title()} — #{row.id}</h1>
 
   <form method="POST" action="?/update" class="bg-bg-card border border-border rounded-card p-5 space-y-4">
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
       <div>
         <label for="question_ru" class="block text-sm font-medium mb-1"
           >{admin_faq_question_ru()}</label
@@ -54,6 +56,18 @@
         {/if}
       </div>
       <div>
+        <label for="question_en" class="block text-sm font-medium mb-1">{admin_faq_question_en()}</label>
+        <textarea
+          id="question_en"
+          name="question_en"
+          rows="2"
+          class="w-full px-3 py-2 rounded-input border border-border bg-bg text-sm resize-y focus:outline-none focus:border-accent"
+        >{form?.values?.questionEn ?? row.questionEn}</textarea>
+        {#if form?.errors?.question_en}
+          <p role="alert" class="text-danger text-xs mt-1">{admin_error_required()}</p>
+        {/if}
+      </div>
+      <div>
         <label for="answer_ru" class="block text-sm font-medium mb-1">{admin_faq_answer_ru()}</label>
         <textarea
           id="answer_ru"
@@ -74,6 +88,18 @@
           class="w-full px-3 py-2 rounded-input border border-border bg-bg text-sm resize-y focus:outline-none focus:border-accent"
         >{form?.values?.answerEt ?? row.answerEt}</textarea>
         {#if form?.errors?.answer_et}
+          <p role="alert" class="text-danger text-xs mt-1">{admin_error_required()}</p>
+        {/if}
+      </div>
+      <div>
+        <label for="answer_en" class="block text-sm font-medium mb-1">{admin_faq_answer_en()}</label>
+        <textarea
+          id="answer_en"
+          name="answer_en"
+          rows="4"
+          class="w-full px-3 py-2 rounded-input border border-border bg-bg text-sm resize-y focus:outline-none focus:border-accent"
+        >{form?.values?.answerEn ?? row.answerEn}</textarea>
+        {#if form?.errors?.answer_en}
           <p role="alert" class="text-danger text-xs mt-1">{admin_error_required()}</p>
         {/if}
       </div>

@@ -11,7 +11,8 @@
 
   const LANGUAGES = [
     { code: 'ru', label: 'Русский', short: 'RU' },
-    { code: 'et', label: 'Eesti',   short: 'ET' }
+    { code: 'et', label: 'Eesti',   short: 'ET' },
+    { code: 'en', label: 'English', short: 'EN' }
   ] as const;
 
   let scrolled = false;
@@ -22,16 +23,18 @@
 
   $: currentLocale = getLocaleForUrl($page.url.href);
   $: current = LANGUAGES.find((l) => l.code === currentLocale) ?? LANGUAGES[0];
+  $: homePath = currentLocale === 'ru' ? '/' : `/${currentLocale}`;
+  $: navPrefix = deLocalizeHref($page.url.pathname) === '/' ? '' : homePath;
   $: navItems = [
-    { href: '#hero',     label: nav_home() },
-    { href: '#process',  label: nav_process() },
-    { href: '#pricing',  label: nav_pricing() },
-    { href: '#benefits', label: nav_benefits() },
-    { href: '#faq',      label: nav_faq() },
-    { href: '#contacts', label: nav_contacts() }
+    { href: `${navPrefix}#hero`,     label: nav_home() },
+    { href: `${navPrefix}#process`,  label: nav_process() },
+    { href: `${navPrefix}#pricing`,  label: nav_pricing() },
+    { href: `${navPrefix}#benefits`, label: nav_benefits() },
+    { href: `${navPrefix}#faq`,      label: nav_faq() },
+    { href: `${navPrefix}#contacts`, label: nav_contacts() }
   ];
 
-  const setLang = (code: 'ru' | 'et') => {
+  const setLang = (code: 'ru' | 'et' | 'en') => {
     langOpen = false;
     menuOpen = false;
     window.location.href = localizeHref(deLocalizeHref($page.url.pathname), { locale: code });
@@ -75,7 +78,7 @@
 >
   <!-- Desktop bar -->
   <div class="container flex items-center gap-5 py-3.5 px-6 max-xs:py-5 max-xs:px-4">
-    <a href="/" class="flex flex-col leading-[1.05] shrink-0" on:click={closeMenu}>
+    <a href={homePath} class="flex flex-col leading-[1.05] shrink-0" on:click={closeMenu}>
         <img src={asset('/header_logo.svg')} alt="DPFLAB" class="h-8 w-auto" />
     </a>
 

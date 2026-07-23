@@ -1,6 +1,6 @@
 # DPFLAB — SvelteKit
 
-Landing page for DPFLAB, a DPF filter cleaning service in Estonia. Built with SvelteKit, Tailwind CSS v4, Paraglide JS v2, and Cloudflare D1/Drizzle. Supports Russian (default) and Estonian locales via URL-based routing (`/` and `/et`).
+Landing page for DPFLAB, a DPF filter cleaning service in Estonia. Built with SvelteKit, Tailwind CSS v4, Paraglide JS v2, and Cloudflare D1/Drizzle. Supports Russian (default), Estonian, and English via URL-based routing (`/`, `/et`, and `/en`).
 
 ## Project structure
 
@@ -8,6 +8,7 @@ Landing page for DPFLAB, a DPF filter cleaning service in Estonia. Built with Sv
 messages/
   ru.json               ← Paraglide static copy — Russian
   et.json               ← Paraglide static copy — Estonian
+  en.json               ← Paraglide static copy — English
 drizzle/                ← Cloudflare D1 migration files (committed)
 seed/seed.sql           ← local/remote D1 seed content
 wrangler.jsonc          ← Cloudflare Worker, D1 and R2 environments
@@ -39,12 +40,14 @@ src/
       Reviews.svelte        ← customer reviews (data from DB)
       FAQ.svelte            ← accordion FAQ (data from DB)
       Certificates.svelte   ← trust badges (data from DB)
-      ContactForm.svelte    ← lead capture form (submits to contact_submissions)
+      ContactForm.svelte    ← 3-step qualified lead form with source attribution
+      CookieConsent.svelte  ← optional analytics consent
       Footer.svelte
   routes/
     +layout.svelte      ← imports app.css
     +page.svelte        ← assembles all sections, passes DB data as props
     +page.server.ts     ← load (parallel DB queries) + contact form action
+    privacy/            ← localized GDPR information page
 tests/
   helpers/db.ts         ← in-memory test DB helper
   db/                   ← repository unit tests
@@ -98,7 +101,7 @@ npm run deploy          # production Worker
 npm run deploy:develop  # develop Worker
 ```
 
-Apply the corresponding remote D1 migration before deploying a schema change.
+Apply the corresponding remote D1 migration before deploying a schema change. Migration `0006_expand_contact_submissions.sql` must be applied before deploying the qualified form.
 
 ## i18n
 
@@ -107,9 +110,15 @@ Two layers — see [`wiki/translation-strategy.md`](wiki/translation-strategy.md
 - **Paraglide** (`messages/*.json`) — static UI chrome: nav, buttons, headings, form labels.
 - **Cloudflare D1** — editable business content: FAQ, reviews, pricing, certificates, contact details.
 
-Locale is detected from the URL: `/` → Russian, `/et` → Estonian. Language switching triggers a full page reload so the server applies the correct locale.
+Locale is detected from the URL: `/` → Russian, `/et` → Estonian, `/en` → English. Language switching triggers a full page reload so the server applies the correct locale.
 
 To add a language: add its tag to `project.inlang/settings.json` → `languageTags`, create `messages/{tag}.json`, add an entry to `LANGUAGES` in `Header.svelte`, and insert rows for the new locale in every DB content table.
+
+## Lead attribution and analytics
+
+The contact form stores qualification answers together with `utm_*`, `fbclid`, landing page, referrer, privacy notice version, and analytics-consent state. Optional Meta Pixel loading is blocked until the visitor accepts analytics.
+
+Set the non-secret Worker variable `META_PIXEL_ID` in the relevant Cloudflare environment to enable the Pixel. Without it, the site and form work normally and no Meta script is loaded.
 
 ## Testing
 

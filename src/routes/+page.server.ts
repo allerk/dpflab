@@ -9,9 +9,24 @@ import { createContactSubmission } from '$lib/db/repositories/contact-submission
 import { getSiteImages } from '$lib/db/repositories/site-images';
 import { scheduleContactSubmissionNotification } from '$lib/server/notifications/contact-submission';
 
+const PRIVACY_VERSION = '2026-07-23';
+const CLIENT_TYPES = new Set(['private', 'workshop', 'fleet']);
+const SERVICE_TYPES = new Set(['dpf', 'fap', 'catalyst', 'diagnosis', 'other']);
+const FILTER_STATES = new Set(['removed', 'workshop', 'installed', 'unsure']);
+const URGENCY_OPTIONS = new Set(['today', 'days_1_3', 'this_week', 'consultation']);
+const CONTACT_OPTIONS = new Set(['phone', 'whatsapp', 'email']);
+const SYMPTOM_OPTIONS = new Set(['warning', 'power', 'regeneration', 'smoke', 'other']);
+
+const textValue = (data: FormData, key: string, maxLength = 500) =>
+  ((data.get(key) as string | null)?.trim() ?? '').slice(0, maxLength);
+
 export const load: PageServerLoad = async ({ locals, platform }) => {
   const locale = locals.locale;
   const db = getDb(platform);
+  const configuredPixelId = platform?.env?.META_PIXEL_ID;
+  const metaPixelId = configuredPixelId && /^\d{5,20}$/.test(configuredPixelId)
+    ? configuredPixelId
+    : undefined;
 
   try {
     const [faqItems, pricingItems, contactsRow, beforeAfterItems, siteImagesMap] =
@@ -23,7 +38,7 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
         getSiteImages(db)
       ]);
 
-    return { locale, faqItems, pricingItems, contactsRow, beforeAfterItems, siteImagesMap };
+    return { locale, faqItems, pricingItems, contactsRow, beforeAfterItems, siteImagesMap, metaPixelId };
   } catch {
     return {
       locale,
@@ -31,7 +46,8 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
       pricingItems: [],
       contactsRow: null,
       beforeAfterItems: [],
-      siteImagesMap: { hero_main: null, why_main: null, contact_workshop: null }
+      siteImagesMap: { hero_main: null, why_main: null, contact_workshop: null },
+      metaPixelId
     };
   }
 };
@@ -40,21 +56,88 @@ export const actions: Actions = {
   default: async ({ request, locals, platform }) => {
     const db = getDb(platform);
     const data = await request.formData();
-    const name = (data.get('name') as string | null)?.trim() ?? '';
-    const phone = (data.get('phone') as string | null)?.trim() ?? '';
-    const email = (data.get('email') as string | null)?.trim() ?? '';
-    const comment = (data.get('comment') as string | null)?.trim() ?? '';
+    const name = textValue(data, 'name', 100);
+    const phone = textValue(data, 'phone', 40);
+    const email = textValue(data, 'email', 160);
+    const comment = textValue(data, 'comment', 1500);
+    const clientType = textValue(data, 'clientType', 30);
+    const serviceType = textValue(data, 'serviceType', 30);
+    const filterState = textValue(data, 'filterState', 30);
+    const vehicle = textValue(data, 'vehicle', 240);
+    const urgency = textValue(data, 'urgency', 30);
+    const preferredContact = textValue(data, 'preferredContact', 30);
+    const symptoms = data
+      .getAll('symptoms')
+      .map((value) => String(value))
+      .filter((value) => SYMPTOM_OPTIONS.has(value));
+    const privacyAccepted = data.get('privacyAccepted') === 'yes';
+    const analyticsConsent = data.get('analyticsConsent') === 'yes';
+    const website = textValue(data, 'website', 200);
+
+    const attribution = {
+      utmSource: textValue(data, 'utmSource', 160),
+      utmMedium: textValue(data, 'utmMedium', 160),
+      utmCampaign: textValue(data, 'utmCampaign', 240),
+      utmContent: textValue(data, 'utmContent', 240),
+      utmTerm: textValue(data, 'utmTerm', 240),
+      fbclid: textValue(data, 'fbclid', 300),
+      landingPage: textValue(data, 'landingPage', 500),
+      referrer: textValue(data, 'referrer', 500)
+    };
+
+    // Honeypot: bots see a successful response but no personal data is stored.
+    if (website) return { success: true };
 
     const errors: Record<string, string> = {};
     if (!name) errors.name = 'required';
-    if (!/^[\+\d\s\-()Ѐ-ӿ]{6,}$/.test(phone)) errors.phone = 'required';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'required';
+    if (!/^[+\d\s\-()]{6,}$/.test(phone)) errors.phone = 'required';
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'invalid';
+    if (preferredContact === 'email' && !email) errors.email = 'required';
+    if (!CLIENT_TYPES.has(clientType)) errors.clientType = 'required';
+    if (!SERVICE_TYPES.has(serviceType)) errors.serviceType = 'required';
+    if (!FILTER_STATES.has(filterState)) errors.filterState = 'required';
+    if (!vehicle) errors.vehicle = 'required';
+    if (!URGENCY_OPTIONS.has(urgency)) errors.urgency = 'required';
+    if (!CONTACT_OPTIONS.has(preferredContact)) errors.preferredContact = 'required';
+    if (!privacyAccepted) errors.privacyAccepted = 'required';
 
     if (Object.keys(errors).length > 0) {
-      return fail(422, { errors, name, phone, email, comment });
+      return fail(422, {
+        errors,
+        values: {
+          name,
+          phone,
+          email,
+          comment,
+          clientType,
+          serviceType,
+          filterState,
+          vehicle,
+          symptoms,
+          urgency,
+          preferredContact,
+          privacyAccepted
+        }
+      });
     }
 
-    const id = await createContactSubmission(db, { name, phone, email, comment, locale: locals.locale });
+    const id = await createContactSubmission(db, {
+      name,
+      phone,
+      email,
+      comment,
+      clientType,
+      serviceType,
+      filterState,
+      vehicle,
+      symptoms: JSON.stringify(symptoms),
+      urgency,
+      preferredContact,
+      ...attribution,
+      privacyVersion: PRIVACY_VERSION,
+      analyticsConsent,
+      locale: locals.locale
+    });
     await scheduleContactSubmissionNotification({
       id,
       origin: new URL(request.url).origin,
@@ -62,6 +145,6 @@ export const actions: Actions = {
       context: platform?.context
     });
 
-    return { success: true };
+    return { success: true, eventId: `site-lead-${id}` };
   }
 };

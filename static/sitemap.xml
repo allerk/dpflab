@@ -5,6 +5,7 @@
     <loc>https://dpflab.ee/</loc>
     <xhtml:link rel="alternate" hreflang="ru" href="https://dpflab.ee/"/>
     <xhtml:link rel="alternate" hreflang="et" href="https://dpflab.ee/et"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dpflab.ee/en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://dpflab.ee/"/>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -13,8 +14,45 @@
     <loc>https://dpflab.ee/et</loc>
     <xhtml:link rel="alternate" hreflang="ru" href="https://dpflab.ee/"/>
     <xhtml:link rel="alternate" hreflang="et" href="https://dpflab.ee/et"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dpflab.ee/en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://dpflab.ee/"/>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://dpflab.ee/en</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://dpflab.ee/"/>
+    <xhtml:link rel="alternate" hreflang="et" href="https://dpflab.ee/et"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dpflab.ee/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dpflab.ee/"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://dpflab.ee/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://dpflab.ee/privacy"/>
+    <xhtml:link rel="alternate" hreflang="et" href="https://dpflab.ee/et/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dpflab.ee/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dpflab.ee/privacy"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://dpflab.ee/et/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://dpflab.ee/privacy"/>
+    <xhtml:link rel="alternate" hreflang="et" href="https://dpflab.ee/et/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dpflab.ee/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dpflab.ee/privacy"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://dpflab.ee/en/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://dpflab.ee/privacy"/>
+    <xhtml:link rel="alternate" hreflang="et" href="https://dpflab.ee/et/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dpflab.ee/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dpflab.ee/privacy"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>
