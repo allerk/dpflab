@@ -36,3 +36,7 @@ CLAUDE_SETUP.md
 .agents/
 .claude/
 .codex/
+
+# Local SEO audit cache
+.seo-cache/
+AGENTS.md

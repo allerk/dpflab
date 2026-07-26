@@ -79,29 +79,29 @@
 </script>
 
 <div class="relative min-w-0 flex-1" bind:this={root}>
-  <button
-    bind:this={trigger}
-    type="button"
-    class="group flex w-full items-start gap-3 bg-transparent p-0 text-left text-[12px] text-fg-muted transition-colors hover:text-accent focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-    aria-label={map_selector_open({ address })}
-    aria-haspopup="menu"
-    aria-expanded={menuState.open}
-    aria-controls="map-app-menu"
-    onclick={() => dispatch({ type: 'toggle' })}
-  >
-    <span class="mt-0.5 shrink-0 text-accent">
-      <Icon name="map" size={17}/>
+  <div class="flex items-center gap-3">
+    <span class="flex shrink-0">
+      <Icon name="map" size={17} />
     </span>
-    <span class="min-w-0 underline decoration-transparent underline-offset-4 transition-colors group-hover:decoration-current">
+    <button
+      bind:this={trigger}
+      type="button"
+      class="min-w-0 cursor-pointer flex-1 bg-transparent p-0 text-left text-[12px] underline decoration-fg-muted underline-offset-4 transition-colors hover:text-accent hover:decoration-current"
+      aria-label={map_selector_open({ address })}
+      aria-haspopup="menu"
+      aria-expanded={menuState.open}
+      aria-controls="map-app-menu"
+      onclick={() => dispatch({ type: 'toggle' })}
+    >
       {address}
-    </span>
-  </button>
+    </button>
+  </div>
 
   {#if menuState.open}
     <div
       id="map-app-menu"
       role="menu"
-      class="absolute left-7 top-[calc(100%+8px)] z-20 w-[220px] overflow-hidden rounded-card border border-border bg-bg-elev p-1.5 shadow-[0_8px_24px_rgba(0,0,0,.4)]"
+      class="absolute left-7 top-[calc(50%+8px)] z-20 w-[220px] overflow-hidden rounded-card border border-border bg-bg-elev p-1.5 shadow-[0_8px_24px_rgba(0,0,0,.4)]"
     >
       {#each actions as action}
         <a
