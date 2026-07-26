@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { enhance } from '$app/forms';
   import Icon from '$lib/Icon.svelte';
+  import MapAppSelector from '$lib/components/MapAppSelector.svelte';
   import type { ContactsRow } from '$lib/db/repositories/contacts';
   import {
     consentEventName,
@@ -719,8 +720,8 @@
               <li class="flex gap-3 items-center text-[13px]">
                 <Icon name="mail" size={17}/><a href="mailto:{contactsRow.email}" on:click={() => trackMetaStandardEvent('Contact', { channel: 'email', placement: 'contact_card', locale })} class="hover:text-accent transition-colors">{contactsRow.email}</a>
               </li>
-              <li class="flex gap-3 items-start text-[12px] text-fg-muted">
-                <Icon name="map" size={17}/><span>{contactsRow.address}</span>
+              <li>
+                <MapAppSelector address={contactsRow.address} />
               </li>
               <li class="flex gap-3 items-start text-[11px] font-mono text-fg-muted">
                 <span class="w-[17px] shrink-0 text-accent"><Icon name="clock" size={17}/></span>
