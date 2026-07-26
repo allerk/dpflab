@@ -26,7 +26,7 @@
 - Create `src/lib/map-app-selector.ts`: provider ordering, URL construction, and injectable clipboard operation.
 - Create `tests/map-app-selector.test.ts`: unit coverage for order, encoding, and clipboard outcomes.
 - Create `src/lib/components/MapAppSelector.svelte`: menu state, accessibility, outside-click/Escape dismissal, and feedback.
-- Modify `src/lib/components/ContactForm.svelte`: render the selector beside the existing map icon.
+- Modify `src/lib/components/ContactForm.svelte`: replace the existing map icon and address with the selector.
 - Modify `messages/ru.json`, `messages/et.json`, `messages/en.json`: localized labels and feedback.
 
 ### Task 1: Provider and Clipboard Logic
@@ -269,6 +269,7 @@ Implement `MapAppSelector.svelte` with:
 ```svelte
 <script lang="ts">
   import { onMount, tick } from 'svelte';
+  import Icon from '$lib/Icon.svelte';
   import {
     map_selector_apple,
     map_selector_copy,
@@ -338,7 +339,7 @@ Render:
 
 - a `relative` root bound to `root`;
 - a real button bound to `trigger`, dispatching `{ type: 'toggle' }`, with `aria-haspopup="menu"`, `aria-expanded={state.open}`, `aria-controls="map-app-menu"`, and `aria-label={map_selector_open({ address })}`;
-- the address text as the visible button label;
+- the existing map icon and address text together as the visible button label;
 - an absolute `role="menu"` list when `open`;
 - three links generated from `actions`, each with `target="_blank"` and `rel="noreferrer"`, followed by the copy button;
 - a visually small `aria-live="polite"` feedback line derived from `state.feedback`;
@@ -384,7 +385,6 @@ Replace:
 with:
 
 ```svelte
-<span class="mt-0.5 shrink-0 text-accent"><Icon name="map" size={17}/></span>
 <MapAppSelector address={contactsRow.address} />
 ```
 
