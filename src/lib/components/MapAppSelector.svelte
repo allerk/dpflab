@@ -14,6 +14,7 @@
     buildMapActions,
     copyMapAddress,
     createMapMenuState,
+    getNextMapMenuItemIndex,
     reduceMapMenuState,
     type MapMenuAction,
     type MapProvider
@@ -34,6 +35,7 @@
   let menuState = $state(createMapMenuState());
   let root = $state<HTMLDivElement>();
   let trigger = $state<HTMLButtonElement>();
+  let menu = $state<HTMLDivElement>();
   let feedbackTimer: ReturnType<typeof setTimeout> | undefined;
 
   let actions = $derived(buildMapActions(address));
@@ -45,6 +47,48 @@
   function close(returnFocus = false) {
     dispatch({ type: 'dismiss' });
     if (returnFocus) void tick().then(() => trigger?.focus());
+  }
+
+  function getMenuItems() {
+    return Array.from(
+      menu?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []
+    );
+  }
+
+  function focusMenuItem(index: number) {
+    void tick().then(() => getMenuItems()[index]?.focus());
+  }
+
+  function toggleMenu() {
+    if (menuState.open) {
+      close();
+      return;
+    }
+
+    dispatch({ type: 'toggle' });
+    focusMenuItem(0);
+  }
+
+  function handleTriggerKeydown(event: KeyboardEvent) {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+
+    event.preventDefault();
+    if (!menuState.open) dispatch({ type: 'toggle' });
+    focusMenuItem(event.key === 'ArrowUp' ? actions.length : 0);
+  }
+
+  function handleMenuKeydown(event: KeyboardEvent) {
+    const items = getMenuItems();
+    const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+    const nextIndex = getNextMapMenuItemIndex(
+      event.key,
+      currentIndex,
+      items.length
+    );
+    if (nextIndex === null) return;
+
+    event.preventDefault();
+    items[nextIndex]?.focus();
   }
 
   async function copyAddress() {
@@ -66,14 +110,19 @@
     const onKeyDown = (event: KeyboardEvent) => {
       if (menuState.open && event.key === 'Escape') close(true);
     };
+    const onFocusIn = (event: FocusEvent) => {
+      if (menuState.open && root && !root.contains(event.target as Node)) close();
+    };
 
     document.addEventListener('mousedown', onPointerDown);
     document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('focusin', onFocusIn);
 
     return () => {
       clearTimeout(feedbackTimer);
       document.removeEventListener('mousedown', onPointerDown);
       document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('focusin', onFocusIn);
     };
   });
 </script>
@@ -91,7 +140,8 @@
       aria-haspopup="menu"
       aria-expanded={menuState.open}
       aria-controls="map-app-menu"
-      onclick={() => dispatch({ type: 'toggle' })}
+      onclick={toggleMenu}
+      onkeydown={handleTriggerKeydown}
     >
       {address}
     </button>
@@ -99,9 +149,12 @@
 
   {#if menuState.open}
     <div
+      bind:this={menu}
       id="map-app-menu"
       role="menu"
+      tabindex="-1"
       class="absolute left-7 top-[calc(50%+8px)] z-20 w-[220px] overflow-hidden rounded-card border border-border bg-bg-elev p-1.5 shadow-[0_8px_24px_rgba(0,0,0,.4)]"
+      onkeydown={handleMenuKeydown}
     >
       {#each actions as action}
         <a
@@ -109,6 +162,7 @@
           target="_blank"
           rel="noreferrer"
           role="menuitem"
+          tabindex="-1"
           class="flex min-h-11 items-center rounded-md px-3 text-[13px] text-fg transition-colors hover:bg-white/[.06] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
           onclick={() => close()}
         >
@@ -118,6 +172,7 @@
       <button
         type="button"
         role="menuitem"
+        tabindex="-1"
         class="flex min-h-11 w-full items-center rounded-md bg-transparent px-3 text-left text-[13px] text-fg transition-colors hover:bg-white/[.06] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
         onclick={copyAddress}
       >

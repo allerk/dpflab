@@ -31,9 +31,33 @@ export function reduceMapMenuState(
     case 'dismiss':
       return { ...state, open: false };
     case 'copied':
-      return { open: false, feedback: action.result };
+      return {
+        open: action.result === 'error',
+        feedback: action.result
+      };
     case 'clear-feedback':
       return { ...state, feedback: null };
+  }
+}
+
+export function getNextMapMenuItemIndex(
+  key: string,
+  currentIndex: number,
+  itemCount: number
+): number | null {
+  if (itemCount <= 0) return null;
+
+  switch (key) {
+    case 'ArrowDown':
+      return (currentIndex + 1) % itemCount;
+    case 'ArrowUp':
+      return currentIndex <= 0 ? itemCount - 1 : currentIndex - 1;
+    case 'Home':
+      return 0;
+    case 'End':
+      return itemCount - 1;
+    default:
+      return null;
   }
 }
 

@@ -3,6 +3,7 @@ import {
   buildMapActions,
   copyMapAddress,
   createMapMenuState,
+  getNextMapMenuItemIndex,
   reduceMapMenuState
 } from '../src/lib/map-app-selector';
 
@@ -76,17 +77,23 @@ describe('reduceMapMenuState', () => {
     ).toEqual({ open: false, feedback: 'error' });
   });
 
-  it.each(['success', 'error'] as const)(
-    'closes the menu with %s clipboard feedback',
-    (result) => {
-      expect(
-        reduceMapMenuState(
-          { open: true, feedback: null },
-          { type: 'copied', result }
-        )
-      ).toEqual({ open: false, feedback: result });
-    }
-  );
+  it('closes the menu after copying the address', () => {
+    expect(
+      reduceMapMenuState(
+        { open: true, feedback: null },
+        { type: 'copied', result: 'success' }
+      )
+    ).toEqual({ open: false, feedback: 'success' });
+  });
+
+  it('keeps the menu open when clipboard access fails', () => {
+    expect(
+      reduceMapMenuState(
+        { open: true, feedback: null },
+        { type: 'copied', result: 'error' }
+      )
+    ).toEqual({ open: true, feedback: 'error' });
+  });
 
   it('clears transient clipboard feedback', () => {
     expect(
@@ -95,5 +102,31 @@ describe('reduceMapMenuState', () => {
         { type: 'clear-feedback' }
       )
     ).toEqual({ open: false, feedback: null });
+  });
+});
+
+describe('getNextMapMenuItemIndex', () => {
+  it.each([
+    { key: 'ArrowDown', currentIndex: 0, itemCount: 4, expectedIndex: 1 },
+    { key: 'ArrowDown', currentIndex: 3, itemCount: 4, expectedIndex: 0 },
+    { key: 'ArrowUp', currentIndex: 2, itemCount: 4, expectedIndex: 1 },
+    { key: 'ArrowUp', currentIndex: 0, itemCount: 4, expectedIndex: 3 },
+    { key: 'Home', currentIndex: 2, itemCount: 4, expectedIndex: 0 },
+    { key: 'End', currentIndex: 1, itemCount: 4, expectedIndex: 3 }
+  ] as const)(
+    '$key moves from $currentIndex to $expectedIndex',
+    ({ key, currentIndex, itemCount, expectedIndex }) => {
+      expect(
+        getNextMapMenuItemIndex(key, currentIndex, itemCount)
+      ).toBe(expectedIndex);
+    }
+  );
+
+  it('ignores unrelated keys', () => {
+    expect(getNextMapMenuItemIndex('Enter', 1, 4)).toBeNull();
+  });
+
+  it('does not select an item from an empty menu', () => {
+    expect(getNextMapMenuItemIndex('ArrowDown', -1, 0)).toBeNull();
   });
 });
