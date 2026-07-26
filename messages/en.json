@@ -20,6 +20,13 @@
   "contacts_phone_href": "tel:+37255555014",
   "contacts_email": "info@dpflab.ee",
   "contacts_address": "Saha-Loo tee 36, Iru, 74206",
+  "map_selector_open": "Choose an app for directions to {address}",
+  "map_selector_google": "Google Maps",
+  "map_selector_waze": "Waze",
+  "map_selector_apple": "Apple Maps",
+  "map_selector_copy": "Copy address",
+  "map_selector_copy_success": "Address copied",
+  "map_selector_copy_error": "Could not copy address",
   "contacts_hours_week": "Mon – Fri: 9:00 – 18:00",
   "contacts_hours_sat": "Sat: 10:00 – 15:00",
 

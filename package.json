@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npm run build && wrangler dev --env local",
+    "dev": "CLOUDFLARE_ENV=local vite dev",
     "build": "vite build",
-    "preview:develop": "npm run build && wrangler dev --env develop",
+    "preview:local": "npm run build && wrangler dev --env local",
     "deploy": "npm run build && wrangler deploy --env prod",
     "deploy:develop": "npm run build && wrangler deploy --env develop",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",

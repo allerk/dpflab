@@ -55,21 +55,27 @@ tests/
 
 ## Local startup
 
-The application runs locally as a Cloudflare Worker with a local-only D1
-database and R2 bucket. The `local` environment in `wrangler.jsonc` is
-separate from both `prod` and `develop`; none of the commands below use
-remote Cloudflare resources.
+Use the Vite development server for fast frontend iteration:
 
 ```bash
 npm install
-npm run db:migrate:local  # create the local D1 schema
-npm run db:seed:local     # load initial content
 npm run dev
 ```
 
-Open http://localhost:8787. `npm run dev` builds the application and starts
-the local Worker. It loads local secrets from `.dev.vars`; keep that file out
-of version control.
+Vite prints its local URL when it starts (port 5173 by default).
+
+For the full Cloudflare Worker runtime with the local-only D1 database and R2
+bucket, use:
+
+```bash
+npm run db:migrate:local  # create the local D1 schema
+npm run db:seed:local     # load initial content
+npm run preview:local     # build and start the local Worker
+```
+
+Open http://localhost:8787. The `local` environment in `wrangler.jsonc` is
+separate from both `prod` and `develop`, and loads local secrets from
+`.dev.vars`; keep that file out of version control.
 
 To reset only local D1 and R2 data, stop the Worker and run:
 
