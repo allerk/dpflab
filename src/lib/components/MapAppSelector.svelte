@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, tick } from 'svelte';
+  import { tick } from 'svelte';
   import Icon from '$lib/Icon.svelte';
   import {
     map_selector_apple,
@@ -19,7 +19,11 @@
     type MapProvider
   } from '$lib/map-app-selector';
 
-  export let address: string;
+  interface Props {
+    address: string;
+  }
+
+  let { address }: Props = $props();
 
   const labels: Record<MapProvider, () => string> = {
     google: map_selector_google,
@@ -27,15 +31,15 @@
     apple: map_selector_apple
   };
 
-  let state = createMapMenuState();
-  let root: HTMLDivElement;
-  let trigger: HTMLButtonElement;
+  let menuState = $state(createMapMenuState());
+  let root = $state<HTMLDivElement>();
+  let trigger = $state<HTMLButtonElement>();
   let feedbackTimer: ReturnType<typeof setTimeout> | undefined;
 
-  $: actions = buildMapActions(address);
+  let actions = $derived(buildMapActions(address));
 
   function dispatch(action: MapMenuAction) {
-    state = reduceMapMenuState(state, action);
+    menuState = reduceMapMenuState(menuState, action);
   }
 
   function close(returnFocus = false) {
@@ -55,12 +59,12 @@
     );
   }
 
-  onMount(() => {
+  $effect(() => {
     const onPointerDown = (event: MouseEvent) => {
-      if (state.open && root && !root.contains(event.target as Node)) close();
+      if (menuState.open && root && !root.contains(event.target as Node)) close();
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (state.open && event.key === 'Escape') close(true);
+      if (menuState.open && event.key === 'Escape') close(true);
     };
 
     document.addEventListener('mousedown', onPointerDown);
@@ -81,9 +85,9 @@
     class="group flex w-full items-start gap-3 bg-transparent p-0 text-left text-[12px] text-fg-muted transition-colors hover:text-accent focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
     aria-label={map_selector_open({ address })}
     aria-haspopup="menu"
-    aria-expanded={state.open}
+    aria-expanded={menuState.open}
     aria-controls="map-app-menu"
-    on:click={() => dispatch({ type: 'toggle' })}
+    onclick={() => dispatch({ type: 'toggle' })}
   >
     <span class="mt-0.5 shrink-0 text-accent">
       <Icon name="map" size={17}/>
@@ -93,7 +97,7 @@
     </span>
   </button>
 
-  {#if state.open}
+  {#if menuState.open}
     <div
       id="map-app-menu"
       role="menu"
@@ -106,7 +110,7 @@
           rel="noreferrer"
           role="menuitem"
           class="flex min-h-11 items-center rounded-md px-3 text-[13px] text-fg transition-colors hover:bg-white/[.06] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
-          on:click={() => close()}
+          onclick={() => close()}
         >
           {labels[action.provider]()}
         </a>
@@ -115,7 +119,7 @@
         type="button"
         role="menuitem"
         class="flex min-h-11 w-full items-center rounded-md bg-transparent px-3 text-left text-[13px] text-fg transition-colors hover:bg-white/[.06] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
-        on:click={copyAddress}
+        onclick={copyAddress}
       >
         {map_selector_copy()}
       </button>
@@ -124,13 +128,13 @@
 
   <div
     class="mt-1 min-h-[16px] text-[11px] leading-4"
-    class:text-accent={state.feedback === 'success'}
-    class:text-danger={state.feedback === 'error'}
+    class:text-accent={menuState.feedback === 'success'}
+    class:text-danger={menuState.feedback === 'error'}
     aria-live="polite"
   >
-    {#if state.feedback === 'success'}
+    {#if menuState.feedback === 'success'}
       {map_selector_copy_success()}
-    {:else if state.feedback === 'error'}
+    {:else if menuState.feedback === 'error'}
       {map_selector_copy_error()}
     {/if}
   </div>
