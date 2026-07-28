@@ -5,8 +5,10 @@
     admin_faq_add,
     admin_faq_question_ru,
     admin_faq_question_et,
+    admin_faq_question_en,
     admin_faq_answer_ru,
     admin_faq_answer_et,
+    admin_faq_answer_en,
     admin_action_add,
     admin_action_edit,
     admin_action_delete,
@@ -98,7 +100,7 @@
   <div class="bg-bg-card border border-border rounded-card p-5">
     <h2 class="font-semibold mb-4">{admin_faq_add()}</h2>
     <form method="POST" action="?/create" class="space-y-4">
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div>
           <label for="question_ru" class="block text-sm font-medium mb-1"
             >{admin_faq_question_ru()}</label
@@ -126,6 +128,19 @@
             class="w-full px-3 py-2 rounded-input border border-border bg-bg text-sm resize-y focus:outline-none focus:border-accent"
           ></textarea>
           {#if form?.errors?.question_et}
+            <p role="alert" class="text-danger text-xs mt-1">{admin_error_required()}</p>
+          {/if}
+        </div>
+        <div>
+          <label for="question_en" class="block text-sm font-medium mb-1">{admin_faq_question_en()}</label>
+          <textarea
+            id="question_en"
+            name="question_en"
+            rows="2"
+            value={form?.values?.questionEn ?? ''}
+            class="w-full px-3 py-2 rounded-input border border-border bg-bg text-sm resize-y focus:outline-none focus:border-accent"
+          ></textarea>
+          {#if form?.errors?.question_en}
             <p role="alert" class="text-danger text-xs mt-1">{admin_error_required()}</p>
           {/if}
         </div>
@@ -159,6 +174,19 @@
             <p role="alert" class="text-danger text-xs mt-1">{admin_error_required()}</p>
           {/if}
         </div>
+        <div>
+          <label for="answer_en" class="block text-sm font-medium mb-1">{admin_faq_answer_en()}</label>
+          <textarea
+            id="answer_en"
+            name="answer_en"
+            rows="3"
+            value={form?.values?.answerEn ?? ''}
+            class="w-full px-3 py-2 rounded-input border border-border bg-bg text-sm resize-y focus:outline-none focus:border-accent"
+          ></textarea>
+          {#if form?.errors?.answer_en}
+            <p role="alert" class="text-danger text-xs mt-1">{admin_error_required()}</p>
+          {/if}
+        </div>
       </div>
       <button
         type="submit"
@@ -169,4 +197,3 @@
     </form>
   </div>
 </div>
-

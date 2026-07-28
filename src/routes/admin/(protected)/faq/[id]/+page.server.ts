@@ -20,8 +20,10 @@ export const load: PageServerLoad = async (event) => {
       id: row.id,
       questionRu: getLang(row.question, 'ru'),
       questionEt: getLang(row.question, 'et'),
+      questionEn: getLang(row.question, 'en'),
       answerRu: getLang(row.answer, 'ru'),
-      answerEt: getLang(row.answer, 'et')
+      answerEt: getLang(row.answer, 'et'),
+      answerEn: getLang(row.answer, 'en')
     }
   };
 };
@@ -36,22 +38,26 @@ export const actions: Actions = {
     const data = await event.request.formData();
     const questionRu = (data.get('question_ru') as string)?.trim() ?? '';
     const questionEt = (data.get('question_et') as string)?.trim() ?? '';
+    const questionEn = (data.get('question_en') as string)?.trim() ?? '';
     const answerRu = (data.get('answer_ru') as string)?.trim() ?? '';
     const answerEt = (data.get('answer_et') as string)?.trim() ?? '';
+    const answerEn = (data.get('answer_en') as string)?.trim() ?? '';
 
     const errors: Record<string, string> = {};
     if (!questionRu) errors.question_ru = 'required';
     if (!questionEt) errors.question_et = 'required';
+    if (!questionEn) errors.question_en = 'required';
     if (!answerRu) errors.answer_ru = 'required';
     if (!answerEt) errors.answer_et = 'required';
+    if (!answerEn) errors.answer_en = 'required';
 
     if (Object.keys(errors).length) {
-      return fail(400, { errors, values: { questionRu, questionEt, answerRu, answerEt } });
+      return fail(400, { errors, values: { questionRu, questionEt, questionEn, answerRu, answerEt, answerEn } });
     }
 
     await updateFaqItem(db, id, {
-      question: makeLangStr({ ru: questionRu, et: questionEt }),
-      answer: makeLangStr({ ru: answerRu, et: answerEt })
+      question: makeLangStr({ ru: questionRu, et: questionEt, en: questionEn }),
+      answer: makeLangStr({ ru: answerRu, et: answerEt, en: answerEn })
     });
     console.info(`[admin] action=update domain=faq id=${id} email=${email}`);
     redirect(303, '/admin/faq');

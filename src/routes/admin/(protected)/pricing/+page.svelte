@@ -6,9 +6,11 @@
     admin_pricing_icon,
     admin_pricing_title_ru,
     admin_pricing_title_et,
+    admin_pricing_title_en,
     admin_pricing_price,
     admin_pricing_cta_ru,
     admin_pricing_cta_et,
+    admin_pricing_cta_en,
     admin_action_add,
     admin_action_edit,
     admin_action_delete,
@@ -105,7 +107,7 @@
         {/if}
       </div>
 
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div>
           <label for="title_ru" class="block text-sm font-medium mb-1">{admin_pricing_title_ru()}</label>
           <input id="title_ru" name="title_ru" type="text" value={form?.values?.titleRu ?? ''}
@@ -123,6 +125,14 @@
           {/if}
         </div>
         <div>
+          <label for="title_en" class="block text-sm font-medium mb-1">{admin_pricing_title_en()}</label>
+          <input id="title_en" name="title_en" type="text" value={form?.values?.titleEn ?? ''}
+            class="w-full px-3 py-2 rounded-input border border-border bg-bg text-sm focus:outline-none focus:border-accent" />
+          {#if form?.errors?.title_en}
+            <p role="alert" class="text-danger text-xs mt-1">{admin_error_required()}</p>
+          {/if}
+        </div>
+        <div>
           <label for="cta_ru" class="block text-sm font-medium mb-1">{admin_pricing_cta_ru()}</label>
           <input id="cta_ru" name="cta_ru" type="text" value={form?.values?.ctaRu ?? ''}
             class="w-full px-3 py-2 rounded-input border border-border bg-bg text-sm focus:outline-none focus:border-accent" />
@@ -135,6 +145,14 @@
           <input id="cta_et" name="cta_et" type="text" value={form?.values?.ctaEt ?? ''}
             class="w-full px-3 py-2 rounded-input border border-border bg-bg text-sm focus:outline-none focus:border-accent" />
           {#if form?.errors?.cta_et}
+            <p role="alert" class="text-danger text-xs mt-1">{admin_error_required()}</p>
+          {/if}
+        </div>
+        <div>
+          <label for="cta_en" class="block text-sm font-medium mb-1">{admin_pricing_cta_en()}</label>
+          <input id="cta_en" name="cta_en" type="text" value={form?.values?.ctaEn ?? ''}
+            class="w-full px-3 py-2 rounded-input border border-border bg-bg text-sm focus:outline-none focus:border-accent" />
+          {#if form?.errors?.cta_en}
             <p role="alert" class="text-danger text-xs mt-1">{admin_error_required()}</p>
           {/if}
         </div>
@@ -156,4 +174,3 @@
     </form>
   </div>
 </div>
-

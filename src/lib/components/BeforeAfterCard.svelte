@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { publicImageUrl } from '$lib/image-url';
+
   export let sliderEnabled: boolean;
   export let imageBefore: string | null;
   export let imageAfter: string | null;
@@ -8,6 +10,9 @@
   let pos = 50;
   let card: HTMLDivElement;
   let dragging = false;
+
+  $: beforeSrc = publicImageUrl(imageBefore);
+  $: afterSrc = publicImageUrl(imageAfter);
 
   const update = (clientX: number) => {
     const r = card.getBoundingClientRect();
@@ -34,14 +39,14 @@
     on:touchstart={onDown} on:touchmove={onMove} on:touchend={onUp}
     role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(pos)} tabindex="0"
   >
-    {#if imageAfter}
-      <img src="/images/{imageAfter}" alt={labelAfter} class="ba-img ba-after" draggable="false" />
+    {#if afterSrc}
+      <img src={afterSrc} alt={labelAfter} class="ba-img ba-after" draggable="false" />
     {:else}
       <div class="ba-img ba-after placeholder">[{labelAfter}]</div>
     {/if}
     <div class="ba-img ba-before" style="clip-path: inset(0 {100 - pos}% 0 0)">
-      {#if imageBefore}
-        <img src="/images/{imageBefore}" alt={labelBefore} draggable="false" style="width:100%;height:100%;object-fit:cover" />
+      {#if beforeSrc}
+        <img src={beforeSrc} alt={labelBefore} draggable="false" style="width:100%;height:100%;object-fit:cover" />
       {:else}
         <div class="placeholder" style="width:100%;height:100%">[{labelBefore}]</div>
       {/if}
@@ -53,8 +58,8 @@
     <span class="ba-label ba-label-after">{labelAfter}</span>
   </div>
 {:else}
-  {#if imageBefore}
-    <img src="/images/{imageBefore}" alt="" class="w-full h-full object-cover rounded-card" />
+  {#if beforeSrc}
+    <img src={beforeSrc} alt="" class="w-full h-full object-cover rounded-card" />
   {:else}
     <div class="placeholder w-full aspect-square">[До/После]</div>
   {/if}

@@ -4,9 +4,11 @@
     why_footer, why_image_alt
   } from '$lib/paraglide/messages';
   import Icon from '$lib/Icon.svelte';
+  import { publicImageUrl } from '$lib/image-url';
 
   export let image: string | null = null;
 
+  $: imageSrc = publicImageUrl(image);
   $: points = [why_point_1(), why_point_2(), why_point_3(), why_point_4()];
 </script>
 
@@ -27,8 +29,8 @@
     </div>
 
     <div class="min-w-0 aspect-[4/3]">
-      {#if image}
-        <img src="/images/{image}" alt={why_image_alt()} class="w-full h-full object-cover rounded-card" />
+      {#if imageSrc}
+        <img src={imageSrc} alt={why_image_alt()} class="w-full h-full object-cover rounded-card" />
       {:else}
         <div class="placeholder w-full h-full">
           [ {why_image_alt()} ]<br/>

@@ -21,9 +21,11 @@ export const load: PageServerLoad = async (event) => {
       icon: row.icon,
       titleRu: getLang(row.title, 'ru'),
       titleEt: getLang(row.title, 'et'),
+      titleEn: getLang(row.title, 'en'),
       price: row.price,
       ctaRu: getLang(row.cta, 'ru'),
-      ctaEt: getLang(row.cta, 'et')
+      ctaEt: getLang(row.cta, 'et'),
+      ctaEn: getLang(row.cta, 'en')
     }
   };
 };
@@ -39,27 +41,31 @@ export const actions: Actions = {
     const icon = (data.get('icon') as string)?.trim() ?? '';
     const titleRu = (data.get('title_ru') as string)?.trim() ?? '';
     const titleEt = (data.get('title_et') as string)?.trim() ?? '';
+    const titleEn = (data.get('title_en') as string)?.trim() ?? '';
     const price = (data.get('price') as string)?.trim() ?? '';
     const ctaRu = (data.get('cta_ru') as string)?.trim() ?? '';
     const ctaEt = (data.get('cta_et') as string)?.trim() ?? '';
+    const ctaEn = (data.get('cta_en') as string)?.trim() ?? '';
 
     const errors: Record<string, string> = {};
     if (!icon) errors.icon = 'required';
     if (!titleRu) errors.title_ru = 'required';
     if (!titleEt) errors.title_et = 'required';
+    if (!titleEn) errors.title_en = 'required';
     if (!price) errors.price = 'required';
     if (!ctaRu) errors.cta_ru = 'required';
     if (!ctaEt) errors.cta_et = 'required';
+    if (!ctaEn) errors.cta_en = 'required';
 
     if (Object.keys(errors).length) {
-      return fail(400, { errors, values: { icon, titleRu, titleEt, price, ctaRu, ctaEt } });
+      return fail(400, { errors, values: { icon, titleRu, titleEt, titleEn, price, ctaRu, ctaEt, ctaEn } });
     }
 
     await updatePricingItem(db, id, {
       icon,
-      title: makeLangStr({ ru: titleRu, et: titleEt }),
+      title: makeLangStr({ ru: titleRu, et: titleEt, en: titleEn }),
       price,
-      cta: makeLangStr({ ru: ctaRu, et: ctaEt })
+      cta: makeLangStr({ ru: ctaRu, et: ctaEt, en: ctaEn })
     });
     console.info(`[admin] action=update domain=pricing id=${id} email=${email}`);
     redirect(303, '/admin/pricing');
