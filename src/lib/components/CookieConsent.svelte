@@ -8,6 +8,7 @@
   } from '$lib/paraglide/messages';
   import {
     getConsentChoice,
+    initGoogleAnalytics,
     initMetaPixel,
     openConsentEventName,
     setConsentChoice,
@@ -15,12 +16,14 @@
   } from '$lib/analytics';
 
   export let metaPixelId: string | undefined = undefined;
+  export let googleMeasurementId: string | undefined = undefined;
 
   let visible = false;
 
   onMount(() => {
     visible = getConsentChoice() === null;
     initMetaPixel(metaPixelId);
+    initGoogleAnalytics(googleMeasurementId);
 
     const open = () => (visible = true);
     window.addEventListener(openConsentEventName(), open);
@@ -30,7 +33,10 @@
   function choose(choice: ConsentChoice) {
     setConsentChoice(choice);
     visible = false;
-    if (choice === 'accepted') initMetaPixel(metaPixelId);
+    if (choice === 'accepted') {
+      initMetaPixel(metaPixelId);
+      initGoogleAnalytics(googleMeasurementId);
+    }
   }
 </script>
 

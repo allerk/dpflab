@@ -215,7 +215,7 @@
   "privacy_analytics_title": "Analüütika ja reklaam",
   "privacy_analytics_text": "Vabatahtliku analüütika ja reklaami mõõtmise lülitame sisse ainult pärast teie nõusolekut. Nõusolekut saab igal ajal muuta lehe allosas oleva lingi „Küpsiste seaded” kaudu.",
   "privacy_recipients_title": "Kes võivad andmeid töödelda",
-  "privacy_recipients_text": "Juurdepääs on DPFLABi töötajatel ja vajalikel teenusepakkujatel: Cloudflare majutuse ja andmebaasi jaoks, Resend teenuseteavituste jaoks ning Meta, kui lubasite analüütika või võtsite meiega ühendust Meta teenuste kaudu. Partnerteenindus saab ainult kokkulepitud teenuse jaoks vajalikud andmed.",
+  "privacy_recipients_text": "Juurdepääs on DPFLABi töötajatel ja vajalikel teenusepakkujatel: Cloudflare majutuse ja andmebaasi jaoks, Resend teenuseteavituste jaoks, Meta ja Google juhul, kui lubasite analüütika, või Meta juhul, kui võtsite meiega ühendust Meta teenuste kaudu. Partnerteenindus saab ainult kokkulepitud teenuse jaoks vajalikud andmed.",
   "privacy_retention_title": "Kui kaua säilitame",
   "privacy_retention_text": "Tavapäraseid päringuid säilitame kuni 12 kuud pärast viimast kontakti, välja arvatud juhul, kui pikem säilitamine on vajalik lepingu, raamatupidamise või õigusnõuete tõttu.",
   "privacy_rights_title": "Teie õigused",

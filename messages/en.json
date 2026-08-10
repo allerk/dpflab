@@ -215,7 +215,7 @@
   "privacy_analytics_title": "Analytics and advertising",
   "privacy_analytics_text": "Optional analytics and advertising measurement are enabled only after you consent. You can change your choice at any time using the “Cookie settings” link at the bottom of the site.",
   "privacy_recipients_title": "Who may process the data",
-  "privacy_recipients_text": "Access is limited to DPFLAB staff and necessary providers: Cloudflare for hosting and database services, Resend for service notifications, and Meta if you allow analytics or contact us through a Meta service. A partner workshop receives only the details required for the agreed service.",
+  "privacy_recipients_text": "Access is limited to DPFLAB staff and necessary providers: Cloudflare for hosting and database services, Resend for service notifications, Meta and Google if you allow analytics, or Meta if you contact us through a Meta service. A partner workshop receives only the details required for the agreed service.",
   "privacy_retention_title": "How long we keep it",
   "privacy_retention_text": "Ordinary enquiries are kept for no more than 12 months after the last contact unless a longer period is required for a contract, accounting obligations or legal claims.",
   "privacy_rights_title": "Your rights",

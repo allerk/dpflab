@@ -8,13 +8,17 @@ import {
   getBeforeAfterRows,
   type BeforeAfterRow
 } from '$lib/db/repositories/before-after';
-import { createContactSubmission } from '$lib/db/repositories/contact-submissions';
+import {
+  createContactSubmission,
+  getContactSubmission
+} from '$lib/db/repositories/contact-submissions';
 import { getSiteImages } from '$lib/db/repositories/site-images';
 import type { SiteImagesMap } from '$lib/db/repositories/site-images';
 import { scheduleContactSubmissionNotification } from '$lib/server/notifications/contact-submission';
 import { scheduleMetaLeadEvent } from '$lib/server/analytics/meta-capi';
+import { enqueueCrmStageEvents, scheduleCrmOutbox } from '$lib/server/crm/outbox';
 
-const PRIVACY_VERSION = '2026-07-23';
+const PRIVACY_VERSION = '2026-08-10';
 const CLIENT_TYPES = new Set(['private', 'workshop', 'fleet']);
 const SERVICE_TYPES = new Set(['dpf', 'fap', 'catalyst', 'diagnosis', 'other']);
 const FILTER_STATES = new Set(['removed', 'workshop', 'installed', 'unsure']);
@@ -66,6 +70,10 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
   const metaPixelId = configuredPixelId && /^\d{5,20}$/.test(configuredPixelId)
     ? configuredPixelId
     : undefined;
+  const configuredMeasurementId = platform?.env?.GOOGLE_ANALYTICS_MEASUREMENT_ID;
+  const googleMeasurementId = configuredMeasurementId && /^G-[A-Z0-9]{4,20}$/i.test(configuredMeasurementId)
+    ? configuredMeasurementId
+    : undefined;
 
   try {
     const [faqItems, pricingItems, contactsRow, beforeAfterItems, siteImagesMap] =
@@ -84,7 +92,8 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
       contactsRow,
       beforeAfterItems: displayBeforeAfter(platform?.env?.APP_ENV, beforeAfterItems),
       siteImagesMap: displaySiteImages(platform?.env?.APP_ENV, siteImagesMap),
-      metaPixelId
+      metaPixelId,
+      googleMeasurementId
     };
   } catch {
     const emptySiteImages: SiteImagesMap = {
@@ -100,7 +109,8 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
       contactsRow: null,
       beforeAfterItems: displayBeforeAfter(platform?.env?.APP_ENV, []),
       siteImagesMap: displaySiteImages(platform?.env?.APP_ENV, emptySiteImages),
-      metaPixelId
+      metaPixelId,
+      googleMeasurementId
     };
   }
 };
@@ -127,7 +137,7 @@ export const actions: Actions = {
     const analyticsConsent = data.get('analyticsConsent') === 'yes';
     const website = textValue(data, 'website', 200);
 
-    const attribution = {
+    const submittedAttribution = {
       utmSource: textValue(data, 'utmSource', 160),
       utmMedium: textValue(data, 'utmMedium', 160),
       utmCampaign: textValue(data, 'utmCampaign', 240),
@@ -140,9 +150,17 @@ export const actions: Actions = {
       fbclid: textValue(data, 'fbclid', 300),
       fbp: textValue(data, 'fbp', 300),
       fbc: textValue(data, 'fbc', 300),
+      gclid: textValue(data, 'gclid', 300),
+      gbraid: textValue(data, 'gbraid', 300),
+      wbraid: textValue(data, 'wbraid', 300),
+      gaClientId: textValue(data, 'gaClientId', 160),
+      gaSessionId: textValue(data, 'gaSessionId', 80),
       landingPage: textValue(data, 'landingPage', 500),
       referrer: textValue(data, 'referrer', 500)
     };
+    const attribution = analyticsConsent
+      ? submittedAttribution
+      : Object.fromEntries(Object.keys(submittedAttribution).map((key) => [key, ''])) as typeof submittedAttribution;
 
     // Honeypot: bots see a successful response but no personal data is stored.
     if (website) return { success: true };
@@ -198,6 +216,11 @@ export const actions: Actions = {
       locale: locals.locale
     });
     const eventId = `site-lead-${id}`;
+    const persistedLead = await getContactSubmission(db, id);
+    if (persistedLead) {
+      await enqueueCrmStageEvents(db, persistedLead, 'lead_created', persistedLead.createdAt);
+      scheduleCrmOutbox(db, platform?.env, platform?.context);
+    }
     await Promise.all([
       scheduleContactSubmissionNotification({
         id,

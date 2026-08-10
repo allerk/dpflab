@@ -3,6 +3,7 @@ import { createTestDb, type TestDb } from '../helpers/db';
 import { contactSubmissions } from '../../src/lib/db/schema';
 import {
   getContactSubmissions,
+  getContactSubmissionsForPeriod,
   getContactSubmission,
   deleteContactSubmission,
   updateContactSubmissionPipeline
@@ -26,6 +27,18 @@ describe('contact-submissions write functions', () => {
     const rows = await getContactSubmissions(db);
     expect(rows[0].name).toBe('Bob');
     expect(rows[1].name).toBe('Alice');
+  });
+
+  it('loads an independent reporting cohort instead of reusing the UI page', async () => {
+    await db.insert(contactSubmissions).values([
+      { name: 'Old', phone: '+1', locale: 'ru', createdAt: new Date('2026-06-01T00:00:00Z') },
+      { name: 'Recent', phone: '+2', locale: 'et', createdAt: new Date('2026-08-05T00:00:00Z') }
+    ]);
+    const rows = await getContactSubmissionsForPeriod(db, {
+      from: new Date('2026-08-01T00:00:00Z'),
+      to: new Date('2026-08-31T23:59:59Z')
+    });
+    expect(rows.map((row) => row.name)).toEqual(['Recent']);
   });
 
   it('returns the matching submission or undefined', async () => {
@@ -97,5 +110,21 @@ describe('contact-submissions write functions', () => {
     expect(qualified?.firstContactedAt?.getTime()).toBe(firstContactedAt);
     expect(qualified?.qualifiedAt).toBeInstanceOf(Date);
     expect(qualified?.updatedAt).toBeInstanceOf(Date);
+  });
+
+  it('does not invent skipped milestones when a lead jumps directly to completed', async () => {
+    await db.insert(contactSubmissions).values({
+      name: 'Direct job', phone: '+372 5555 0099', comment: '', locale: 'ru', createdAt: new Date()
+    });
+    const [created] = await getContactSubmissions(db);
+    await updateContactSubmissionPipeline(db, created.id, {
+      status: 'completed', assignedTo: 'Danik', orderAmountCents: 20_000,
+      lossReason: '', adminNotes: 'Walk-in job'
+    });
+    const completed = await getContactSubmission(db, created.id);
+    expect(completed?.completedAt).toBeInstanceOf(Date);
+    expect(completed?.firstContactedAt).toBeNull();
+    expect(completed?.qualifiedAt).toBeNull();
+    expect(completed?.bookedAt).toBeNull();
   });
 });

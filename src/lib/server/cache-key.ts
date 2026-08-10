@@ -1,6 +1,8 @@
 const TRACKING_QUERY_KEYS = new Set([
   'fbclid',
   'gclid',
+  'gbraid',
+  'wbraid',
   'msclkid',
   'campaign_id',
   'campaignid',

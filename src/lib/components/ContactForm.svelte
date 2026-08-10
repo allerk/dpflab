@@ -6,6 +6,7 @@
   import type { ContactsRow } from '$lib/db/repositories/contacts';
   import {
     consentEventName,
+    getGoogleBrowserIdentifiers,
     getMetaBrowserIdentifiers,
     hasAnalyticsConsent,
     trackMetaEvent,
@@ -202,6 +203,11 @@
   let fbclid = '';
   let fbp = '';
   let fbc = '';
+  let gclid = '';
+  let gbraid = '';
+  let wbraid = '';
+  let gaClientId = '';
+  let gaSessionId = '';
   let landingPage = '';
   let referrer = '';
 
@@ -268,21 +274,34 @@
       (analyticsConsent && fbclid ? `fb.1.${Date.now()}.${fbclid}`.slice(0, 300) : '');
   };
 
-  onMount(() => {
-    analyticsConsent = hasAnalyticsConsent();
+  const refreshGoogleBrowserIds = () => {
+    const identifiers = getGoogleBrowserIdentifiers();
+    gaClientId = identifiers.gaClientId;
+    gaSessionId = identifiers.gaSessionId;
+  };
 
+  const clearAttribution = () => {
+    utmSource = utmMedium = utmCampaign = utmContent = utmTerm = utmId = '';
+    campaignId = adsetId = adId = fbclid = gclid = gbraid = wbraid = '';
+    fbp = fbc = gaClientId = gaSessionId = '';
+    landingPage = window.location.pathname;
+    referrer = '';
+    window.localStorage.removeItem(ATTRIBUTION_KEY);
+  };
+
+  const captureConsentedAttribution = () => {
+    if (!analyticsConsent) {
+      clearAttribution();
+      return;
+    }
     const params = new URLSearchParams(window.location.search);
     let stored: Record<string, string | number> = {};
     try {
-      const parsed = JSON.parse(window.localStorage.getItem(ATTRIBUTION_KEY) ?? '{}') as Record<
-        string,
-        string | number
-      >;
+      const parsed = JSON.parse(window.localStorage.getItem(ATTRIBUTION_KEY) ?? '{}') as Record<string, string | number>;
       stored = Number(parsed.expiresAt ?? 0) > Date.now() ? parsed : {};
     } catch {
       stored = {};
     }
-
     const attribution = {
       utmSource: firstParam(params, 'utm_source') || String(stored.utmSource ?? ''),
       utmMedium: firstParam(params, 'utm_medium') || String(stored.utmMedium ?? ''),
@@ -290,38 +309,31 @@
       utmContent: firstParam(params, 'utm_content') || String(stored.utmContent ?? ''),
       utmTerm: firstParam(params, 'utm_term') || String(stored.utmTerm ?? ''),
       utmId: firstParam(params, 'utm_id') || String(stored.utmId ?? ''),
-      campaignId:
-        firstParam(params, 'campaign_id', 'campaignid') || String(stored.campaignId ?? ''),
+      campaignId: firstParam(params, 'campaign_id', 'campaignid') || String(stored.campaignId ?? ''),
       adsetId: firstParam(params, 'adset_id', 'adsetid') || String(stored.adsetId ?? ''),
       adId: firstParam(params, 'ad_id', 'adid') || String(stored.adId ?? ''),
       fbclid: firstParam(params, 'fbclid') || String(stored.fbclid ?? ''),
-      landingPage:
-        String(stored.landingPage ?? '') ||
-        `${window.location.pathname}${window.location.search}`,
+      gclid: firstParam(params, 'gclid') || String(stored.gclid ?? ''),
+      gbraid: firstParam(params, 'gbraid') || String(stored.gbraid ?? ''),
+      wbraid: firstParam(params, 'wbraid') || String(stored.wbraid ?? ''),
+      landingPage: String(stored.landingPage ?? '') || `${window.location.pathname}${window.location.search}`,
       referrer: String(stored.referrer ?? '') || document.referrer,
       expiresAt: Date.now() + ATTRIBUTION_TTL_MS
     };
-
-    ({
-      utmSource,
-      utmMedium,
-      utmCampaign,
-      utmContent,
-      utmTerm,
-      utmId,
-      campaignId,
-      adsetId,
-      adId,
-      fbclid,
-      landingPage,
-      referrer
-    } = attribution);
+    ({ utmSource, utmMedium, utmCampaign, utmContent, utmTerm, utmId, campaignId, adsetId,
+      adId, fbclid, gclid, gbraid, wbraid, landingPage, referrer } = attribution);
     window.localStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
     refreshMetaBrowserIds();
+    refreshGoogleBrowserIds();
+  };
+
+  onMount(() => {
+    analyticsConsent = hasAnalyticsConsent();
+    captureConsentedAttribution();
 
     const updateConsent = (event: Event) => {
       analyticsConsent = (event as CustomEvent).detail === 'accepted';
-      refreshMetaBrowserIds();
+      captureConsentedAttribution();
     };
     window.addEventListener(consentEventName(), updateConsent);
     return () => window.removeEventListener(consentEventName(), updateConsent);
@@ -474,9 +486,12 @@
               }
 
               refreshMetaBrowserIds();
+              refreshGoogleBrowserIds();
               formData.set('analyticsConsent', analyticsConsent ? 'yes' : 'no');
               formData.set('fbp', fbp);
               formData.set('fbc', fbc);
+              formData.set('gaClientId', gaClientId);
+              formData.set('gaSessionId', gaSessionId);
               return async ({ update }) => {
                 await update({ reset: false });
               };
@@ -494,6 +509,11 @@
             <input type="hidden" name="fbclid" value={fbclid} />
             <input type="hidden" name="fbp" value={fbp} />
             <input type="hidden" name="fbc" value={fbc} />
+            <input type="hidden" name="gclid" value={gclid} />
+            <input type="hidden" name="gbraid" value={gbraid} />
+            <input type="hidden" name="wbraid" value={wbraid} />
+            <input type="hidden" name="gaClientId" value={gaClientId} />
+            <input type="hidden" name="gaSessionId" value={gaSessionId} />
             <input type="hidden" name="landingPage" value={landingPage} />
             <input type="hidden" name="referrer" value={referrer} />
 

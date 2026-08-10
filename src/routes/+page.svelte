@@ -86,4 +86,4 @@
 </main>
 <Footer locale={data.locale} contactsRow={data.contactsRow} />
 <MobileContactDock locale={data.locale} contactsRow={data.contactsRow} />
-<CookieConsent metaPixelId={data.metaPixelId} />
+<CookieConsent metaPixelId={data.metaPixelId} googleMeasurementId={data.googleMeasurementId} />
