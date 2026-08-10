@@ -3,11 +3,12 @@ import type { PageServerLoad, Actions } from './$types';
 import { requireAdmin } from '$lib/server/admin/require-admin.js';
 import { getDb } from '$lib/db/index.js';
 import {
-  calculateSubmissionFinancials,
   deleteContactSubmission,
+  getCompletedSubmissionsForPeriod,
   getContactSubmissions,
   getContactSubmissionsForPeriod
 } from '$lib/db/repositories/contact-submissions.js';
+import { getBusinessExpenseTotals } from '$lib/db/repositories/business-expenses.js';
 import {
   getMarketingDailyMetrics,
   getMarketingMetricTotals,
@@ -16,23 +17,21 @@ import {
 import { fetchMetaDailyMetrics } from '$lib/server/integrations/meta-ads-insights.js';
 import { processCrmOutbox } from '$lib/server/crm/outbox.js';
 import { isMetaAttributedLead, isPaidMetaLead } from '$lib/server/crm/reporting.js';
-
-const dateKey = (date: Date) => date.toISOString().slice(0, 10);
-const beginningOfPeriod = () => {
-  const date = new Date();
-  date.setUTCDate(date.getUTCDate() - 29);
-  date.setUTCHours(0, 0, 0, 0);
-  return date;
-};
+import {
+  formatTallinnDate,
+  shiftCalendarDate,
+  tallinnReportingPeriod
+} from '$lib/server/crm/tallinn-time.js';
 
 export const load: PageServerLoad = async (event) => {
   requireAdmin(event);
   const db = getDb(event.platform);
-  const periodStart = beginningOfPeriod();
-  const periodEnd = new Date();
-  const [rows, reportRowsWithSentinel] = await Promise.all([
+  const period = tallinnReportingPeriod();
+  const [rows, reportRowsWithSentinel, completedRowsWithSentinel, expenseTotals] = await Promise.all([
     getContactSubmissions(db),
-    getContactSubmissionsForPeriod(db, { from: periodStart, to: periodEnd, limit: 5_001 })
+    getContactSubmissionsForPeriod(db, { from: period.from, to: period.to, limit: 5_001 }),
+    getCompletedSubmissionsForPeriod(db, { from: period.from, to: period.to, limit: 5_001 }),
+    getBusinessExpenseTotals(db, { dateFrom: period.fromKey, dateTo: period.toKey })
   ]);
   const reportTruncated = reportRowsWithSentinel.length > 5_000;
   const periodRows = reportRowsWithSentinel.slice(0, 5_000);
@@ -49,8 +48,8 @@ export const load: PageServerLoad = async (event) => {
   let metricRows: Awaited<ReturnType<typeof getMarketingDailyMetrics>> = [];
   try {
     const filters = {
-      dateFrom: dateKey(periodStart),
-      dateTo: dateKey(periodEnd),
+      dateFrom: period.fromKey,
+      dateTo: period.toKey,
       provider: 'meta'
     };
     const [totals, daily] = await Promise.all([
@@ -73,17 +72,8 @@ export const load: PageServerLoad = async (event) => {
   const metaRows = periodRows.filter(isMetaAttributedLead);
   const paidMetaRows = metaRows.filter(isPaidMetaLead);
   const unattributedMetaRows = metaRows.filter((row) => !isPaidMetaLead(row));
-  const completedMetaRows = paidMetaRows.filter((row) => row.status === 'completed');
-  const actual = completedMetaRows.reduce(
-    (totals, row) => {
-      const financials = calculateSubmissionFinancials(row);
-      totals.revenueCents += financials.revenueCents;
-      totals.directCostCents += financials.totalCostCents;
-      totals.grossProfitCents += financials.grossProfitCents;
-      return totals;
-    },
-    { revenueCents: 0, directCostCents: 0, grossProfitCents: 0 }
-  );
+  const completedMetaRows = paidMetaRows.filter((row) => row.completedAt !== null);
+  const metaRevenueCents = completedMetaRows.reduce((sum, row) => sum + row.orderAmountCents, 0);
   const campaignMap = new Map<string, {
     campaignId: string;
     campaignName: string;
@@ -117,21 +107,13 @@ export const load: PageServerLoad = async (event) => {
           ? row.campaignId === campaign.campaignId
           : row.utmCampaign === campaign.campaignName
       );
-      const completed = crmRows.filter((row) => row.status === 'completed');
-      const financials = completed.reduce(
-        (sum, row) => {
-          const values = calculateSubmissionFinancials(row);
-          sum.revenueCents += values.revenueCents;
-          sum.grossProfitCents += values.grossProfitCents;
-          return sum;
-        },
-        { revenueCents: 0, grossProfitCents: 0 }
-      );
+      const completed = crmRows.filter((row) => row.completedAt !== null);
+      const revenueCents = completed.reduce((sum, row) => sum + row.orderAmountCents, 0);
       return {
         ...campaign,
         crmLeads: crmRows.length,
         completed: completed.length,
-        ...financials,
+        revenueCents,
         cplCents:
           campaign.providerLeads > 0
             ? Math.round(campaign.spendCents / campaign.providerLeads)
@@ -142,18 +124,38 @@ export const load: PageServerLoad = async (event) => {
     .slice(0, 12);
 
   const env = event.platform?.env;
+  const completedRows = completedRowsWithSentinel.slice(0, 5_000);
+  const completionRevenueCents = completedRows.reduce((sum, row) => sum + row.orderAmountCents, 0);
+  const expenseCurrencies = expenseTotals.filter((item) => item.amountCents > 0);
+  const expensesMixedCurrency = expenseCurrencies.some((item) => item.currency !== 'EUR');
+  const recordedExpensesCents = expenseCurrencies
+    .filter((item) => item.currency === 'EUR')
+    .reduce((sum, item) => sum + item.amountCents, 0);
+  const metaSpendComparable = Boolean(env?.META_MARKETING_ACCESS_TOKEN) && marketing.available && !marketing.mixedCurrency && marketing.currency === 'EUR';
   return {
     rows,
     report: {
-      periodFrom: dateKey(periodStart),
-      periodTo: dateKey(periodEnd),
+      periodFrom: period.fromKey,
+      periodTo: period.toKey,
       reportTruncated,
       marketing,
       metaLeadCount: paidMetaRows.length,
       metaUnattributedCount: unattributedMetaRows.length,
       metaCompletedCount: completedMetaRows.length,
       campaigns,
-      ...actual
+      revenueCents: metaRevenueCents
+    },
+    business: {
+      completedJobs: completedRows.length,
+      completionRevenueCents,
+      recordedExpensesCents,
+      expensesMixedCurrency,
+      metaSpendCents: metaSpendComparable ? marketing.spendCents : null,
+      knownBalanceCents:
+        !expensesMixedCurrency && metaSpendComparable
+          ? completionRevenueCents - recordedExpensesCents - marketing.spendCents
+          : null,
+      reportTruncated: completedRowsWithSentinel.length > 5_000
     },
     integrations: {
       metaLeadImport: Boolean(
@@ -199,13 +201,12 @@ export const actions: Actions = {
       return fail(503, { syncError: 'Подключение Meta Ads ещё не настроено' });
     }
 
-    const until = new Date();
-    const since = new Date();
-    since.setUTCDate(since.getUTCDate() - 34);
+    const until = formatTallinnDate(new Date());
+    const since = shiftCalendarDate(until, -34);
     try {
       const metrics = await fetchMetaDailyMetrics(env, {
-        since: dateKey(since),
-        until: dateKey(until)
+        since,
+        until
       });
       await upsertMarketingDailyMetrics(
         db,

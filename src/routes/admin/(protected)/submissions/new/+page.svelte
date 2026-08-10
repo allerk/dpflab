@@ -93,8 +93,23 @@
         </select>
       </div>
 
+      <div>
+        <label for="filter_state" class="mb-1.5 block text-xs text-fg-muted">Где фильтр сейчас? *</label>
+        <select id="filter_state" name="filter_state" required class={inputClass} value={previous('filterState', 'installed')}>
+          <option value="installed">На автомобиле — нужен партнёр</option>
+          <option value="removed">Уже снят — привезут в DPFLAB</option>
+          <option value="workshop">В другом автосервисе — нужен забор</option>
+          <option value="unsure">Неясно — сначала диагностика</option>
+        </select>
+        {#if form?.errors?.filterState}<p class="mt-1 text-xs text-danger">{form.errors.filterState}</p>{/if}
+      </div>
+      <div>
+        <label for="registration_number" class="mb-1.5 block text-xs text-fg-muted">Госномер</label>
+        <input id="registration_number" name="registration_number" maxlength="40" value={previous('registrationNumber')} placeholder="123 ABC" class={inputClass} />
+      </div>
+
       <div class="col-span-2 max-sm:col-span-1">
-        <label for="vehicle" class="mb-1.5 block text-xs text-fg-muted">Автомобиль / двигатель / номер детали</label>
+        <label for="vehicle" class="mb-1.5 block text-xs text-fg-muted">Автомобиль / двигатель</label>
         <input id="vehicle" name="vehicle" maxlength="240" value={previous('vehicle')} class={inputClass} />
       </div>
       <div class="col-span-2 max-sm:col-span-1">

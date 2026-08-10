@@ -12,6 +12,7 @@ import { requireAdmin } from '$lib/server/admin/require-admin';
 const MANUAL_ORIGINS = new Set<LeadOrigin>(['manual', 'whatsapp']);
 const SERVICE_TYPES = new Set(['dpf', 'fap', 'catalyst', 'diagnosis', 'other']);
 const CLIENT_TYPES = new Set(['private', 'workshop', 'fleet', '']);
+const FILTER_STATES = new Set(['removed', 'workshop', 'installed', 'unsure']);
 
 const value = (data: FormData, key: string, limit = 500) =>
   String(data.get(key) ?? '').trim().slice(0, limit);
@@ -27,7 +28,9 @@ export const actions: Actions = {
     const email = value(data, 'email', 160);
     const source = value(data, 'source', 120);
     const vehicle = value(data, 'vehicle', 240);
+    const registrationNumber = value(data, 'registration_number', 40);
     const serviceType = value(data, 'service_type', 30);
+    const filterState = value(data, 'filter_state', 30);
     const clientType = value(data, 'client_type', 30);
     const comment = value(data, 'comment', 1500);
     const assignedTo = value(data, 'assigned_to', 160);
@@ -40,7 +43,9 @@ export const actions: Actions = {
       email,
       source,
       vehicle,
+      registrationNumber,
       serviceType,
+      filterState,
       clientType,
       comment,
       assignedTo
@@ -52,6 +57,7 @@ export const actions: Actions = {
     if (phone && !/^[+\d\s\-()]{6,}$/.test(phone)) errors.phone = 'Проверьте номер';
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Проверьте e-mail';
     if (!SERVICE_TYPES.has(serviceType)) errors.serviceType = 'Выберите услугу';
+    if (!FILTER_STATES.has(filterState)) errors.filterState = 'Выберите, где находится фильтр';
     if (!CLIENT_TYPES.has(clientType)) errors.clientType = 'Некорректный тип клиента';
     if (Object.keys(errors).length) return fail(422, { errors, values });
 
@@ -77,7 +83,10 @@ export const actions: Actions = {
       phone,
       email,
       vehicle,
+      registrationNumber,
       serviceType,
+      filterState,
+      partnerPaymentModel: filterState === 'installed' ? 'customer_direct' : 'not_applicable',
       clientType,
       comment,
       assignedTo,

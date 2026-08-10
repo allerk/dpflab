@@ -39,6 +39,7 @@ describe('CRM lead persistence', () => {
 
   it('normalizes contacts and stores Google attribution without changing the site API', async () => {
     const id = await createContactSubmission(db, siteSubmission({
+      filterState: 'installed',
       gclid: 'google-click',
       gbraid: 'gbraid-1',
       wbraid: 'wbraid-1',
@@ -55,7 +56,8 @@ describe('CRM lead persistence', () => {
       gbraid: 'gbraid-1',
       wbraid: 'wbraid-1',
       gaClientId: '123.456',
-      gaSessionId: '789'
+      gaSessionId: '789',
+      partnerPaymentModel: 'customer_direct'
     });
     expect(normalizePhone('00372 5555 5014')).toBe('+37255555014');
     expect(normalizePhone('37255555014')).toBe('+37255555014');
@@ -106,7 +108,7 @@ describe('CRM lead persistence', () => {
     expect(byEmail.map((row) => row.name)).toEqual(['Alice']);
   });
 
-  it('stores financials and next actions and records an audit trail', async () => {
+  it('keeps the legacy deal-cost API readable for backwards compatibility', async () => {
     const id = await createContactSubmission(db, siteSubmission());
     await updateLeadFinancials(db, id, {
       orderAmountCents: 25_000,

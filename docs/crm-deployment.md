@@ -2,7 +2,7 @@
 
 No production mutation is performed by the repository itself. Deploy in this order:
 
-1. Apply D1 migrations `0008` and `0009` to `develop` and take a D1 backup/export first.
+1. Apply D1 migrations through `0010` to `develop` and take a D1 backup/export first. `0010` adds the DPFLAB-specific route/diagnostics/partner fields, milestones and the attachment-free business expense ledger.
 2. Deploy the main Worker to `develop`; keep all outbound launch gates `false`.
 3. Set main-Worker secrets: Meta webhook/app/token values, marketing token, CAPI token, Google MP secrets and a random `CRM_CRON_TOKEN` of at least 32 characters.
 4. Set the same `CRM_CRON_TOKEN` on `dpflab-crm-cron-develop`, then deploy it with `npm run deploy:crm-cron:develop`.

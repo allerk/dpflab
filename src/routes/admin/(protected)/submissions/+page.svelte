@@ -14,20 +14,26 @@
     other: 'Нужно уточнить'
   };
   const statusLabels: Record<string, string> = {
-    new: 'Новая',
-    contacted: 'Связались',
-    qualified: 'Квалифицирована',
-    booked: 'Записан',
-    completed: 'Выполнено',
-    lost: 'Проиграно'
+    new: 'Новая заявка', contacted: 'Уточняем запрос', diagnostics: 'Диагностика', partner: 'У партнёра',
+    qualified: 'Сценарий подтверждён', quote_confirmed: 'Цена подтверждена', booked: 'Запись согласована',
+    received: 'Фильтр принят', cleaning: 'Очистка', ready: 'Готов к возврату', completed: 'Оплачено / закрыто',
+    follow_up: 'Перезвонить позже', lost: 'Потеряно', spam: 'Спам'
   };
   const statusClasses: Record<string, string> = {
     new: 'border-blue-400/40 bg-blue-400/10 text-blue-300',
     contacted: 'border-cyan-400/40 bg-cyan-400/10 text-cyan-300',
+    diagnostics: 'border-cyan-400/40 bg-cyan-400/10 text-cyan-300',
+    partner: 'border-orange-400/40 bg-orange-400/10 text-orange-300',
     qualified: 'border-amber-400/40 bg-amber-400/10 text-amber-300',
+    quote_confirmed: 'border-amber-400/40 bg-amber-400/10 text-amber-300',
     booked: 'border-violet-400/40 bg-violet-400/10 text-violet-300',
+    received: 'border-violet-400/40 bg-violet-400/10 text-violet-300',
+    cleaning: 'border-violet-400/40 bg-violet-400/10 text-violet-300',
+    ready: 'border-accent/40 bg-accent/10 text-accent',
     completed: 'border-accent/40 bg-accent/10 text-accent',
-    lost: 'border-danger/40 bg-danger/10 text-danger'
+    follow_up: 'border-slate-400/40 bg-slate-400/10 text-slate-300',
+    lost: 'border-danger/40 bg-danger/10 text-danger',
+    spam: 'border-danger/40 bg-danger/10 text-danger'
   };
   const originLabels: Record<string, string> = {
     site: 'Сайт',
@@ -55,7 +61,7 @@
   let allowDelete = false;
 
   const now = Date.now();
-  const isActive = (value: string) => value !== 'completed' && value !== 'lost';
+  const isActive = (value: string) => !['completed', 'lost', 'spam'].includes(value);
   const isOverdue = (row: PageData['rows'][number]) =>
     isActive(row.status) && Boolean(row.nextActionAt) && new Date(row.nextActionAt!).getTime() < now;
   const euro = (cents: number) =>
@@ -64,8 +70,6 @@
     new Intl.NumberFormat('ru', { style: 'currency', currency }).format(cents / 100);
   const ratio = (numerator: number, denominator: number) =>
     denominator > 0 ? `${(numerator / denominator).toFixed(2)}×` : '—';
-  const percentage = (numerator: number, denominator: number) =>
-    denominator > 0 ? `${Math.round((numerator / denominator) * 100)}%` : '—';
 
   $: owners = [...new Set(data.rows.map((row) => row.assignedTo).filter(Boolean))].sort();
   $: filtered = data.rows.filter((row) => {
@@ -90,9 +94,9 @@
   });
   $: pipeline = {
     new: data.rows.filter((row) => row.status === 'new').length,
-    contacted: data.rows.filter((row) => row.status === 'contacted').length,
-    qualified: data.rows.filter((row) => row.status === 'qualified').length,
+    clarification: data.rows.filter((row) => ['contacted', 'diagnostics', 'partner', 'qualified', 'quote_confirmed'].includes(row.status)).length,
     booked: data.rows.filter((row) => row.status === 'booked').length,
+    inWork: data.rows.filter((row) => ['received', 'cleaning', 'ready'].includes(row.status)).length,
     completed: data.rows.filter((row) => row.status === 'completed').length,
     overdue: data.rows.filter(isOverdue).length
   };
@@ -125,14 +129,6 @@
     const channel = originLabels[row.origin] ?? row.origin;
     const detail = row.utmCampaign || row.source || row.utmSource;
     return detail && detail !== 'direct' ? `${channel} · ${detail}` : channel;
-  }
-  function totalCosts(row: PageData['rows'][number]) {
-    return (
-      row.partsMaterialsCostCents +
-      row.laborCostCents +
-      row.logisticsCostCents +
-      row.otherCostCents
-    );
   }
 </script>
 
@@ -169,25 +165,32 @@
     <div class="grid grid-cols-6 divide-x divide-border max-lg:grid-cols-3 max-lg:divide-y max-sm:grid-cols-2">
       {#each [
         ['Новые', pipeline.new, 'text-blue-300'],
-        ['Связались', pipeline.contacted, 'text-cyan-300'],
-        ['Квалиф.', pipeline.qualified, 'text-amber-300'],
-        ['Записаны', pipeline.booked, 'text-violet-300'],
-        ['Выполнено', pipeline.completed, 'text-accent'],
+        ['Уточнение', pipeline.clarification, 'text-cyan-300'],
+        ['Записаны', pipeline.booked, 'text-amber-300'],
+        ['В работе', pipeline.inWork, 'text-violet-300'],
+        ['Оплачено', pipeline.completed, 'text-accent'],
         ['Просрочено', pipeline.overdue, pipeline.overdue ? 'text-danger' : 'text-fg-muted']
       ] as item}
-        <button
-          type="button"
-          on:click={() => {
-            if (item[0] === 'Просрочено') dueOnly = !dueOnly;
-            else status = item[0] === 'Новые' ? 'new' : item[0] === 'Связались' ? 'contacted' : item[0] === 'Квалиф.' ? 'qualified' : item[0] === 'Записаны' ? 'booked' : 'completed';
-          }}
-          class="flex items-baseline justify-between gap-2 px-4 py-3 text-left hover:bg-bg"
-        >
+        <div class="flex items-baseline justify-between gap-2 px-4 py-3">
           <span class="text-xs text-fg-muted">{item[0]}</span>
           <span class="font-mono text-xl font-bold {item[2]}">{item[1]}</span>
-        </button>
+        </div>
       {/each}
     </div>
+  </section>
+
+  <section class="mb-6 overflow-hidden rounded-card border border-border bg-bg-card">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3"><div><h2 class="text-sm">Экономика бизнеса / последние 30 дней</h2><p class="mt-0.5 text-[11px] text-fg-muted">Выручка по дате оплаты минус записанные общие расходы и синхронизированный Meta Ads. Зарплата владельцев и налоги не оценены.</p></div><a href="/admin/expenses" class="rounded border border-border px-3 py-1.5 text-xs hover:border-accent">Вести расходы</a></div>
+    <div class="grid grid-cols-5 gap-px bg-border max-lg:grid-cols-3 max-sm:grid-cols-2">
+      {#each [
+        ['Оплачено заказов', String(data.business.completedJobs)],
+        ['Выручка DPFLAB', euro(data.business.completionRevenueCents)],
+        ['Общие расходы', euro(data.business.recordedExpensesCents)],
+        ['Meta Ads', data.business.metaSpendCents === null ? 'не сопоставимо' : euro(data.business.metaSpendCents)],
+        ['Остаток по известным данным', data.business.knownBalanceCents === null ? '—' : euro(data.business.knownBalanceCents)]
+      ] as metric}<div class="bg-bg-card px-4 py-3"><div class="text-[11px] text-fg-muted">{metric[0]}</div><div class="mt-1 font-mono text-base font-bold">{metric[1]}</div></div>{/each}
+    </div>
+    <p class="border-t border-border px-5 py-3 text-[11px] text-fg-muted">Это управленческий остаток, не бухгалтерская прибыль и пока не юнит-экономика. Платёж партнёрскому сервису, сделанный клиентом напрямую, не включён ни в выручку, ни в расходы DPFLAB.{#if data.business.expensesMixedCurrency} Есть расходы не в EUR — итог скрыт.{/if}{#if data.business.reportTruncated} Отчёт ограничен 5000 оплатами.{/if}</p>
   </section>
 
   <section class="mb-6 rounded-card border border-border bg-bg-card">
@@ -222,9 +225,7 @@
       {/each}
     </div>
     <div class="flex flex-wrap items-center gap-x-6 gap-y-1 border-t border-border px-5 py-3 text-xs">
-      <span class="text-fg-muted">Валовая прибыль заказов: <strong class="text-fg">{euro(data.report.grossProfitCents)}</strong></span>
-      <span class="text-fg-muted">Маркетинговый ROI: <strong class="text-fg">{!data.report.marketing.mixedCurrency && (data.report.marketing.currency ?? 'EUR') === 'EUR' ? percentage(data.report.grossProfitCents - data.report.marketing.spendCents, data.report.marketing.spendCents) : '— разные валюты'}</strong></span>
-      <span class="text-[11px] text-fg-muted">Paid определяется campaign/ad/click ID. Без paid-атрибуции: {data.report.metaUnattributedCount}. Это не бухгалтерская прибыль.</span>
+      <span class="text-[11px] text-fg-muted">ROAS — только выручка / рекламный расход, не прибыль и не ROI. Paid определяется campaign/ad/click ID. Без paid-атрибуции: {data.report.metaUnattributedCount}.</span>
       {#if data.report.reportTruncated}<span class="text-[11px] text-danger">Отчёт ограничен 5000 заявок — требуется SQL-агрегация.</span>{/if}
     </div>
     {#if data.report.campaigns?.length}
@@ -306,7 +307,7 @@
               <td class="px-4 py-3 text-right align-top font-mono text-xs">
                 {#if row.orderAmountCents > 0}
                   <div>{euro(row.orderAmountCents)}</div>
-                  <div class="mt-0.5 {row.orderAmountCents - totalCosts(row) >= 0 ? 'text-accent' : 'text-danger'}">GP {euro(row.orderAmountCents - totalCosts(row))}</div>
+                  <div class="mt-0.5 text-fg-muted">выручка DPFLAB</div>
                 {:else}<span class="text-fg-muted">—</span>{/if}
               </td>
               <td class="px-4 py-3 align-top">

@@ -8,10 +8,18 @@ export type LeadOrigin = (typeof LEAD_ORIGINS)[number];
 export const SUBMISSION_STATUSES = [
   'new',
   'contacted',
+  'diagnostics',
+  'partner',
   'qualified',
+  'quote_confirmed',
   'booked',
+  'received',
+  'cleaning',
+  'ready',
   'completed',
-  'lost'
+  'follow_up',
+  'lost',
+  'spam'
 ] as const;
 
 export type SubmissionStatus = (typeof SUBMISSION_STATUSES)[number];
@@ -96,6 +104,16 @@ export type CrmLeadInput = {
   status?: SubmissionStatus;
   assignedTo?: string;
   orderAmountCents?: number;
+  registrationNumber?: string;
+  partNumber?: string;
+  diagnosticCode?: string;
+  pressureBeforeMbar?: number | null;
+  pressureAfterMbar?: number | null;
+  partnerWorkshop?: string;
+  partnerContact?: string;
+  partnerCustomerPriceCents?: number;
+  partnerPaymentModel?: PartnerPaymentModel;
+  pickupAddress?: string;
   partsMaterialsCostCents?: number;
   laborCostCents?: number;
   logisticsCostCents?: number;
@@ -110,8 +128,33 @@ export type SubmissionPipelineInput = {
   status: SubmissionStatus;
   assignedTo: string;
   orderAmountCents: number;
+  lossReasonCode?: string;
   lossReason: string;
   adminNotes: string;
+  actor?: string;
+};
+
+export const PARTNER_PAYMENT_MODELS = [
+  'not_applicable',
+  'customer_direct',
+  'unknown'
+] as const;
+export type PartnerPaymentModel = (typeof PARTNER_PAYMENT_MODELS)[number];
+
+export type LeadOperationsInput = {
+  serviceType: string;
+  filterState: string;
+  vehicle: string;
+  registrationNumber: string;
+  partNumber: string;
+  diagnosticCode: string;
+  pressureBeforeMbar: number | null;
+  pressureAfterMbar: number | null;
+  partnerWorkshop: string;
+  partnerContact: string;
+  partnerCustomerPriceCents: number;
+  partnerPaymentModel: PartnerPaymentModel;
+  pickupAddress: string;
   actor?: string;
 };
 
@@ -121,6 +164,11 @@ export type LeadFinancialsInput = {
   laborCostCents: number;
   logisticsCostCents: number;
   otherCostCents: number;
+  actor?: string;
+};
+
+export type LeadRevenueInput = {
+  orderAmountCents: number;
   actor?: string;
 };
 
@@ -231,6 +279,18 @@ export async function createCrmLead(
       status: input.status ?? 'new',
       assignedTo: input.assignedTo ?? '',
       orderAmountCents: nonNegativeInteger(input.orderAmountCents),
+      registrationNumber: input.registrationNumber?.trim() ?? '',
+      partNumber: input.partNumber?.trim() ?? '',
+      diagnosticCode: input.diagnosticCode?.trim() ?? '',
+      pressureBeforeMbar: input.pressureBeforeMbar == null ? null : nonNegativeInteger(input.pressureBeforeMbar),
+      pressureAfterMbar: input.pressureAfterMbar == null ? null : nonNegativeInteger(input.pressureAfterMbar),
+      partnerWorkshop: input.partnerWorkshop?.trim() ?? '',
+      partnerContact: input.partnerContact?.trim() ?? '',
+      partnerCustomerPriceCents: nonNegativeInteger(input.partnerCustomerPriceCents),
+      partnerPaymentModel:
+        input.partnerPaymentModel ??
+        (input.filterState === 'installed' ? 'customer_direct' : 'not_applicable'),
+      pickupAddress: input.pickupAddress?.trim() ?? '',
       partsMaterialsCostCents: nonNegativeInteger(input.partsMaterialsCostCents),
       laborCostCents: nonNegativeInteger(input.laborCostCents),
       logisticsCostCents: nonNegativeInteger(input.logisticsCostCents),
@@ -300,6 +360,26 @@ export async function getContactSubmissionsForPeriod(
       )
     )
     .orderBy(desc(contactSubmissions.createdAt))
+    .limit(Math.min(Math.max(input.limit ?? 5_001, 1), 20_000));
+}
+
+export async function getCompletedSubmissionsForPeriod(
+  db: Db,
+  input: { from: Date; to: Date; limit?: number }
+): Promise<SubmissionRow[]> {
+  if (Number.isNaN(input.from.getTime()) || Number.isNaN(input.to.getTime()) || input.from > input.to) {
+    throw new Error('Invalid completion report period');
+  }
+  return db
+    .select()
+    .from(contactSubmissions)
+    .where(
+      and(
+        gte(contactSubmissions.completedAt, input.from),
+        lte(contactSubmissions.completedAt, input.to)
+      )
+    )
+    .orderBy(desc(contactSubmissions.completedAt))
     .limit(Math.min(Math.max(input.limit ?? 5_001, 1), 20_000));
 }
 
@@ -375,12 +455,21 @@ export async function updateContactSubmissionPipeline(
       assignedTo: contactSubmissions.assignedTo,
       orderAmountCents: contactSubmissions.orderAmountCents,
       lossReason: contactSubmissions.lossReason,
+      lossReasonCode: contactSubmissions.lossReasonCode,
       adminNotes: contactSubmissions.adminNotes,
       firstContactedAt: contactSubmissions.firstContactedAt,
+      diagnosticsAt: contactSubmissions.diagnosticsAt,
+      partnerAt: contactSubmissions.partnerAt,
       qualifiedAt: contactSubmissions.qualifiedAt,
+      quoteConfirmedAt: contactSubmissions.quoteConfirmedAt,
       bookedAt: contactSubmissions.bookedAt,
+      receivedAt: contactSubmissions.receivedAt,
+      cleaningStartedAt: contactSubmissions.cleaningStartedAt,
+      readyAt: contactSubmissions.readyAt,
       completedAt: contactSubmissions.completedAt,
-      lostAt: contactSubmissions.lostAt
+      followUpAt: contactSubmissions.followUpAt,
+      lostAt: contactSubmissions.lostAt,
+      spamAt: contactSubmissions.spamAt
     })
     .from(contactSubmissions)
     .where(eq(contactSubmissions.id, id));
@@ -394,16 +483,28 @@ export async function updateContactSubmissionPipeline(
       status: input.status,
       assignedTo: input.assignedTo,
       orderAmountCents,
+      lossReasonCode: input.status === 'lost' ? (input.lossReasonCode ?? '') : '',
       lossReason: input.status === 'lost' ? input.lossReason : '',
       adminNotes: input.adminNotes,
       firstContactedAt:
         input.status === 'contacted' && !current.firstContactedAt ? now : current.firstContactedAt,
+      diagnosticsAt:
+        input.status === 'diagnostics' && !current.diagnosticsAt ? now : current.diagnosticsAt,
+      partnerAt: input.status === 'partner' && !current.partnerAt ? now : current.partnerAt,
       qualifiedAt:
         input.status === 'qualified' && !current.qualifiedAt ? now : current.qualifiedAt,
+      quoteConfirmedAt:
+        input.status === 'quote_confirmed' && !current.quoteConfirmedAt ? now : current.quoteConfirmedAt,
       bookedAt: input.status === 'booked' && !current.bookedAt ? now : current.bookedAt,
+      receivedAt: input.status === 'received' && !current.receivedAt ? now : current.receivedAt,
+      cleaningStartedAt:
+        input.status === 'cleaning' && !current.cleaningStartedAt ? now : current.cleaningStartedAt,
+      readyAt: input.status === 'ready' && !current.readyAt ? now : current.readyAt,
       completedAt:
         input.status === 'completed' && !current.completedAt ? now : current.completedAt,
+      followUpAt: input.status === 'follow_up' && !current.followUpAt ? now : current.followUpAt,
       lostAt: input.status === 'lost' && !current.lostAt ? now : current.lostAt,
+      spamAt: input.status === 'spam' && !current.spamAt ? now : current.spamAt,
       updatedAt: now
     })
     .where(eq(contactSubmissions.id, id));
@@ -417,9 +518,64 @@ export async function updateContactSubmissionPipeline(
     details: {
       assignedTo: { from: current.assignedTo, to: input.assignedTo },
       orderAmountCents: { from: current.orderAmountCents, to: orderAmountCents },
+      lossReasonCode: {
+        from: current.lossReasonCode,
+        to: input.status === 'lost' ? (input.lossReasonCode ?? '') : ''
+      },
       lossReason: { from: current.lossReason, to: input.status === 'lost' ? input.lossReason : '' },
       notesChanged: current.adminNotes !== input.adminNotes
     },
+    createdAt: now
+  });
+}
+
+export async function updateLeadOperations(
+  db: Db,
+  id: number,
+  input: LeadOperationsInput
+): Promise<void> {
+  const [current] = await db
+    .select({
+      serviceType: contactSubmissions.serviceType,
+      filterState: contactSubmissions.filterState,
+      vehicle: contactSubmissions.vehicle,
+      registrationNumber: contactSubmissions.registrationNumber,
+      partNumber: contactSubmissions.partNumber,
+      diagnosticCode: contactSubmissions.diagnosticCode,
+      pressureBeforeMbar: contactSubmissions.pressureBeforeMbar,
+      pressureAfterMbar: contactSubmissions.pressureAfterMbar,
+      partnerWorkshop: contactSubmissions.partnerWorkshop,
+      partnerContact: contactSubmissions.partnerContact,
+      partnerCustomerPriceCents: contactSubmissions.partnerCustomerPriceCents,
+      partnerPaymentModel: contactSubmissions.partnerPaymentModel,
+      pickupAddress: contactSubmissions.pickupAddress
+    })
+    .from(contactSubmissions)
+    .where(eq(contactSubmissions.id, id));
+  if (!current) return;
+
+  const next = {
+    serviceType: input.serviceType.trim(),
+    filterState: input.filterState.trim(),
+    vehicle: input.vehicle.trim(),
+    registrationNumber: input.registrationNumber.trim(),
+    partNumber: input.partNumber.trim(),
+    diagnosticCode: input.diagnosticCode.trim(),
+    pressureBeforeMbar: input.pressureBeforeMbar == null ? null : nonNegativeInteger(input.pressureBeforeMbar),
+    pressureAfterMbar: input.pressureAfterMbar == null ? null : nonNegativeInteger(input.pressureAfterMbar),
+    partnerWorkshop: input.partnerWorkshop.trim(),
+    partnerContact: input.partnerContact.trim(),
+    partnerCustomerPriceCents: nonNegativeInteger(input.partnerCustomerPriceCents),
+    partnerPaymentModel: input.partnerPaymentModel,
+    pickupAddress: input.pickupAddress.trim()
+  };
+  const now = new Date();
+  await db.update(contactSubmissions).set({ ...next, updatedAt: now }).where(eq(contactSubmissions.id, id));
+  await recordLeadActivity(db, {
+    submissionId: id,
+    activityType: 'operations_updated',
+    actor: input.actor ?? 'admin',
+    details: { from: current, to: next },
     createdAt: now
   });
 }
@@ -458,6 +614,27 @@ export async function updateLeadFinancials(
     activityType: 'financials_updated',
     actor: input.actor ?? 'admin',
     details: { from: current, to: next },
+    createdAt: now
+  });
+}
+
+export async function updateLeadRevenue(db: Db, id: number, input: LeadRevenueInput): Promise<void> {
+  const [current] = await db
+    .select({ orderAmountCents: contactSubmissions.orderAmountCents })
+    .from(contactSubmissions)
+    .where(eq(contactSubmissions.id, id));
+  if (!current) return;
+  const orderAmountCents = nonNegativeInteger(input.orderAmountCents);
+  const now = new Date();
+  await db
+    .update(contactSubmissions)
+    .set({ orderAmountCents, updatedAt: now })
+    .where(eq(contactSubmissions.id, id));
+  await recordLeadActivity(db, {
+    submissionId: id,
+    activityType: 'revenue_updated',
+    actor: input.actor ?? 'admin',
+    details: { from: current.orderAmountCents, to: orderAmountCents },
     createdAt: now
   });
 }
@@ -505,6 +682,8 @@ export function calculateSubmissionFinancials(row: Pick<
   | 'logisticsCostCents'
   | 'otherCostCents'
 >): { revenueCents: number; totalCostCents: number; grossProfitCents: number } {
+  // Legacy compatibility only. The current DPFLAB UI and reports do not write
+  // or use these per-order costs; unit economics are period-based from 0010.
   const totalCostCents =
     row.partsMaterialsCostCents +
     row.laborCostCents +

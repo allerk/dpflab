@@ -7,11 +7,13 @@ import {
   findPotentialDuplicateSubmissions,
   getContactSubmission,
   getSubmissionActivities,
+  PARTNER_PAYMENT_MODELS,
   recordLeadActivity,
   SUBMISSION_STATUSES,
   updateContactSubmissionPipeline,
-  updateLeadFinancials,
-  updateLeadNextAction
+  updateLeadNextAction,
+  updateLeadOperations,
+  updateLeadRevenue
 } from '$lib/db/repositories/contact-submissions.js';
 import {
   getOutboxEvent,
@@ -42,6 +44,25 @@ const moneyCents = (data: FormData, key: string) => {
     : null;
 };
 
+const optionalNumber = (data: FormData, key: string, max = 100_000) => {
+  const raw = textValue(data, key, 32).replace(',', '.');
+  if (!raw) return null;
+  const number = Number(raw);
+  return Number.isFinite(number) && number >= 0 && number <= max ? Math.round(number) : undefined;
+};
+
+const SERVICE_TYPES = new Set(['dpf', 'fap', 'catalyst', 'diagnosis', 'other', '']);
+const FILTER_STATES = new Set(['removed', 'workshop', 'installed', 'unsure', '']);
+const LOSS_REASON_CODES = new Set([
+  'expensive',
+  'unsuitable',
+  'no_answer',
+  'postponed',
+  'chose_other',
+  'duplicate',
+  'other'
+]);
+
 export const load: PageServerLoad = async (event) => {
   requireAdmin(event);
   const id = leadId(event);
@@ -70,13 +91,14 @@ export const actions: Actions = {
     const data = await event.request.formData();
     const status = textValue(data, 'status', 30);
     const assignedTo = textValue(data, 'assigned_to', 160);
+    const lossReasonCode = textValue(data, 'loss_reason_code', 40);
     const lossReason = textValue(data, 'loss_reason', 500);
     const adminNotes = textValue(data, 'admin_notes');
     if (!SUBMISSION_STATUSES.includes(status as (typeof SUBMISSION_STATUSES)[number])) {
       return fail(400, { section: 'pipeline', error: 'Некорректный статус' });
     }
-    if (status === 'lost' && !lossReason) {
-      return fail(422, { section: 'pipeline', error: 'Укажите причину потери' });
+    if (status === 'lost' && !LOSS_REASON_CODES.has(lossReasonCode)) {
+      return fail(422, { section: 'pipeline', error: 'Выберите причину потери' });
     }
 
     const current = await getContactSubmission(db, id);
@@ -84,7 +106,7 @@ export const actions: Actions = {
     if (status === 'completed' && current.orderAmountCents <= 0) {
       return fail(422, {
         section: 'pipeline',
-        error: 'Сначала сохраните цену заказа в блоке «Результат работы»'
+        error: 'Сначала сохраните цену услуги DPFLAB в блоке «Выручка DPFLAB»'
       });
     }
 
@@ -93,6 +115,7 @@ export const actions: Actions = {
       status: nextStatus,
       assignedTo,
       orderAmountCents: current.orderAmountCents,
+      lossReasonCode,
       lossReason,
       adminNotes,
       actor
@@ -118,39 +141,65 @@ export const actions: Actions = {
     redirect(303, `/admin/submissions/${id}?saved=pipeline`);
   },
 
-  financials: async (event) => {
+  revenue: async (event) => {
     const { email: actor } = requireAdmin(event);
     const db = getDb(event.platform);
     const id = leadId(event);
     const current = await getContactSubmission(db, id);
     if (!current) return fail(404, { error: 'Not found' });
-    if (current.status === 'completed') {
+    if (current.completedAt) {
       return fail(409, {
-        section: 'financials',
-        error: 'Завершённый заказ зафиксирован. Корректировка требует отдельной процедуры сверки.'
+        section: 'revenue',
+        error: 'Оплаченный заказ зафиксирован. Корректировка требует отдельной процедуры сверки.'
       });
     }
     const data = await event.request.formData();
-    const values = {
-      orderAmountCents: moneyCents(data, 'order_amount'),
-      partsMaterialsCostCents: moneyCents(data, 'parts_materials_cost'),
-      laborCostCents: moneyCents(data, 'labor_cost'),
-      logisticsCostCents: moneyCents(data, 'logistics_cost'),
-      otherCostCents: moneyCents(data, 'other_cost')
-    };
-    if (Object.values(values).some((item) => item === null)) {
-      return fail(422, { section: 'financials', error: 'Проверьте суммы: только числа от 0' });
+    const orderAmountCents = moneyCents(data, 'order_amount');
+    if (orderAmountCents === null) {
+      return fail(422, { section: 'revenue', error: 'Проверьте цену: число от 0' });
     }
-    await updateLeadFinancials(db, id, {
-      orderAmountCents: values.orderAmountCents!,
-      partsMaterialsCostCents: values.partsMaterialsCostCents!,
-      laborCostCents: values.laborCostCents!,
-      logisticsCostCents: values.logisticsCostCents!,
-      otherCostCents: values.otherCostCents!,
+    await updateLeadRevenue(db, id, { orderAmountCents, actor });
+    console.info(`[admin] action=update domain=submission-revenue id=${id}`);
+    redirect(303, `/admin/submissions/${id}?saved=revenue`);
+  },
+
+  operations: async (event) => {
+    const { email: actor } = requireAdmin(event);
+    const db = getDb(event.platform);
+    const id = leadId(event);
+    const data = await event.request.formData();
+    const serviceType = textValue(data, 'service_type', 30);
+    const filterState = textValue(data, 'filter_state', 30);
+    const partnerPaymentModel = textValue(data, 'partner_payment_model', 30);
+    const partnerCustomerPriceCents = moneyCents(data, 'partner_customer_price');
+    const pressureBeforeMbar = optionalNumber(data, 'pressure_before_mbar');
+    const pressureAfterMbar = optionalNumber(data, 'pressure_after_mbar');
+    if (!SERVICE_TYPES.has(serviceType) || !FILTER_STATES.has(filterState)) {
+      return fail(422, { section: 'operations', error: 'Проверьте услугу и маршрут фильтра' });
+    }
+    if (!PARTNER_PAYMENT_MODELS.includes(partnerPaymentModel as (typeof PARTNER_PAYMENT_MODELS)[number])) {
+      return fail(422, { section: 'operations', error: 'Проверьте схему оплаты партнёра' });
+    }
+    if (partnerCustomerPriceCents === null || pressureBeforeMbar === undefined || pressureAfterMbar === undefined) {
+      return fail(422, { section: 'operations', error: 'Проверьте числовые значения' });
+    }
+    await updateLeadOperations(db, id, {
+      serviceType,
+      filterState,
+      vehicle: textValue(data, 'vehicle', 240),
+      registrationNumber: textValue(data, 'registration_number', 40),
+      partNumber: textValue(data, 'part_number', 120),
+      diagnosticCode: textValue(data, 'diagnostic_code', 240),
+      pressureBeforeMbar,
+      pressureAfterMbar,
+      partnerWorkshop: textValue(data, 'partner_workshop', 160),
+      partnerContact: textValue(data, 'partner_contact', 160),
+      partnerCustomerPriceCents,
+      partnerPaymentModel: partnerPaymentModel as (typeof PARTNER_PAYMENT_MODELS)[number],
+      pickupAddress: textValue(data, 'pickup_address', 500),
       actor
     });
-    console.info(`[admin] action=update domain=submission-financials id=${id}`);
-    redirect(303, `/admin/submissions/${id}?saved=financials`);
+    redirect(303, `/admin/submissions/${id}?saved=operations`);
   },
 
   nextAction: async (event) => {

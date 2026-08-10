@@ -18,6 +18,7 @@
 
   const navLinks = [
     { href: '/admin/submissions', label: () => 'CRM' },
+    { href: '/admin/expenses', label: () => 'Расходы' },
     { href: '/admin/faq', label: admin_nav_faq },
     { href: '/admin/reviews', label: admin_nav_reviews },
     { href: '/admin/pricing', label: admin_nav_pricing },

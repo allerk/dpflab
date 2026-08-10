@@ -104,10 +104,40 @@ export const contactSubmissions = sqliteTable(
     privacyVersion: text('privacy_version').notNull().default(''),
     analyticsConsent: integer('analytics_consent', { mode: 'boolean' }).notNull().default(false),
     status: text('status', {
-      enum: ['new', 'contacted', 'qualified', 'booked', 'completed', 'lost']
+      enum: [
+        'new',
+        'contacted',
+        'diagnostics',
+        'partner',
+        'qualified',
+        'quote_confirmed',
+        'booked',
+        'received',
+        'cleaning',
+        'ready',
+        'completed',
+        'follow_up',
+        'lost',
+        'spam'
+      ]
     }).notNull().default('new'),
     assignedTo: text('assigned_to').notNull().default(''),
     orderAmountCents: integer('order_amount_cents').notNull().default(0),
+    registrationNumber: text('registration_number').notNull().default(''),
+    partNumber: text('part_number').notNull().default(''),
+    diagnosticCode: text('diagnostic_code').notNull().default(''),
+    pressureBeforeMbar: integer('pressure_before_mbar'),
+    pressureAfterMbar: integer('pressure_after_mbar'),
+    partnerWorkshop: text('partner_workshop').notNull().default(''),
+    partnerContact: text('partner_contact').notNull().default(''),
+    partnerCustomerPriceCents: integer('partner_customer_price_cents').notNull().default(0),
+    partnerPaymentModel: text('partner_payment_model', {
+      enum: ['not_applicable', 'customer_direct', 'unknown']
+    }).notNull().default('not_applicable'),
+    pickupAddress: text('pickup_address').notNull().default(''),
+    lossReasonCode: text('loss_reason_code').notNull().default(''),
+    // Kept for backwards-compatible reads of pre-0010 data. New CRM UI records
+    // operating costs in business_expenses instead of inventing per-job allocation.
     partsMaterialsCostCents: integer('parts_materials_cost_cents').notNull().default(0),
     laborCostCents: integer('labor_cost_cents').notNull().default(0),
     logisticsCostCents: integer('logistics_cost_cents').notNull().default(0),
@@ -117,10 +147,18 @@ export const contactSubmissions = sqliteTable(
     nextActionAt: integer('next_action_at', { mode: 'timestamp' }),
     nextActionNote: text('next_action_note').notNull().default(''),
     firstContactedAt: integer('first_contacted_at', { mode: 'timestamp' }),
+    diagnosticsAt: integer('diagnostics_at', { mode: 'timestamp' }),
+    partnerAt: integer('partner_at', { mode: 'timestamp' }),
     qualifiedAt: integer('qualified_at', { mode: 'timestamp' }),
+    quoteConfirmedAt: integer('quote_confirmed_at', { mode: 'timestamp' }),
     bookedAt: integer('booked_at', { mode: 'timestamp' }),
+    receivedAt: integer('received_at', { mode: 'timestamp' }),
+    cleaningStartedAt: integer('cleaning_started_at', { mode: 'timestamp' }),
+    readyAt: integer('ready_at', { mode: 'timestamp' }),
     completedAt: integer('completed_at', { mode: 'timestamp' }),
+    followUpAt: integer('follow_up_at', { mode: 'timestamp' }),
     lostAt: integer('lost_at', { mode: 'timestamp' }),
+    spamAt: integer('spam_at', { mode: 'timestamp' }),
     updatedAt: integer('updated_at', { mode: 'timestamp' }),
     locale: text('locale').notNull(),
     createdAt: integer('created_at', { mode: 'timestamp' }).notNull()
@@ -135,7 +173,40 @@ export const contactSubmissions = sqliteTable(
     index('contact_submissions_email_normalized_idx').on(table.emailNormalized),
     index('contact_submissions_external_form_id_idx').on(table.externalFormId),
     index('contact_submissions_next_action_at_idx').on(table.nextActionAt),
-    index('contact_submissions_campaign_created_at_idx').on(table.campaignId, table.createdAt)
+    index('contact_submissions_campaign_created_at_idx').on(table.campaignId, table.createdAt),
+    index('contact_submissions_completed_at_idx').on(table.completedAt)
+  ]
+);
+
+export const businessExpenses = sqliteTable(
+  'business_expenses',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    expenseDate: text('expense_date').notNull(),
+    category: text('category', {
+      enum: [
+        'utilities',
+        'rent',
+        'equipment',
+        'consumables',
+        'marketing',
+        'transport',
+        'software_admin',
+        'taxes_fees',
+        'other'
+      ]
+    }).notNull(),
+    amountCents: integer('amount_cents').notNull(),
+    currency: text('currency').notNull().default('EUR'),
+    vendor: text('vendor').notNull().default(''),
+    comment: text('comment').notNull().default(''),
+    createdBy: text('created_by').notNull().default(''),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull()
+  },
+  (table) => [
+    index('business_expenses_date_idx').on(table.expenseDate),
+    index('business_expenses_category_date_idx').on(table.category, table.expenseDate)
   ]
 );
 

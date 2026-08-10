@@ -8,6 +8,13 @@ const tallinnFormatter = new Intl.DateTimeFormat('en-CA', {
   hourCycle: 'h23'
 });
 
+const tallinnDateFormatter = new Intl.DateTimeFormat('sv-SE', {
+  timeZone: 'Europe/Tallinn',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit'
+});
+
 type WallParts = { year: number; month: number; day: number; hour: number; minute: number };
 
 const formatParts = (date: Date): WallParts => {
@@ -60,4 +67,25 @@ export function parseTallinnDateTimeLocal(value: string): Date | null {
   }
   const candidate = new Date(candidateMs);
   return sameWallTime(formatParts(candidate), desired) ? candidate : null;
+}
+
+export function formatTallinnDate(date: Date): string {
+  return tallinnDateFormatter.format(date);
+}
+
+export function shiftCalendarDate(value: string, days: number): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match || !Number.isInteger(days)) throw new Error('Invalid calendar date shift');
+  const [year, month, day] = match.slice(1).map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day + days));
+  return date.toISOString().slice(0, 10);
+}
+
+export function tallinnReportingPeriod(now = new Date(), days = 30) {
+  if (!Number.isInteger(days) || days < 1 || days > 366) throw new Error('Invalid report length');
+  const toKey = formatTallinnDate(now);
+  const fromKey = shiftCalendarDate(toKey, -(days - 1));
+  const from = parseTallinnDateTimeLocal(`${fromKey}T00:00`);
+  if (!from) throw new Error('Could not resolve Tallinn report start');
+  return { from, to: now, fromKey, toKey };
 }
