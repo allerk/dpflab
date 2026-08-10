@@ -1,0 +1,5 @@
+decision_id,area,recommendation,owner_decision,evidence,decided_by,decided_at,supersedes_decision_id,implementation_status,verification_status
+D-001,routing,"Use REBUILD / CONTROLLED_MIGRATION / FULL because live multilingual URLs ads lead persistence CRM and Cloudflare data can be harmed",,"SRC-001|SRC-002|SRC-003|SRC-004",,2026-08-11,,PACK_CREATED,VALIDATED_PENDING
+D-002,develop_deployment,"Apply 0010 and deploy the tested CRM build to develop only","APPROVED_DEVELOP_ONLY","SRC-004|SRC-008",Egor,2026-08-11,,COMPLETE,"MIGRATION_CLEAN|PUBLIC_SMOKE_PASS|PRODUCTION_UNTOUCHED"
+D-003,crm_cost_model,"Keep partner customer-direct price as reference; remove per-deal DPFLAB costs; use general business expenses without attachments","APPROVED_FOR_FEEDBACK","SRC-005|SRC-001",Egor,2026-08-11,,COMPLETE,"128_TESTS|DEVELOP_SCHEMA_VERIFIED"
+D-004,public_claims,"Treat current-site commercial statements as OBSERVED_ONLY until owner evidence is recorded",,"SRC-002|08-claim-ledger.csv",,2026-08-11,,NOT_STARTED,NOT_VERIFIED

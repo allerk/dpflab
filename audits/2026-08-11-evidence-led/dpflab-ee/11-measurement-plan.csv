@@ -1,0 +1,17 @@
+event_or_stage,truth_type,trigger,persisted_where,source_of_truth,owner,qa_status
+session_or_ad_touch,DIAGNOSTIC,"landing with referrer UTM or click identifier","browser attribution payload and submitted lead fields","raw lead attribution fields with consent/lawful-processing boundary",Egor,PARTIAL
+website_lead,PERSISTED_LEAD,"valid public qualification form submission",contact_submissions,"D1 contact_submissions row",Egor,"CODE_TESTED; DEVELOP_REAL_SUBMISSION_NOT_RUN"
+meta_instant_form_lead,PERSISTED_LEAD,"signed Meta webhook and Graph lead retrieval",contact_submissions,"D1 row keyed by external Meta lead ID",Egor,"CALLBACK_VERIFIED; POST_BLOCKED_MISSING_META_APP_SECRET"
+contacted,OPERATIONAL,"operator records first contact",contact_submissions.first_contacted_at,"CRM milestone timestamp",Luka/Danik,"CODE_TESTED; RUNTIME_TASK_NOT_RUN"
+diagnostics,OPERATIONAL,"operator records diagnosis stage and evidence",contact_submissions.diagnostics_at,"CRM milestone plus diagnostic fields",Luka/Danik,"CODE_TESTED; RUNTIME_TASK_NOT_RUN"
+partner_route,OPERATIONAL,"partner removal/install handoff is used",contact_submissions.partner_at,"CRM partner fields and milestone",Luka/Danik,"CODE_TESTED; OWNER_WORKFLOW_PENDING"
+qualified,OPERATIONAL,"service scenario is confirmed",contact_submissions.qualified_at,"CRM milestone timestamp",Luka/Danik,"CODE_TESTED; PROVIDER_FEEDBACK_DISABLED"
+price_confirmed,OPERATIONAL,"customer confirms DPFLAB price",contact_submissions.quote_confirmed_at,"CRM milestone and order amount boundary",Luka/Danik,"CODE_TESTED; RUNTIME_TASK_NOT_RUN"
+booked,OPERATIONAL,"service appointment/acceptance is agreed",contact_submissions.booked_at,"CRM milestone timestamp",Luka/Danik,"CODE_TESTED; PROVIDER_FEEDBACK_DISABLED"
+filter_received,OPERATIONAL,"DPFLAB receives the filter",contact_submissions.received_at,"CRM milestone timestamp",Luka/Danik,"CODE_TESTED; RUNTIME_TASK_NOT_RUN"
+cleaning_started,OPERATIONAL,"cleaning begins",contact_submissions.cleaning_started_at,"CRM milestone timestamp",Luka/Danik,"CODE_TESTED; RUNTIME_TASK_NOT_RUN"
+ready,OPERATIONAL,"filter is ready for return",contact_submissions.ready_at,"CRM milestone timestamp",Luka/Danik,"CODE_TESTED; RUNTIME_TASK_NOT_RUN"
+paid_completed,COMMERCIAL_TRUTH,"job is paid and closed with locked amount",contact_submissions.completed_at|order_amount_cents,"CRM paid milestone reconciled to actual payment",Luka/Danik,"CODE_TESTED; PAYMENT_RECONCILIATION_NOT_DEFINED"
+business_expense,COMMERCIAL_TRUTH,"authorized operator records a general business expense",business_expenses,"D1 business expense ledger and external accounting record",Luka/Danik,"DEVELOP_SCHEMA_VERIFIED; ACCOUNTING_RECONCILIATION_NOT_DEFINED"
+operating_contribution,DERIVED_COMMERCIAL,"paid revenue minus in-period general business expenses",CRM report,"D1 paid jobs and expense ledger within one currency/timezone boundary",Luka/Danik,"CODE_TESTED; REAL_DATA_NOT_RECONCILED"
+meta_or_google_event,DIAGNOSTIC,"eligible CRM milestone is queued and delivered",delivery_outbox,"outbox delivery state plus provider diagnostics",Egor,"ADAPTER_TESTED; PROVIDER_EVENTS_DISABLED"
