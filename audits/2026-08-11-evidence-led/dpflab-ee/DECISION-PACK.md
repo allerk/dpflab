@@ -14,17 +14,17 @@
 - Primary profile: `LOCAL_OPERATIONAL_SERVICE`
 - Markets: `Estonia; current public service scope and partner-facing statements are owner-confirmed`
 - Languages: `ru|et|en`
-- Authorized systems: `dpflab.ee read-only; dev.dpflab.ee; Cloudflare develop Worker/D1/R2; repository; Meta configuration read-only unless separately approved`
-- Mutation boundary: `Code and develop are authorized; production launch, public claims, ad spend, customer-list processing, and provider enablement require an explicit owner decision`
+- Authorized systems: `repository; Cloudflare develop Worker/D1/R2; one approved 2026-08-11 production Worker/D1 release; Meta configuration read-only unless separately approved`
+- Mutation boundary: `Production release ca54958 is complete and frozen; subsequent code/content changes return to develop; public claims, ad spend, customer-list processing, provider enablement, and another production release require an explicit owner decision`
 - Commercial outcome chain: `visit/ad touch -> persisted lead -> contacted -> diagnostics/partner route -> qualified -> price confirmed -> booked -> filter received -> cleaning -> ready -> paid/completed -> business expenses -> operating contribution`
-- Current gate: `G1`
+- Current gate: `G11`
 - Owner: `Egor as delegated technical operator; Luka and Danik remain business/claims/launch owners`
 
 ## Scope
 
 Apply the evidence-led workflow to the existing multilingual DPFLAB service site and its lead-to-CRM path. Preserve current production routes, advertising destinations, lead persistence, Cloudflare data, and rollback ability while identifying defects and deciding what the site may safely promise.
 
-Current exclusions: no production deploy, no advertising spend or campaign mutation, no invented reviews/cases/guarantees/results, no Google activation, no files attached to CRM expenses, and no use of provider lead counts as commercial truth.
+Current exclusions: no further production mutation in this cycle, no advertising spend or campaign mutation, no invented reviews/cases/guarantees/results, no Google activation, no files attached to CRM expenses, and no use of provider lead counts as commercial truth.
 
 ## Source map
 
@@ -32,7 +32,7 @@ Use `01-source-register.csv`. Preserve raw evidence outside this decision pack.
 
 ## Stop condition
 
-The current cycle may implement and test reversible code changes on develop. Production remains blocked until the complete G9 staging matrix, rollback evidence and an explicit G10 production decision exist. Structural URL expansion remains blocked by G1/G4 even though current public facts are approved.
+Production version `e72d063a-3bf6-4f4c-b3c2-3411266def70` is frozen after the explicit 2026-08-11 release decision, D1 backup/migrations and production smoke. The next cycle returns to reversible develop-only work; another production change requires a new G9/G10 decision. Structural URL expansion remains blocked by G1/G4 even though current public facts are approved.
 
 ## Routing policy
 
@@ -43,7 +43,7 @@ The selected Mode, Depth, and Entry point must satisfy `references/routing-contr
 
 | Gate | Status | Blocker | Owner decision |
 | --- | --- | --- | --- |
-| G0 | PASS_WITH_RECORDED_RISK | Production launch and business-claim authority remain with Luka/Danik |  |
+| G0 | PASS_WITH_RECORDED_RISK | The delegated technical operator explicitly authorized this release; direct Luka/Danik approval is not separately attached | APPROVED_PRODUCTION_DEPLOY_BY_OPERATOR |
 | G1 | BLOCKED | No GSC analytics ad-final-URL backlink log call/payment or complete legacy export |  |
 | G2 | BLOCKED | No end-to-end real scenarios; Meta webhook lacks META_APP_SECRET; provider events disabled; privacy requirements unresolved |  |
 | G3 | PASS_WITH_RECORDED_RISK | Claim substantiation and service blueprint are complete and web quality is active; search migration and measurement inputs remain incomplete |  |
@@ -51,9 +51,9 @@ The selected Mode, Depth, and Entry point must satisfy `references/routing-contr
 | G5 | PASS_WITH_RECORDED_RISK | No external case/test files are attached; this does not block the owner-confirmed current claims but limits stronger extensions | APPROVE_CURRENT_SITE_FACTS |
 | G6 | BLOCKED | Page contracts and claim joins exist but ET/EN terminology and privacy/legal translations are not reviewed; G4 route ownership remains unresolved |  |
 | G7 | BLOCKED | No approved G4-G6 inputs for a design handoff |  |
-| G8 | BLOCKED | Develop structured data and accessible form errors are fixed and retested; production still has the defect and valid lead/CRM/provider paths are not fully runtime-tested |  |
-| G9 | BLOCKED | Public and invalid-form develop smoke passes with rollback target; no complete valid-lead authenticated CRM consent-revocation performance or provider drill |  |
-| G10 | BLOCKED | No owner launch decision and G9 is blocked |  |
+| G8 | BLOCKED | Production public routes structured data form validation images and Access boundary passed, but G4/G6/G7 prerequisites and authenticated CRM/provider scenarios remain unverified | DEPLOYED_BY_EXPLICIT_OPERATOR_OVERRIDE |
+| G9 | BLOCKED | Fresh D1 backup rollback Worker additive migrations local valid lead and production public/invalid-form smoke passed, but URL decisions and the complete staging matrix remain unverified | DEPLOYED_BY_EXPLICIT_OPERATOR_OVERRIDE |
+| G10 | BLOCKED | The delegated technical operator explicitly instructed and completed the bounded release while hard G8/G9 prerequisites remained blocked; direct Luka/Danik approval is not separately attached | DEPLOYED_BY_EXPLICIT_OPERATOR_OVERRIDE |
 | G11 | BLOCKED | No reconciled operating baseline or monitoring owner cadence |  |
 
 ## Open uncertainties
@@ -109,10 +109,10 @@ None recorded.
 
 | Check | Signal | Threshold | Cadence | Owner | Rollback | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| M-001 | public_route_status | Any critical route non-200 or wrong locale | pre-launch and daily for 7 days | Egor | Rollback Worker version; preserve D1 | DEVELOP_PASS |
-| M-002 | persisted_website_lead | Every accepted form creates exactly one complete row; invalid/duplicate scenarios match spec | before launch and after changes | Egor | Disable affected campaign destination or revert Worker | BLOCKED |
-| M-003 | admin_access_and_tasks | Unauthorized request denied and authorized operator can complete critical tasks | before launch and after access/config change | Egor | Revert access/Worker config | BLOCKED |
+| M-001 | public_route_status | Any critical route non-200 or wrong locale | daily for 7 days after 2026-08-11 launch | Egor | Rollback Worker to 85eea6aa; preserve D1 | PRODUCTION_PASS |
+| M-002 | persisted_website_lead | Every accepted form creates exactly one complete row; invalid/duplicate scenarios match spec | after launch and after form changes | Egor | Disable affected campaign destination or revert Worker | PASS_WITH_RECORDED_RISK |
+| M-003 | admin_access_and_tasks | Unauthorized request denied and authorized operator can complete critical tasks | after launch and after access/config change | Egor | Revert access/Worker config | PASS_WITH_RECORDED_RISK |
 | M-004 | meta_instant_lead_ingestion | Signed test lead creates one row; duplicate creates none; failure is retryable/visible | before enablement and daily diagnostics | Egor | Unsubscribe webhook or disable integration; retain platform lead export | BLOCKED |
 | M-005 | paid_job_and_expense_reconciliation | No unexplained difference against payment/accounting record beyond owner-set tolerance | weekly | Luka/Danik | Stop using dashboard as financial truth and reconcile source rows | BLOCKED |
 | M-006 | outbox_liveness | No event beyond retry/lease threshold; dead/skipped reasons visible | daily after provider enablement | Egor | Disable provider events while preserving CRM truth | BLOCKED |
-| M-007 | search_and_ad_destinations | No valuable owner/final URL lost and no irrelevant redirect | pre-launch then weekly for 8 weeks | Egor | Rollback routes/redirects and restore prior owners | BLOCKED |
+| M-007 | search_and_ad_destinations | No valuable owner/final URL lost and no irrelevant redirect | weekly for 8 weeks | Egor | Rollback routes/redirects and restore prior owners | PASS_WITH_RECORDED_RISK |

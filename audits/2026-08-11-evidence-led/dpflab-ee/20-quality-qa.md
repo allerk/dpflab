@@ -4,6 +4,8 @@ Target: `19-quality-acceptance.md`
 Develop browser-runtime version: `af41c15a-82a3-4859-8d12-9b9b800732d5`  
 Final synchronized develop version: `e4e2bbcc-f61b-4fd4-b66b-4e4f9ec7ed10`  
 Immediate develop rollback version: `af41c15a-82a3-4859-8d12-9b9b800732d5`
+Production version: `e72d063a-3bf6-4f4c-b3c2-3411266def70`
+Immediate production Worker rollback version: `85eea6aa-178d-48ae-8983-cd5bfa965353`
 
 ## Scope and method
 
@@ -63,10 +65,21 @@ Immediate develop rollback version: `af41c15a-82a3-4859-8d12-9b9b800732d5`
 - `npx drizzle-kit check`: passed.
 - `git diff --check`: clean.
 
+### Production release verification
+
+- A fresh 30,365-byte production D1 export was saved with mode `600` before mutation.
+- Additive migrations `0008` through `0010` applied; the repeated migration check returned no pending migration and all expected CRM tables were present.
+- The released Worker served asset `0.CCw5W3Vm.css` on RU, ET and EN after a targeted six-page cache purge.
+- All six public production routes returned 200 with correct language/canonical metadata; landing JSON-LD parsed correctly.
+- Desktop browser runtime at 1280 px showed no overflow, no broken image and no console warning/error.
+- Unauthenticated admin access redirected to Cloudflare Access. The disabled Meta webhook returned `503` with `no-store` rather than entering public cache.
+- A same-origin invalid production action returned failure `422` and production submissions stayed `22 -> 22`.
+- Exact release/backup/rollback evidence and limitations are recorded in `21-production-release.md`.
+
 ## Remaining limitations and blockers
 
-- Production was intentionally not deployed and still has the invalid JSON-LD defect until G9/G10 production authorization.
+- Production is now fixed on version `e72d063a`; subsequent mutations return to develop and require another explicit release decision.
 - The Google PageSpeed API request returned HTTP 429 `RESOURCE_EXHAUSTED`; no Lighthouse/Core Web Vitals number is claimed. Field thresholds in `19-quality-acceptance.md` remain targets, not measured results.
 - Accepted-then-revoked consent was not exercised against the live Meta provider to avoid creating diagnostic advertising traffic; code behaviour is present but runtime provider revocation remains `NOT_VERIFIED`.
-- A valid lead, duplicate, authenticated CRM list/detail/expense workflow, outbox lease recovery and real Meta webhook remain outside this browser run. G2/G9 stay blocked until those deterministic scenarios are traced.
+- A local valid lead covered the released server action, but a valid production notification, duplicate, authenticated CRM list/detail/expense workflow, outbox lease recovery and real Meta webhook remain outside this production browser run. G2 and G9 remain blocked; the successful bounded release is recorded as an explicit operator override rather than a false gate pass.
 - ET/EN terminology and all privacy text still require the recorded linguistic/legal review before G6 can pass.
