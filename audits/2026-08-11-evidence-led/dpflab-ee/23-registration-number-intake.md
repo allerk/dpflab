@@ -31,6 +31,8 @@ The API token retrieved a Page access token, confirmed accepted Lead Ads terms, 
 | ET | `1395333806136980` | `ACTIVE` | `registration_number` / `Sõiduki registreerimisnumber (näiteks 123 ABC)` |
 | EN | `27487810977557355` | `ACTIVE` | `registration_number` / `Vehicle registration number (for example, 123 ABC)` |
 
+Meta v25 did not expose an Estonian Instant Form locale during creation, so the ET candidate uses `EN_GB` as its provider locale while all supplied custom copy is Estonian. Meta-owned standard labels may therefore remain English; this limitation must be reviewed in the Forms Library before attachment.
+
 A separate read-only scan checked both current ads in `act_1488895229206352`; none references any new form ID. No ad, campaign, budget, publication choice or destination was changed.
 
 ## Local runtime evidence
@@ -42,6 +44,14 @@ A separate read-only scan checked both current ads in `act_1488895229206352`; no
 - Bundled Chromium at 390 × 844 passed RU, ET and EN step flow, localized label/help, empty-field error, focus transfer, error clearing and normalization-on-blur.
 - A valid RU request persisted `registration_number = 123 ABC`, `vehicle = ''` and `privacy_version = 2026-08-11`; all local QA rows were deleted after verification.
 - Visual artifact: `evidence/registration-number-ru.png`.
+
+## Develop runtime evidence
+
+- Commit `153c540` was deployed only to the develop Worker as version `a426e523-262b-4071-81ef-c2dc64d354ec`.
+- Plain `/`, `/et` and `/en` responses expose the localized registration-number field; the develop response retains `X-Robots-Tag: noindex, nofollow, noarchive`.
+- Live bundled Chromium at 390 × 844 passed the RU, ET and EN step flow, required-field message and focus, correction-state clearing and normalization to `123 ABC`; the live run did not submit a lead.
+- A read-only remote D1 count remained `8`, confirming that the negative/live non-submit checks did not create a row.
+- Production was not deployed or otherwise mutated by this decision; a final public read confirmed it still exposes the legacy field rather than this develop change.
 
 ## Future lookup boundary
 
@@ -57,6 +67,6 @@ Official capability source: https://transpordiamet.ee/andmevahetusplatvorm
 
 ## Remaining gates
 
-- Website production remains frozen and requires a new G9/G10 decision after develop runtime verification.
+- Website production remains frozen and requires a new G9/G10 decision before this develop artifact can be released.
 - Meta forms remain review candidates until Luka/Danik approve wording and an operator explicitly attaches chosen IDs to ads.
 - ET/EN terminology and privacy text remain `PENDING_REVIEW`; technical parity is verified, linguistic/legal approval is not inferred.
