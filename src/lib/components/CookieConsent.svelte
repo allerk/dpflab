@@ -42,7 +42,7 @@
 
 {#if visible}
   <aside
-    class="fixed z-[100] left-5 bottom-5 w-[min(430px,calc(100vw-40px))] bg-bg-elev border border-border rounded-card shadow-[0_18px_60px_rgba(0,0,0,.55)] p-5 max-md:bottom-[76px] max-xs:left-3 max-xs:w-[calc(100vw-24px)]"
+    class="fixed z-[100] right-5 bottom-5 w-[min(430px,calc(100vw-40px))] bg-bg-elev border border-border rounded-card shadow-[0_18px_60px_rgba(0,0,0,.55)] p-5 max-md:bottom-[76px] max-xs:right-3 max-xs:w-[calc(100vw-24px)]"
     aria-labelledby="cookie-consent-title"
   >
     <div class="h-1 w-16 bg-accent rounded-full mb-4"></div>

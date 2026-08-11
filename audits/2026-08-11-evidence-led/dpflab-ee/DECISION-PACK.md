@@ -50,7 +50,7 @@ The selected Mode, Depth, and Entry point must satisfy `references/routing-contr
 | G4 | BLOCKED | Audience rows are hypotheses; current search/ad evidence and owner route decisions are missing |  |
 | G5 | PASS_WITH_RECORDED_RISK | No external case/test files are attached; this does not block the owner-confirmed current claims but limits stronger extensions | APPROVE_CURRENT_SITE_FACTS |
 | G6 | BLOCKED | Page contracts and claim joins exist but ET/EN terminology and privacy/legal translations are not reviewed; G4 route ownership remains unresolved |  |
-| G7 | BLOCKED | No approved G4-G6 inputs for a design handoff |  |
+| G7 | BLOCKED | A bounded hero candidate exists on develop, but G4/G6 inputs remain unapproved and the fresh 390 px runtime is not verified | APPROVED_DEVELOP_ONLY |
 | G8 | BLOCKED | Production public routes structured data form validation images and Access boundary passed, but G4/G6/G7 prerequisites and authenticated CRM/provider scenarios remain unverified | DEPLOYED_BY_EXPLICIT_OPERATOR_OVERRIDE |
 | G9 | BLOCKED | Fresh D1 backup rollback Worker additive migrations local valid lead and production public/invalid-form smoke passed, but URL decisions and the complete staging matrix remain unverified | DEPLOYED_BY_EXPLICIT_OPERATOR_OVERRIDE |
 | G10 | BLOCKED | The delegated technical operator explicitly instructed and completed the bounded release while hard G8/G9 prerequisites remained blocked; direct Luka/Danik approval is not separately attached | DEPLOYED_BY_EXPLICIT_OPERATOR_OVERRIDE |
