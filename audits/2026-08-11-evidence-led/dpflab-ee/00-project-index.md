@@ -8,8 +8,8 @@
 - Primary profile: `LOCAL_OPERATIONAL_SERVICE`
 - Markets: `Estonia; current public service scope and partner-facing statements are owner-confirmed`
 - Languages: `ru|et|en`
-- Authorized systems: `repository; Cloudflare develop Worker/D1/R2; one approved 2026-08-11 production Worker/D1 release; Meta configuration plus new RU/ET/EN Instant Form drafts`
-- Mutation boundary: `Production release ca54958 is complete and frozen; registration-number changes return to develop; Meta authority is limited to creating reviewable v2 drafts without publishing, attaching them to ads or changing spend; provider enablement and another production release require an explicit owner decision`
+- Authorized systems: `repository; Cloudflare develop Worker/D1/R2; two explicitly approved 2026-08-11 production Worker releases; Meta configuration plus new RU/ET/EN Instant Form review candidates`
+- Mutation boundary: `Production registration-number release 2f98b126 is complete and frozen; Meta authority remains limited to reviewable v2 forms without attaching them to ads or changing spend; provider enablement and another production release require a new explicit owner decision`
 - Commercial outcome chain: `visit/ad touch -> persisted lead -> contacted -> diagnostics/partner route -> qualified -> price confirmed -> booked -> filter received -> cleaning -> ready -> paid/completed -> business expenses -> operating contribution`
 - Current gate: `G11`
 - Owner: `Egor as delegated technical operator; Luka and Danik remain business/claims/launch owners`
@@ -18,7 +18,7 @@
 
 Apply the evidence-led workflow to the existing multilingual DPFLAB service site and its lead-to-CRM path. Preserve current production routes, advertising destinations, lead persistence, Cloudflare data, and rollback ability while identifying defects and deciding what the site may safely promise.
 
-Current exclusions: no further production mutation in this cycle, no Meta form publication/ad attachment, no advertising spend or campaign mutation, no invented reviews/cases/guarantees/results, no Google activation, no files attached to CRM expenses, and no use of provider lead counts as commercial truth.
+Current exclusions: no further production mutation after release 2f98b126, no Meta form ad attachment, no advertising spend or campaign mutation, no invented reviews/cases/guarantees/results, no Google activation, no files attached to CRM expenses, and no use of provider lead counts as commercial truth.
 
 ## Source map
 
@@ -26,7 +26,7 @@ Use `01-source-register.csv`. Preserve raw evidence outside this decision pack.
 
 ## Stop condition
 
-Production version `e72d063a-3bf6-4f4c-b3c2-3411266def70` is frozen after the explicit 2026-08-11 release decision, D1 backup/migrations and production smoke. The next cycle returns to reversible develop-only work; another production change requires a new G9/G10 decision. Structural URL expansion remains blocked by G1/G4 even though current public facts are approved.
+Production version `2f98b126-55cd-408c-af80-1633953528aa` is frozen after the explicit registration-number release decision, rollback capture and production smoke. The next cycle returns to reversible develop-only work; another production change requires a new G9/G10 decision. Structural URL expansion remains blocked by G1/G4 even though current public facts are approved.
 
 ## Routing policy
 

@@ -2,7 +2,7 @@
 
 Date: 2026-08-11  
 Decision: D-009  
-Scope: website, D1/CRM, Meta Lead Ads candidates and privacy disclosure; develop-only website deployment; no production or ad mutation.
+Scope: website, D1/CRM, Meta Lead Ads candidates and privacy disclosure; verified on develop and explicitly released to production; no ad mutation.
 
 ## Approved qualification contract
 
@@ -51,7 +51,11 @@ A separate read-only scan checked both current ads in `act_1488895229206352`; no
 - Plain `/`, `/et` and `/en` responses expose the localized registration-number field; the develop response retains `X-Robots-Tag: noindex, nofollow, noarchive`.
 - Live bundled Chromium at 390 × 844 passed the RU, ET and EN step flow, required-field message and focus, correction-state clearing and normalization to `123 ABC`; the live run did not submit a lead.
 - A read-only remote D1 count remained `8`, confirming that the negative/live non-submit checks did not create a row.
-- Production was not deployed or otherwise mutated by this decision; a final public read confirmed it still exposes the legacy field rather than this develop change.
+- During the original D-009 develop verification, production was not deployed and still exposed the legacy field. The later production mutation is a separate explicit D-010 decision recorded below.
+
+## Production release
+
+After a separate explicit production instruction, the same tested intake was released as Worker version `2f98b126-55cd-408c-af80-1633953528aa`. Full release evidence and rollback details are recorded in `24-registration-number-production-release.md`.
 
 ## Future lookup boundary
 
@@ -67,6 +71,6 @@ Official capability source: https://transpordiamet.ee/andmevahetusplatvorm
 
 ## Remaining gates
 
-- Website production remains frozen and requires a new G9/G10 decision before this develop artifact can be released.
+- Website production is frozen on version `2f98b126-55cd-408c-af80-1633953528aa`; another mutation requires a new G9/G10 decision.
 - Meta forms remain review candidates until Luka/Danik approve wording and an operator explicitly attaches chosen IDs to ads.
 - ET/EN terminology and privacy text remain `PENDING_REVIEW`; technical parity is verified, linguistic/legal approval is not inferred.
