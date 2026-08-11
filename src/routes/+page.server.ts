@@ -17,8 +17,12 @@ import type { SiteImagesMap } from '$lib/db/repositories/site-images';
 import { scheduleContactSubmissionNotification } from '$lib/server/notifications/contact-submission';
 import { scheduleMetaLeadEvent } from '$lib/server/analytics/meta-capi';
 import { enqueueCrmStageEvents, scheduleCrmOutbox } from '$lib/server/crm/outbox';
+import {
+  isPlausibleVehicleRegistrationNumber,
+  normalizeVehicleRegistrationNumber
+} from '$lib/vehicle-registration';
 
-const PRIVACY_VERSION = '2026-08-10';
+const PRIVACY_VERSION = '2026-08-11';
 const CLIENT_TYPES = new Set(['private', 'workshop', 'fleet']);
 const SERVICE_TYPES = new Set(['dpf', 'fap', 'catalyst', 'diagnosis', 'other']);
 const FILTER_STATES = new Set(['removed', 'workshop', 'installed', 'unsure']);
@@ -126,7 +130,9 @@ export const actions: Actions = {
     const clientType = textValue(data, 'clientType', 30);
     const serviceType = textValue(data, 'serviceType', 30);
     const filterState = textValue(data, 'filterState', 30);
-    const vehicle = textValue(data, 'vehicle', 240);
+    const registrationNumber = normalizeVehicleRegistrationNumber(
+      textValue(data, 'registrationNumber', 40)
+    );
     const urgency = textValue(data, 'urgency', 30);
     const preferredContact = textValue(data, 'preferredContact', 30);
     const symptoms = data
@@ -173,7 +179,9 @@ export const actions: Actions = {
     if (!CLIENT_TYPES.has(clientType)) errors.clientType = 'required';
     if (!SERVICE_TYPES.has(serviceType)) errors.serviceType = 'required';
     if (!FILTER_STATES.has(filterState)) errors.filterState = 'required';
-    if (!vehicle) errors.vehicle = 'required';
+    if (!isPlausibleVehicleRegistrationNumber(registrationNumber)) {
+      errors.registrationNumber = 'required';
+    }
     if (!URGENCY_OPTIONS.has(urgency)) errors.urgency = 'required';
     if (!CONTACT_OPTIONS.has(preferredContact)) errors.preferredContact = 'required';
     if (!privacyAccepted) errors.privacyAccepted = 'required';
@@ -189,7 +197,7 @@ export const actions: Actions = {
           clientType,
           serviceType,
           filterState,
-          vehicle,
+          registrationNumber,
           symptoms,
           urgency,
           preferredContact,
@@ -206,7 +214,7 @@ export const actions: Actions = {
       clientType,
       serviceType,
       filterState,
-      vehicle,
+      registrationNumber,
       symptoms: JSON.stringify(symptoms),
       urgency,
       preferredContact,

@@ -4,6 +4,7 @@
   import Icon from '$lib/Icon.svelte';
   import MapAppSelector from '$lib/components/MapAppSelector.svelte';
   import type { ContactsRow } from '$lib/db/repositories/contacts';
+  import { normalizeVehicleRegistrationNumber } from '$lib/vehicle-registration';
   import {
     consentEventName,
     getGoogleBrowserIdentifiers,
@@ -84,9 +85,10 @@
     contact_valid_phone,
     contact_valid_privacy,
     contact_valid_required,
-    contact_valid_vehicle,
-    contact_vehicle_label,
-    contact_vehicle_placeholder
+    contact_valid_registration,
+    contact_registration_help,
+    contact_registration_label,
+    contact_registration_placeholder
   } from '$lib/paraglide/messages';
 
   type FormValues = {
@@ -97,7 +99,7 @@
     clientType?: string;
     serviceType?: string;
     filterState?: string;
-    vehicle?: string;
+    registrationNumber?: string;
     symptoms?: string[];
     urgency?: string;
     preferredContact?: string;
@@ -116,7 +118,7 @@
     | 'serviceType'
     | 'filterState'
     | 'clientType'
-    | 'vehicle'
+    | 'registrationNumber'
     | 'urgency'
     | 'preferredContact'
     | 'name'
@@ -195,7 +197,7 @@
   let clientType = '';
   let serviceType = '';
   let filterState = '';
-  let vehicle = '';
+  let registrationNumber = '';
   let symptoms: string[] = [];
   let urgency = '';
   let preferredContact = '';
@@ -235,7 +237,7 @@
       clientType = form.values.clientType ?? clientType;
       serviceType = form.values.serviceType ?? serviceType;
       filterState = form.values.filterState ?? filterState;
-      vehicle = form.values.vehicle ?? vehicle;
+      registrationNumber = form.values.registrationNumber ?? registrationNumber;
       symptoms = form.values.symptoms ?? symptoms;
       urgency = form.values.urgency ?? urgency;
       preferredContact = form.values.preferredContact ?? preferredContact;
@@ -244,7 +246,7 @@
     if (form.errors) {
       clientErrors = form.errors;
       if (form.errors.serviceType || form.errors.filterState) step = 1;
-      else if (form.errors.clientType || form.errors.vehicle || form.errors.urgency) step = 2;
+      else if (form.errors.clientType || form.errors.registrationNumber || form.errors.urgency) step = 2;
       else step = 3;
     }
     if (form.success) submitted = true;
@@ -361,14 +363,20 @@
     if (field === 'name') return contact_valid_name();
     if (field === 'phone') return contact_valid_phone();
     if (field === 'email') return contact_valid_email();
-    if (field === 'vehicle') return contact_valid_vehicle();
+    if (field === 'registrationNumber') return contact_valid_registration();
     if (field === 'privacyAccepted') return contact_valid_privacy();
     return contact_valid_required();
   }
 
+  function clearFieldError(field: ValidatedField) {
+    if (!clientErrors[field]) return;
+    delete clientErrors[field];
+    clientErrors = { ...clientErrors };
+  }
+
   const stepFields: Record<number, ValidatedField[]> = {
     1: ['serviceType', 'filterState'],
-    2: ['clientType', 'vehicle', 'urgency'],
+    2: ['clientType', 'registrationNumber', 'urgency'],
     3: ['preferredContact', 'name', 'phone', 'email', 'privacyAccepted']
   };
 
@@ -376,7 +384,7 @@
     serviceType: '[name="serviceType"]',
     filterState: '[name="filterState"]',
     clientType: '[name="clientType"]',
-    vehicle: '#vehicle',
+    registrationNumber: '#registration-number',
     urgency: '[name="urgency"]',
     preferredContact: '[name="preferredContact"]',
     name: '#contact-name',
@@ -407,7 +415,7 @@
 
     if (currentStep === 2) {
       if (!clientType) errors.clientType = 'required';
-      if (!vehicle.trim()) errors.vehicle = 'required';
+      if (!registrationNumber.trim()) errors.registrationNumber = 'required';
       if (!urgency) errors.urgency = 'required';
     }
 
@@ -424,7 +432,7 @@
     for (const key of Object.keys(clientErrors)) {
       if (!errors[key] && (
         (currentStep === 1 && ['serviceType', 'filterState'].includes(key)) ||
-        (currentStep === 2 && ['clientType', 'vehicle', 'urgency'].includes(key)) ||
+        (currentStep === 2 && ['clientType', 'registrationNumber', 'urgency'].includes(key)) ||
         (currentStep === 3 && ['name', 'phone', 'email', 'preferredContact', 'privacyAccepted'].includes(key))
       )) {
         delete clientErrors[key];
@@ -618,20 +626,25 @@
               </fieldset>
 
               <div class="mb-5">
-                <label for="vehicle" class="block text-[13px] font-semibold mb-2">{contact_vehicle_label()}</label>
+                <label for="registration-number" class="block text-[13px] font-semibold mb-2">{contact_registration_label()}</label>
                 <input
-                  id="vehicle"
-                  name="vehicle"
+                  id="registration-number"
+                  name="registrationNumber"
                   type="text"
-                  bind:value={vehicle}
-                  placeholder={contact_vehicle_placeholder()}
-                  maxlength="240"
+                  bind:value={registrationNumber}
+                  placeholder={contact_registration_placeholder()}
+                  maxlength="40"
+                  autocapitalize="characters"
+                  spellcheck="false"
+                  on:input={() => clearFieldError('registrationNumber')}
+                  on:blur={() => registrationNumber = normalizeVehicleRegistrationNumber(registrationNumber)}
                   required
-                  aria-invalid={Boolean(clientErrors.vehicle)}
-                  aria-describedby={clientErrors.vehicle ? errorId('vehicle') : undefined}
-                  class="{inputBase} {clientErrors.vehicle ? inputError : ''}"
+                  aria-invalid={Boolean(clientErrors.registrationNumber)}
+                  aria-describedby={`${clientErrors.registrationNumber ? errorId('registrationNumber') : ''} contact-registration-help`.trim()}
+                  class="{inputBase} {clientErrors.registrationNumber ? inputError : ''}"
                 />
-                {#if clientErrors.vehicle}<span id={errorId('vehicle')} role="alert" class="block mt-1.5 text-[12px] text-danger">{errorMessage('vehicle')}</span>{/if}
+                <p id="contact-registration-help" class="mt-2 text-[12px] leading-relaxed text-fg-muted">{contact_registration_help()}</p>
+                {#if clientErrors.registrationNumber}<span id={errorId('registrationNumber')} role="alert" class="block mt-1.5 text-[12px] text-danger">{errorMessage('registrationNumber')}</span>{/if}
               </div>
 
               <fieldset class="mb-5">

@@ -13,7 +13,7 @@ const submission = (overrides: Partial<SubmissionInput>): SubmissionInput => ({
   clientType: 'private',
   serviceType: 'dpf',
   filterState: 'removed',
-  vehicle: 'VW Passat 2.0 TDI',
+  registrationNumber: '123 ABC',
   urgency: 'days_1_3',
   preferredContact: 'phone',
   privacyVersion: '2026-07-23',
@@ -40,7 +40,14 @@ describe('createContactSubmission', () => {
     const rows = await db.select().from(contactSubmissions);
     expect(id).toBe(1);
     expect(rows).toHaveLength(1);
-    expect(rows[0]).toMatchObject({ name: 'Alice', phone: '+372 5000 0000', email: 'alice@example.com', comment: 'Hello', locale: 'ru' });
+    expect(rows[0]).toMatchObject({
+      name: 'Alice',
+      phone: '+372 5000 0000',
+      email: 'alice@example.com',
+      comment: 'Hello',
+      registrationNumber: '123 ABC',
+      locale: 'ru'
+    });
     expect(rows[0].createdAt).toBeInstanceOf(Date);
   });
 
@@ -57,5 +64,12 @@ describe('createContactSubmission', () => {
 
     const rows = await db.select().from(contactSubmissions);
     expect(rows).toHaveLength(2);
+  });
+
+  it('normalizes the vehicle registration number for CRM search and lookup', async () => {
+    await createContactSubmission(db, submission({ registrationNumber: '  123   abc  ' }));
+
+    const rows = await db.select().from(contactSubmissions);
+    expect(rows[0].registrationNumber).toBe('123 ABC');
   });
 });

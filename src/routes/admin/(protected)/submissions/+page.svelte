@@ -77,6 +77,7 @@
       row.name,
       row.phone,
       row.email,
+      row.registrationNumber,
       row.vehicle,
       row.source,
       row.utmCampaign,
@@ -292,7 +293,8 @@
               </td>
               <td class="max-w-[260px] px-4 py-3 align-top">
                 <div>{serviceLabels[row.serviceType] ?? row.serviceType ?? 'Нужно уточнить'}</div>
-                <div class="mt-0.5 truncate text-xs text-fg-muted" title={row.vehicle}>{row.vehicle || 'Автомобиль не указан'}</div>
+                <div class="mt-0.5 truncate font-mono text-xs text-accent" title={row.registrationNumber}>{row.registrationNumber || 'Номер не указан'}</div>
+                {#if row.vehicle}<div class="mt-0.5 truncate text-[10px] text-fg-muted" title={row.vehicle}>{row.vehicle}</div>{/if}
               </td>
               <td class="px-4 py-3 align-top"><span class="inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold {statusClasses[row.status] ?? statusClasses.new}">{statusLabels[row.status] ?? row.status}</span></td>
               <td class="max-w-[250px] px-4 py-3 align-top">

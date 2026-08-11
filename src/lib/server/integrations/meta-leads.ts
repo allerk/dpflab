@@ -102,6 +102,7 @@ export type NormalizedMetaLead = {
   filterState?: string;
   clientType?: string;
   vehicle?: string;
+  registrationNumber?: string;
   urgency?: string;
   standardFields: Record<string, string[]>;
   customFields: Record<string, string[]>;
@@ -380,6 +381,9 @@ export function normalizeMetaLead(
       ? { clientType: firstValue(customFields, 'client_type') }
       : {}),
     ...(firstValue(customFields, 'vehicle') ? { vehicle: firstValue(customFields, 'vehicle') } : {}),
+    ...(firstValue(customFields, 'registration_number')
+      ? { registrationNumber: firstValue(customFields, 'registration_number') }
+      : {}),
     ...(firstValue(customFields, 'urgency') ? { urgency: firstValue(customFields, 'urgency') } : {}),
     standardFields,
     customFields

@@ -1,6 +1,7 @@
 import { and, desc, eq, gte, isNull, lte, ne, or } from 'drizzle-orm';
 import type { Db } from '../types';
 import { contactSubmissions, leadActivities } from '../schema';
+import { normalizeVehicleRegistrationNumber } from '../../vehicle-registration';
 
 export const LEAD_ORIGINS = ['site', 'meta_instant', 'whatsapp', 'manual'] as const;
 export type LeadOrigin = (typeof LEAD_ORIGINS)[number];
@@ -32,7 +33,8 @@ export type SubmissionInput = {
   clientType: string;
   serviceType: string;
   filterState: string;
-  vehicle: string;
+  vehicle?: string;
+  registrationNumber: string;
   symptoms?: string;
   urgency: string;
   preferredContact: string;
@@ -279,7 +281,7 @@ export async function createCrmLead(
       status: input.status ?? 'new',
       assignedTo: input.assignedTo ?? '',
       orderAmountCents: nonNegativeInteger(input.orderAmountCents),
-      registrationNumber: input.registrationNumber?.trim() ?? '',
+      registrationNumber: normalizeVehicleRegistrationNumber(input.registrationNumber ?? ''),
       partNumber: input.partNumber?.trim() ?? '',
       diagnosticCode: input.diagnosticCode?.trim() ?? '',
       pressureBeforeMbar: input.pressureBeforeMbar == null ? null : nonNegativeInteger(input.pressureBeforeMbar),
@@ -558,7 +560,7 @@ export async function updateLeadOperations(
     serviceType: input.serviceType.trim(),
     filterState: input.filterState.trim(),
     vehicle: input.vehicle.trim(),
-    registrationNumber: input.registrationNumber.trim(),
+    registrationNumber: normalizeVehicleRegistrationNumber(input.registrationNumber),
     partNumber: input.partNumber.trim(),
     diagnosticCode: input.diagnosticCode.trim(),
     pressureBeforeMbar: input.pressureBeforeMbar == null ? null : nonNegativeInteger(input.pressureBeforeMbar),

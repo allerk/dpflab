@@ -8,6 +8,10 @@ import {
   type LeadOrigin
 } from '$lib/db/repositories/contact-submissions';
 import { requireAdmin } from '$lib/server/admin/require-admin';
+import {
+  isPlausibleVehicleRegistrationNumber,
+  normalizeVehicleRegistrationNumber
+} from '$lib/vehicle-registration';
 
 const MANUAL_ORIGINS = new Set<LeadOrigin>(['manual', 'whatsapp']);
 const SERVICE_TYPES = new Set(['dpf', 'fap', 'catalyst', 'diagnosis', 'other']);
@@ -28,7 +32,9 @@ export const actions: Actions = {
     const email = value(data, 'email', 160);
     const source = value(data, 'source', 120);
     const vehicle = value(data, 'vehicle', 240);
-    const registrationNumber = value(data, 'registration_number', 40);
+    const registrationNumber = normalizeVehicleRegistrationNumber(
+      value(data, 'registration_number', 40)
+    );
     const serviceType = value(data, 'service_type', 30);
     const filterState = value(data, 'filter_state', 30);
     const clientType = value(data, 'client_type', 30);
@@ -59,6 +65,9 @@ export const actions: Actions = {
     if (!SERVICE_TYPES.has(serviceType)) errors.serviceType = 'Выберите услугу';
     if (!FILTER_STATES.has(filterState)) errors.filterState = 'Выберите, где находится фильтр';
     if (!CLIENT_TYPES.has(clientType)) errors.clientType = 'Некорректный тип клиента';
+    if (!isPlausibleVehicleRegistrationNumber(registrationNumber)) {
+      errors.registrationNumber = 'Укажите номер автомобиля';
+    }
     if (Object.keys(errors).length) return fail(422, { errors, values });
 
     const duplicates = await findPotentialDuplicateSubmissions(db, { phone, email, limit: 5 });

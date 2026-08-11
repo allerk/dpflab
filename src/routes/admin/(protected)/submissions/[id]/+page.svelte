@@ -68,7 +68,7 @@
       }
       if (activity.activityType === 'financials_updated') return 'Старая финансовая запись сохранена';
       if (activity.activityType === 'revenue_updated') return 'Цена услуги DPFLAB сохранена';
-      if (activity.activityType === 'operations_updated') return 'Маршрут, автомобиль и данные партнёра сохранены';
+      if (activity.activityType === 'operations_updated') return 'Маршрут, госномер и данные партнёра сохранены';
       return activity.toValue || '';
     } catch { return activity.toValue || ''; }
   }
@@ -95,6 +95,7 @@
         {#if data.row.phone}<a class="hover:text-accent" href="tel:{data.row.phone}">{data.row.phone}</a>{/if}
         {#if data.row.phone}<a class="text-accent hover:underline" target="_blank" rel="noreferrer" href="https://wa.me/{data.row.phone.replace(/\D/g, '')}">Открыть WhatsApp</a>{/if}
         {#if data.row.email}<a class="text-fg-muted hover:text-accent" href="mailto:{data.row.email}">{data.row.email}</a>{/if}
+        {#if data.row.registrationNumber}<span class="rounded border border-accent/40 bg-accent/10 px-2 py-0.5 font-mono text-xs text-accent">{data.row.registrationNumber}</span>{/if}
       </div>
     </div>
     <div class="text-right max-sm:text-left">
@@ -152,8 +153,8 @@
         <form method="POST" action="?/operations" class="grid grid-cols-2 gap-4 p-5 max-sm:grid-cols-1">
           <div><label for="service-type" class="mb-1 block text-xs text-fg-muted">Услуга</label><select id="service-type" name="service_type" class={inputClass} value={data.row.serviceType}><option value="">Не заполнено</option><option value="dpf">Очистка DPF</option><option value="fap">Очистка FAP</option><option value="catalyst">Катализатор / DOC / SCR</option><option value="diagnosis">Диагностика</option><option value="other">Нужно уточнить</option></select></div>
           <div><label for="filter-state" class="mb-1 block text-xs text-fg-muted">Маршрут</label><select id="filter-state" name="filter_state" class={inputClass} value={data.row.filterState}><option value="installed">На автомобиле — партнёр снимает / ставит</option><option value="removed">Уже снят — напрямую в DPFLAB</option><option value="workshop">В другом сервисе — забор / возврат</option><option value="unsure">Неясно — сначала диагностика</option><option value="">Не заполнено</option></select></div>
-          <div class="col-span-2 max-sm:col-span-1"><label for="vehicle" class="mb-1 block text-xs text-fg-muted">Автомобиль / двигатель</label><input id="vehicle" name="vehicle" maxlength="240" value={data.row.vehicle} class={inputClass} /></div>
-          <div><label for="registration-number" class="mb-1 block text-xs text-fg-muted">Госномер</label><input id="registration-number" name="registration_number" maxlength="40" value={data.row.registrationNumber} class={inputClass} /></div>
+          <div><label for="registration-number" class="mb-1 block text-xs text-fg-muted">Госномер автомобиля</label><input id="registration-number" name="registration_number" maxlength="40" autocapitalize="characters" spellcheck="false" value={data.row.registrationNumber} placeholder="123 ABC" class={inputClass} /><p class="mt-1 text-[10px] leading-relaxed text-fg-muted">Основной ключ для идентификации машины и проверки фильтра.</p></div>
+          <div><label for="vehicle" class="mb-1 block text-xs text-fg-muted">Модель / двигатель, если уже известны</label><input id="vehicle" name="vehicle" maxlength="240" value={data.row.vehicle} class={inputClass} /></div>
           <div><label for="part-number" class="mb-1 block text-xs text-fg-muted">Номер детали</label><input id="part-number" name="part_number" maxlength="120" value={data.row.partNumber} class={inputClass} /></div>
           <div><label for="diagnostic-code" class="mb-1 block text-xs text-fg-muted">Ошибки диагностики</label><input id="diagnostic-code" name="diagnostic_code" maxlength="240" value={data.row.diagnosticCode} placeholder="P2002, P2463…" class={inputClass} /></div>
           <div><label for="pickup-address" class="mb-1 block text-xs text-fg-muted">Адрес забора / возврата</label><input id="pickup-address" name="pickup_address" maxlength="500" value={data.row.pickupAddress} class={inputClass} /></div>

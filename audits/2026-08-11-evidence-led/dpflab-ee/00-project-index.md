@@ -8,8 +8,8 @@
 - Primary profile: `LOCAL_OPERATIONAL_SERVICE`
 - Markets: `Estonia; current public service scope and partner-facing statements are owner-confirmed`
 - Languages: `ru|et|en`
-- Authorized systems: `repository; Cloudflare develop Worker/D1/R2; one approved 2026-08-11 production Worker/D1 release; Meta configuration read-only unless separately approved`
-- Mutation boundary: `Production release ca54958 is complete and frozen; subsequent code/content changes return to develop; public claims, ad spend, customer-list processing, provider enablement, and another production release require an explicit owner decision`
+- Authorized systems: `repository; Cloudflare develop Worker/D1/R2; one approved 2026-08-11 production Worker/D1 release; Meta configuration plus new RU/ET/EN Instant Form drafts`
+- Mutation boundary: `Production release ca54958 is complete and frozen; registration-number changes return to develop; Meta authority is limited to creating reviewable v2 drafts without publishing, attaching them to ads or changing spend; provider enablement and another production release require an explicit owner decision`
 - Commercial outcome chain: `visit/ad touch -> persisted lead -> contacted -> diagnostics/partner route -> qualified -> price confirmed -> booked -> filter received -> cleaning -> ready -> paid/completed -> business expenses -> operating contribution`
 - Current gate: `G11`
 - Owner: `Egor as delegated technical operator; Luka and Danik remain business/claims/launch owners`
@@ -18,7 +18,7 @@
 
 Apply the evidence-led workflow to the existing multilingual DPFLAB service site and its lead-to-CRM path. Preserve current production routes, advertising destinations, lead persistence, Cloudflare data, and rollback ability while identifying defects and deciding what the site may safely promise.
 
-Current exclusions: no further production mutation in this cycle, no advertising spend or campaign mutation, no invented reviews/cases/guarantees/results, no Google activation, no files attached to CRM expenses, and no use of provider lead counts as commercial truth.
+Current exclusions: no further production mutation in this cycle, no Meta form publication/ad attachment, no advertising spend or campaign mutation, no invented reviews/cases/guarantees/results, no Google activation, no files attached to CRM expenses, and no use of provider lead counts as commercial truth.
 
 ## Source map
 

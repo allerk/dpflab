@@ -53,7 +53,7 @@ const graphLead = {
     { name: 'service_type', values: ['dpf'] },
     { name: 'filter_state', values: ['removed'] },
     { name: 'client_type', values: ['workshop'] },
-    { name: 'vehicle', values: ['Volvo FH'] },
+    { name: 'registration_number', values: ['123 abc'] },
     { name: 'urgency', values: ['today'] },
     { name: 'custom-question', values: ['Answer'] },
     { name: '__proto__', values: ['unsafe'] }
@@ -149,7 +149,7 @@ describe('Meta Lead Ads integration', () => {
       serviceType: 'dpf',
       filterState: 'removed',
       clientType: 'workshop',
-      vehicle: 'Volvo FH',
+      registrationNumber: '123 abc',
       urgency: 'today',
       createdAt: '2026-07-28T10:00:00.000Z',
       receivedAt: '2026-07-28T10:05:00.000Z'

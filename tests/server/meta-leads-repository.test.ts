@@ -24,6 +24,7 @@ describe('Meta lead repository mapping', () => {
       serviceType: 'DPF puhastus',
       filterState: 'Juba eemaldatud',
       clientType: 'Auto omanik',
+      registrationNumber: '123 abc',
       urgency: '1–3 päeva jooksul',
       standardFields: {},
       customFields: {}
@@ -38,6 +39,7 @@ describe('Meta lead repository mapping', () => {
         serviceType: 'dpf',
         filterState: 'removed',
         clientType: 'private',
+        registrationNumber: '123 abc',
         urgency: 'days_1_3'
       })
     );

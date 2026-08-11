@@ -39,12 +39,14 @@ Add these non-secret Worker variables to each deployed environment:
 ```json
 {
   "META_LEADS_PAGE_ID": "1205337539326627",
-  "META_LEADS_FORM_LOCALES": "{\"1514307796630470\":\"ru\",\"1293909486000385\":\"et\",\"1570981471069414\":\"en\"}",
+  "META_LEADS_FORM_LOCALES": "{\"1514307796630470\":\"ru\",\"27980848328265828\":\"ru\",\"1293909486000385\":\"et\",\"1395333806136980\":\"et\",\"1570981471069414\":\"en\",\"27487810977557355\":\"en\"}",
   "META_GRAPH_API_VERSION": "v25.0"
 }
 ```
 
 `META_LEADS_FORM_LOCALES` is optional, but without it a new Instant Form lead cannot reliably derive its language from Graph lead fields alone. Update the map whenever a form is duplicated or replaced.
+
+The 2026-08-11 registration-number candidates are `27980848328265828` (RU), `1395333806136980` (ET) and `27487810977557355` (EN). Meta reports API-created forms as `ACTIVE` in the Forms Library; the `[DRAFT]` name is the review convention. They remain candidates until an owner explicitly attaches them to ads. Keep the earlier IDs in the locale map while old ads or organic form links may still generate leads.
 
 The callback path must remain public at the Cloudflare Access layer. Protect `/admin`, not `/api/webhooks/meta-leads`. The application also bypasses edge caching for every `/api/webhooks/` GET so the verification URL and token are never cached.
 

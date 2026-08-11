@@ -92,7 +92,14 @@ const supportedLocale = (locale: string | undefined): 'ru' | 'et' | 'en' | undef
 };
 
 function safeMetaNote(lead: NormalizedMetaLead): string {
-  const known = new Set(['service_type', 'filter_state', 'client_type', 'vehicle', 'urgency']);
+  const known = new Set([
+    'service_type',
+    'filter_state',
+    'client_type',
+    'vehicle',
+    'registration_number',
+    'urgency'
+  ]);
   const extras = Object.entries(lead.customFields)
     .filter(([key]) => !known.has(key))
     .flatMap(([key, values]) => values.slice(0, 3).map((item) => `${key}: ${item}`));
@@ -132,6 +139,7 @@ export async function ingestMetaLead(
     filterState: filter?.value ?? '',
     clientType: client?.value ?? '',
     vehicle: lead.vehicle ?? '',
+    registrationNumber: lead.registrationNumber ?? '',
     urgency: urgency?.value ?? '',
     preferredContact: lead.phone ? 'phone' : lead.email ? 'email' : '',
     utmSource: 'meta',

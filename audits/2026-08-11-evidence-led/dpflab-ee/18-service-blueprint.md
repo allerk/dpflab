@@ -13,8 +13,8 @@ Status: `COMPLETE` for the current website/CRM design boundary. This is a heuris
 
 | Layer | Sequence |
 | --- | --- |
-| Customer | Selects vehicle/client context, service need, `installed`, symptoms, urgency and preferred contact; submits contact details. |
-| Frontstage | DPFLAB confirms the symptom/vehicle, explains that removal/installation is handled through a partner route, confirms the DPFLAB service price and coordinates the next step. |
+| Customer | Supplies the vehicle registration number, selects client context, service need, `installed`, symptoms, urgency and preferred contact; submits contact details. |
+| Frontstage | DPFLAB uses the registration number to confirm the vehicle model/variant and check the applicable filter, explains that removal/installation is handled through a partner route, confirms the DPFLAB service price and coordinates the next step. |
 | Backstage | Operator deduplicates the lead, records diagnosis/error context, selects a partner workshop, records whether the customer pays the partner directly, confirms price and booking. |
 | Partner | Removes/installs the filter and charges the customer directly when `customer_direct` applies. This reference price is not a DPFLAB deal cost. |
 | DPFLAB operation | Receives the filter, records diagnostic/pressure evidence where available, cleans it, marks it ready, returns it with the current report/result path and records paid completion. |
@@ -25,7 +25,7 @@ Status: `COMPLETE` for the current website/CRM design boundary. This is a heuris
 
 | Layer | Sequence |
 | --- | --- |
-| Customer/workshop | Selects `removed`, supplies filter/vehicle/service context and chooses collection, delivery or consultation through the current contact path. |
+| Customer/workshop | Selects `removed`, supplies the vehicle registration number and service context, and chooses collection, delivery or consultation through the current contact path. |
 | Frontstage | DPFLAB confirms eligibility, handoff, starting-price context and expected current turnaround. |
 | Backstage | Operator records intake details, assigned owner, next action and confirmed DPFLAB price; no partner-removal expense is attached to the deal. |
 | DPFLAB operation | Receives, diagnoses/tests, cleans, records before/after evidence where available, marks ready, returns and records paid completion. |
@@ -36,7 +36,7 @@ Status: `COMPLETE` for the current website/CRM design boundary. This is a heuris
 
 | Layer | Sequence |
 | --- | --- |
-| Workshop | Sends an enquiry or filter with vehicle/filter context and expected handoff. |
+| Workshop | Sends an enquiry or filter with the vehicle registration number and expected handoff. |
 | Frontstage | DPFLAB confirms eligibility, intake/return path, price responsibility and contact owner. |
 | Backstage | Lead is marked `workshop`; partner workshop/contact and payment model are recorded. Multiple filters/jobs remain separate CRM submissions unless a future contract explicitly models batches. |
 | Operation | Same `received -> cleaning -> ready -> completed` path; paid amount records DPFLAB revenue only. |
@@ -54,6 +54,9 @@ Status: `COMPLETE` for the current website/CRM design boundary. This is a heuris
 ## Website and form requirements
 
 - Keep the first decision about filter location; it determines the partner/removal explanation.
+- Require the vehicle registration number in every new website, manual CRM and Meta Instant Form lead; explain that it is used to confirm the model/variant, check the applicable filter and calculate a more accurate price.
+- Preserve the legacy `vehicle` value for old leads and later lookup results; do not reinterpret an old free-text vehicle/part answer as a registration number.
+- Normalize registration-number case and spacing without enforcing only the common `123 ABC` pattern; foreign and personalized plates may enter the same flow.
 - Ask only fields that alter eligibility, handoff, service or follow-up.
 - Keep phone/WhatsApp/email available without forcing the form, while attributing only persisted form/Meta leads as CRM leads.
 - Show starting prices and the exact-price qualifier together.

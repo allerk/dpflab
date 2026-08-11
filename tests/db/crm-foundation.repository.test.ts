@@ -23,6 +23,7 @@ const siteSubmission = (overrides: Partial<SubmissionInput> = {}): SubmissionInp
   serviceType: 'dpf',
   filterState: 'removed',
   vehicle: 'VW Passat',
+  registrationNumber: '123 ABC',
   urgency: 'days_1_3',
   preferredContact: 'phone',
   privacyVersion: '2026-07-23',
