@@ -12,6 +12,7 @@
   import Footer from '$lib/components/Footer.svelte';
   import CookieConsent from '$lib/components/CookieConsent.svelte';
   import MobileContactDock from '$lib/components/MobileContactDock.svelte';
+  import { renderJsonLdScript } from '$lib/seo/json-ld';
   import { meta_title, meta_description } from '$lib/paraglide/messages';
   import type { PageData, ActionData } from './$types';
 
@@ -22,7 +23,7 @@
   $: canonicalUrl = data.locale === 'ru' ? `${BASE_URL}/` : `${BASE_URL}/${data.locale}`;
   $: ogLocale = data.locale === 'et' ? 'et_EE' : data.locale === 'en' ? 'en_GB' : 'ru_RU';
   $: ogLocaleAlts = ['ru_RU', 'et_EE', 'en_GB'].filter((value) => value !== ogLocale);
-  $: structuredData = JSON.stringify({
+  $: structuredDataTag = renderJsonLdScript({
     '@context': 'https://schema.org',
     '@type': 'AutomotiveBusiness',
     name: 'DPFLAB',
@@ -69,7 +70,7 @@
   <meta name="twitter:title" content={meta_title()} />
   <meta name="twitter:description" content={meta_description()} />
   <meta name="twitter:image" content="{BASE_URL}/hero-dpf-1000.webp" />
-  <script type="application/ld+json">{structuredData}</script>
+  {@html structuredDataTag}
 </svelte:head>
 
 <Header contactsRow={data.contactsRow} />

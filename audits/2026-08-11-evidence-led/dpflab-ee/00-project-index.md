@@ -6,7 +6,7 @@
 - Depth: `CONTROLLED_MIGRATION`
 - Entry point: `FULL`
 - Primary profile: `LOCAL_OPERATIONAL_SERVICE`
-- Markets: `Estonia; service area and partner coverage require owner confirmation`
+- Markets: `Estonia; current public service scope and partner-facing statements are owner-confirmed`
 - Languages: `ru|et|en`
 - Authorized systems: `dpflab.ee read-only; dev.dpflab.ee; Cloudflare develop Worker/D1/R2; repository; Meta configuration read-only unless separately approved`
 - Mutation boundary: `Code and develop are authorized; production launch, public claims, ad spend, customer-list processing, and provider enablement require an explicit owner decision`
@@ -26,7 +26,7 @@ Use `01-source-register.csv`. Preserve raw evidence outside this decision pack.
 
 ## Stop condition
 
-First cycle stops at a reviewable G1-G3 decision pack: preserved baseline, explicit evidence gaps, measurement boundary, claim blockers, and the smallest method plan. Architecture/content/build work must not pass G4-G6 until Luka/Danik approve the applicable audience, operational and claim decisions.
+The current cycle may implement and test reversible code changes on develop. Production remains blocked until the complete G9 staging matrix, rollback evidence and an explicit G10 production decision exist. Structural URL expansion remains blocked by G1/G4 even though current public facts are approved.
 
 ## Routing policy
 
