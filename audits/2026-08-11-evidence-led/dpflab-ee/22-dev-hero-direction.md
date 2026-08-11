@@ -2,6 +2,7 @@
 
 Status: `DEV_CANDIDATE_FOR_OWNER_FEEDBACK`
 Production authorization: `NONE`
+Develop Worker version: `a453391f-eafb-4394-a605-14bdac2696ce`
 
 ## Grounding
 
@@ -67,6 +68,10 @@ page and let the long RU title split inside a word. The revision:
 - `npm run check`: 0 errors, 0 warnings.
 - `npm test`: 27 files, 130 tests passed.
 - `npm run build`: passed.
+- Develop RU/ET/EN SSR smoke: HTTP 200, released hero CSS present, and
+  `X-Robots-Tag: noindex, nofollow, noarchive` on every route.
+- Production guard: production continued to serve its previous CSS asset and was
+  not changed by the develop deployment.
 - Mobile CSS is explicitly defined for the single-column layout and long title,
   but a fresh 390 px runtime is `NOT_VERIFIED`: both connected browser viewport
   controls remained at desktop width and Python Playwright was unavailable.
