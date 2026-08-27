@@ -1,11 +1,13 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { enhance } from '$app/forms';
   import Icon from '$lib/Icon.svelte';
   import MapAppSelector from '$lib/components/MapAppSelector.svelte';
   import type { ContactsRow } from '$lib/db/repositories/contacts';
+  import { normalizeVehicleRegistrationNumber } from '$lib/vehicle-registration';
   import {
     consentEventName,
+    getGoogleBrowserIdentifiers,
     getMetaBrowserIdentifiers,
     hasAnalyticsConsent,
     trackMetaEvent,
@@ -83,9 +85,10 @@
     contact_valid_phone,
     contact_valid_privacy,
     contact_valid_required,
-    contact_valid_vehicle,
-    contact_vehicle_label,
-    contact_vehicle_placeholder
+    contact_valid_registration,
+    contact_registration_help,
+    contact_registration_label,
+    contact_registration_placeholder
   } from '$lib/paraglide/messages';
 
   type FormValues = {
@@ -96,7 +99,7 @@
     clientType?: string;
     serviceType?: string;
     filterState?: string;
-    vehicle?: string;
+    registrationNumber?: string;
     symptoms?: string[];
     urgency?: string;
     preferredContact?: string;
@@ -111,6 +114,17 @@
   };
 
   type Message = () => string;
+  type ValidatedField =
+    | 'serviceType'
+    | 'filterState'
+    | 'clientType'
+    | 'registrationNumber'
+    | 'urgency'
+    | 'preferredContact'
+    | 'name'
+    | 'phone'
+    | 'email'
+    | 'privacyAccepted';
 
   export let contactsRow: ContactsRow | null = null;
   export let locale: string = 'et';
@@ -183,7 +197,7 @@
   let clientType = '';
   let serviceType = '';
   let filterState = '';
-  let vehicle = '';
+  let registrationNumber = '';
   let symptoms: string[] = [];
   let urgency = '';
   let preferredContact = '';
@@ -202,6 +216,11 @@
   let fbclid = '';
   let fbp = '';
   let fbc = '';
+  let gclid = '';
+  let gbraid = '';
+  let wbraid = '';
+  let gaClientId = '';
+  let gaSessionId = '';
   let landingPage = '';
   let referrer = '';
 
@@ -218,7 +237,7 @@
       clientType = form.values.clientType ?? clientType;
       serviceType = form.values.serviceType ?? serviceType;
       filterState = form.values.filterState ?? filterState;
-      vehicle = form.values.vehicle ?? vehicle;
+      registrationNumber = form.values.registrationNumber ?? registrationNumber;
       symptoms = form.values.symptoms ?? symptoms;
       urgency = form.values.urgency ?? urgency;
       preferredContact = form.values.preferredContact ?? preferredContact;
@@ -227,7 +246,7 @@
     if (form.errors) {
       clientErrors = form.errors;
       if (form.errors.serviceType || form.errors.filterState) step = 1;
-      else if (form.errors.clientType || form.errors.vehicle || form.errors.urgency) step = 2;
+      else if (form.errors.clientType || form.errors.registrationNumber || form.errors.urgency) step = 2;
       else step = 3;
     }
     if (form.success) submitted = true;
@@ -268,21 +287,34 @@
       (analyticsConsent && fbclid ? `fb.1.${Date.now()}.${fbclid}`.slice(0, 300) : '');
   };
 
-  onMount(() => {
-    analyticsConsent = hasAnalyticsConsent();
+  const refreshGoogleBrowserIds = () => {
+    const identifiers = getGoogleBrowserIdentifiers();
+    gaClientId = identifiers.gaClientId;
+    gaSessionId = identifiers.gaSessionId;
+  };
 
+  const clearAttribution = () => {
+    utmSource = utmMedium = utmCampaign = utmContent = utmTerm = utmId = '';
+    campaignId = adsetId = adId = fbclid = gclid = gbraid = wbraid = '';
+    fbp = fbc = gaClientId = gaSessionId = '';
+    landingPage = window.location.pathname;
+    referrer = '';
+    window.localStorage.removeItem(ATTRIBUTION_KEY);
+  };
+
+  const captureConsentedAttribution = () => {
+    if (!analyticsConsent) {
+      clearAttribution();
+      return;
+    }
     const params = new URLSearchParams(window.location.search);
     let stored: Record<string, string | number> = {};
     try {
-      const parsed = JSON.parse(window.localStorage.getItem(ATTRIBUTION_KEY) ?? '{}') as Record<
-        string,
-        string | number
-      >;
+      const parsed = JSON.parse(window.localStorage.getItem(ATTRIBUTION_KEY) ?? '{}') as Record<string, string | number>;
       stored = Number(parsed.expiresAt ?? 0) > Date.now() ? parsed : {};
     } catch {
       stored = {};
     }
-
     const attribution = {
       utmSource: firstParam(params, 'utm_source') || String(stored.utmSource ?? ''),
       utmMedium: firstParam(params, 'utm_medium') || String(stored.utmMedium ?? ''),
@@ -290,38 +322,31 @@
       utmContent: firstParam(params, 'utm_content') || String(stored.utmContent ?? ''),
       utmTerm: firstParam(params, 'utm_term') || String(stored.utmTerm ?? ''),
       utmId: firstParam(params, 'utm_id') || String(stored.utmId ?? ''),
-      campaignId:
-        firstParam(params, 'campaign_id', 'campaignid') || String(stored.campaignId ?? ''),
+      campaignId: firstParam(params, 'campaign_id', 'campaignid') || String(stored.campaignId ?? ''),
       adsetId: firstParam(params, 'adset_id', 'adsetid') || String(stored.adsetId ?? ''),
       adId: firstParam(params, 'ad_id', 'adid') || String(stored.adId ?? ''),
       fbclid: firstParam(params, 'fbclid') || String(stored.fbclid ?? ''),
-      landingPage:
-        String(stored.landingPage ?? '') ||
-        `${window.location.pathname}${window.location.search}`,
+      gclid: firstParam(params, 'gclid') || String(stored.gclid ?? ''),
+      gbraid: firstParam(params, 'gbraid') || String(stored.gbraid ?? ''),
+      wbraid: firstParam(params, 'wbraid') || String(stored.wbraid ?? ''),
+      landingPage: String(stored.landingPage ?? '') || `${window.location.pathname}${window.location.search}`,
       referrer: String(stored.referrer ?? '') || document.referrer,
       expiresAt: Date.now() + ATTRIBUTION_TTL_MS
     };
-
-    ({
-      utmSource,
-      utmMedium,
-      utmCampaign,
-      utmContent,
-      utmTerm,
-      utmId,
-      campaignId,
-      adsetId,
-      adId,
-      fbclid,
-      landingPage,
-      referrer
-    } = attribution);
+    ({ utmSource, utmMedium, utmCampaign, utmContent, utmTerm, utmId, campaignId, adsetId,
+      adId, fbclid, gclid, gbraid, wbraid, landingPage, referrer } = attribution);
     window.localStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
     refreshMetaBrowserIds();
+    refreshGoogleBrowserIds();
+  };
+
+  onMount(() => {
+    analyticsConsent = hasAnalyticsConsent();
+    captureConsentedAttribution();
 
     const updateConsent = (event: Event) => {
       analyticsConsent = (event as CustomEvent).detail === 'accepted';
-      refreshMetaBrowserIds();
+      captureConsentedAttribution();
     };
     window.addEventListener(consentEventName(), updateConsent);
     return () => window.removeEventListener(consentEventName(), updateConsent);
@@ -338,12 +363,49 @@
     if (field === 'name') return contact_valid_name();
     if (field === 'phone') return contact_valid_phone();
     if (field === 'email') return contact_valid_email();
-    if (field === 'vehicle') return contact_valid_vehicle();
+    if (field === 'registrationNumber') return contact_valid_registration();
     if (field === 'privacyAccepted') return contact_valid_privacy();
     return contact_valid_required();
   }
 
-  function validateStep(currentStep: number): boolean {
+  function clearFieldError(field: ValidatedField) {
+    if (!clientErrors[field]) return;
+    delete clientErrors[field];
+    clientErrors = { ...clientErrors };
+  }
+
+  const stepFields: Record<number, ValidatedField[]> = {
+    1: ['serviceType', 'filterState'],
+    2: ['clientType', 'registrationNumber', 'urgency'],
+    3: ['preferredContact', 'name', 'phone', 'email', 'privacyAccepted']
+  };
+
+  const fieldSelector: Record<ValidatedField, string> = {
+    serviceType: '[name="serviceType"]',
+    filterState: '[name="filterState"]',
+    clientType: '[name="clientType"]',
+    registrationNumber: '#registration-number',
+    urgency: '[name="urgency"]',
+    preferredContact: '[name="preferredContact"]',
+    name: '#contact-name',
+    phone: '#contact-phone',
+    email: '#contact-email',
+    privacyAccepted: '[name="privacyAccepted"]'
+  };
+
+  const errorId = (field: ValidatedField) => `contact-error-${field}`;
+
+  async function focusFirstInvalid(currentStep: number): Promise<void> {
+    if (typeof document === 'undefined') return;
+    await tick();
+    const field = stepFields[currentStep]?.find((candidate) => Boolean(clientErrors[candidate]));
+    if (!field) return;
+    const element = document.querySelector<HTMLElement>(fieldSelector[field]);
+    element?.focus();
+    element?.scrollIntoView({ block: 'center' });
+  }
+
+  function validateStep(currentStep: number, focusInvalid = true): boolean {
     const errors: Record<string, string> = {};
 
     if (currentStep === 1) {
@@ -353,7 +415,7 @@
 
     if (currentStep === 2) {
       if (!clientType) errors.clientType = 'required';
-      if (!vehicle.trim()) errors.vehicle = 'required';
+      if (!registrationNumber.trim()) errors.registrationNumber = 'required';
       if (!urgency) errors.urgency = 'required';
     }
 
@@ -370,13 +432,14 @@
     for (const key of Object.keys(clientErrors)) {
       if (!errors[key] && (
         (currentStep === 1 && ['serviceType', 'filterState'].includes(key)) ||
-        (currentStep === 2 && ['clientType', 'vehicle', 'urgency'].includes(key)) ||
+        (currentStep === 2 && ['clientType', 'registrationNumber', 'urgency'].includes(key)) ||
         (currentStep === 3 && ['name', 'phone', 'email', 'preferredContact', 'privacyAccepted'].includes(key))
       )) {
         delete clientErrors[key];
       }
     }
     clientErrors = { ...clientErrors };
+    if (focusInvalid && Object.keys(errors).length > 0) void focusFirstInvalid(currentStep);
     return Object.keys(errors).length === 0;
   }
 
@@ -392,9 +455,9 @@
   }
 
   function firstInvalidStep(): number {
-    if (!validateStep(1)) return 1;
-    if (!validateStep(2)) return 2;
-    if (!validateStep(3)) return 3;
+    if (!validateStep(1, false)) return 1;
+    if (!validateStep(2, false)) return 2;
+    if (!validateStep(3, false)) return 3;
     return 0;
   }
 
@@ -446,7 +509,7 @@
         {:else}
           <div class="px-7 pt-6 max-xs:px-4 max-xs:pt-5">
             <div class="flex items-center justify-between gap-4 mb-3">
-              <span class="font-mono text-[11px] tracking-[0.12em] text-fg-muted">
+              <span class="font-mono text-[11px] tracking-[0.12em] text-fg-muted" aria-live="polite">
                 {contact_step_counter({ current: step, total: TOTAL_STEPS })}
               </span>
               <div class="flex gap-1.5" aria-hidden="true">
@@ -469,14 +532,18 @@
               const invalidStep = firstInvalidStep();
               if (invalidStep) {
                 step = invalidStep;
+                void focusFirstInvalid(invalidStep);
                 cancel();
                 return;
               }
 
               refreshMetaBrowserIds();
+              refreshGoogleBrowserIds();
               formData.set('analyticsConsent', analyticsConsent ? 'yes' : 'no');
               formData.set('fbp', fbp);
               formData.set('fbc', fbc);
+              formData.set('gaClientId', gaClientId);
+              formData.set('gaSessionId', gaSessionId);
               return async ({ update }) => {
                 await update({ reset: false });
               };
@@ -494,6 +561,11 @@
             <input type="hidden" name="fbclid" value={fbclid} />
             <input type="hidden" name="fbp" value={fbp} />
             <input type="hidden" name="fbc" value={fbc} />
+            <input type="hidden" name="gclid" value={gclid} />
+            <input type="hidden" name="gbraid" value={gbraid} />
+            <input type="hidden" name="wbraid" value={wbraid} />
+            <input type="hidden" name="gaClientId" value={gaClientId} />
+            <input type="hidden" name="gaSessionId" value={gaSessionId} />
             <input type="hidden" name="landingPage" value={landingPage} />
             <input type="hidden" name="referrer" value={referrer} />
 
@@ -502,69 +574,77 @@
               <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
             </div>
 
-            <section class:hidden={step !== 1} aria-hidden={step !== 1}>
+            <section hidden={step !== 1} aria-hidden={step !== 1}>
               <h3 class="text-[24px] font-extrabold mb-1">{contact_step_1_title()}</h3>
               <p class="text-[13px] text-fg-muted mb-6">{contact_step_1_hint()}</p>
 
-              <fieldset class="mb-6">
+              <fieldset class="mb-6" aria-describedby={clientErrors.serviceType ? errorId('serviceType') : undefined}>
                 <legend class="text-[13px] font-semibold mb-2.5">{contact_service_label()}</legend>
                 <div class="grid grid-cols-2 gap-2.5 max-xs:grid-cols-1">
                   {#each serviceOptions as option}
                     <label class="{tileBase} {serviceType === option.value ? 'border-accent bg-accent/[.08] text-fg' : 'border-border bg-bg text-fg-muted'}">
-                      <input class="sr-only" type="radio" name="serviceType" value={option.value} bind:group={serviceType} />
+                      <input class="sr-only" type="radio" name="serviceType" value={option.value} bind:group={serviceType} required />
                       <span class="w-2 h-2 rounded-full shrink-0 {serviceType === option.value ? 'bg-accent shadow-[0_0_0_4px_rgba(126,211,33,.14)]' : 'bg-border'}"></span>
                       <span>{option.label()}</span>
                     </label>
                   {/each}
                 </div>
-                {#if errorMessage('serviceType')}<span class="block mt-2 text-[12px] text-danger">{errorMessage('serviceType')}</span>{/if}
+                {#if clientErrors.serviceType}<span id={errorId('serviceType')} role="alert" class="block mt-2 text-[12px] text-danger">{errorMessage('serviceType')}</span>{/if}
               </fieldset>
 
-              <fieldset>
+              <fieldset aria-describedby={clientErrors.filterState ? errorId('filterState') : undefined}>
                 <legend class="text-[13px] font-semibold mb-2.5">{contact_filter_state_label()}</legend>
                 <div class="grid grid-cols-2 gap-2.5 max-xs:grid-cols-1">
                   {#each filterOptions as option}
                     <label class="{tileBase} {filterState === option.value ? 'border-accent bg-accent/[.08] text-fg' : 'border-border bg-bg text-fg-muted'}">
-                      <input class="sr-only" type="radio" name="filterState" value={option.value} bind:group={filterState} />
+                      <input class="sr-only" type="radio" name="filterState" value={option.value} bind:group={filterState} required />
                       <span class="w-2 h-2 rounded-full shrink-0 {filterState === option.value ? 'bg-accent shadow-[0_0_0_4px_rgba(126,211,33,.14)]' : 'bg-border'}"></span>
                       <span>{option.label()}</span>
                     </label>
                   {/each}
                 </div>
-                {#if errorMessage('filterState')}<span class="block mt-2 text-[12px] text-danger">{errorMessage('filterState')}</span>{/if}
+                {#if clientErrors.filterState}<span id={errorId('filterState')} role="alert" class="block mt-2 text-[12px] text-danger">{errorMessage('filterState')}</span>{/if}
               </fieldset>
             </section>
 
-            <section class:hidden={step !== 2} aria-hidden={step !== 2}>
+            <section hidden={step !== 2} aria-hidden={step !== 2}>
               <h3 class="text-[24px] font-extrabold mb-1">{contact_step_2_title()}</h3>
               <p class="text-[13px] text-fg-muted mb-6">{contact_step_2_hint()}</p>
 
-              <fieldset class="mb-5">
+              <fieldset class="mb-5" aria-describedby={clientErrors.clientType ? errorId('clientType') : undefined}>
                 <legend class="text-[13px] font-semibold mb-2.5">{contact_client_type_label()}</legend>
                 <div class="grid grid-cols-3 gap-2.5 max-sm:grid-cols-1">
                   {#each clientOptions as option}
                     <label class="{tileBase} {clientType === option.value ? 'border-accent bg-accent/[.08] text-fg' : 'border-border bg-bg text-fg-muted'}">
-                      <input class="sr-only" type="radio" name="clientType" value={option.value} bind:group={clientType} />
+                      <input class="sr-only" type="radio" name="clientType" value={option.value} bind:group={clientType} required />
                       <span class="w-2 h-2 rounded-full shrink-0 {clientType === option.value ? 'bg-accent' : 'bg-border'}"></span>
                       <span>{option.label()}</span>
                     </label>
                   {/each}
                 </div>
-                {#if errorMessage('clientType')}<span class="block mt-2 text-[12px] text-danger">{errorMessage('clientType')}</span>{/if}
+                {#if clientErrors.clientType}<span id={errorId('clientType')} role="alert" class="block mt-2 text-[12px] text-danger">{errorMessage('clientType')}</span>{/if}
               </fieldset>
 
               <div class="mb-5">
-                <label for="vehicle" class="block text-[13px] font-semibold mb-2">{contact_vehicle_label()}</label>
+                <label for="registration-number" class="block text-[13px] font-semibold mb-2">{contact_registration_label()}</label>
                 <input
-                  id="vehicle"
-                  name="vehicle"
+                  id="registration-number"
+                  name="registrationNumber"
                   type="text"
-                  bind:value={vehicle}
-                  placeholder={contact_vehicle_placeholder()}
-                  maxlength="240"
-                  class="{inputBase} {errorMessage('vehicle') ? inputError : ''}"
+                  bind:value={registrationNumber}
+                  placeholder={contact_registration_placeholder()}
+                  maxlength="40"
+                  autocapitalize="characters"
+                  spellcheck="false"
+                  on:input={() => clearFieldError('registrationNumber')}
+                  on:blur={() => registrationNumber = normalizeVehicleRegistrationNumber(registrationNumber)}
+                  required
+                  aria-invalid={Boolean(clientErrors.registrationNumber)}
+                  aria-describedby={`${clientErrors.registrationNumber ? errorId('registrationNumber') : ''} contact-registration-help`.trim()}
+                  class="{inputBase} {clientErrors.registrationNumber ? inputError : ''}"
                 />
-                {#if errorMessage('vehicle')}<span class="block mt-1.5 text-[12px] text-danger">{errorMessage('vehicle')}</span>{/if}
+                <p id="contact-registration-help" class="mt-2 text-[12px] leading-relaxed text-fg-muted">{contact_registration_help()}</p>
+                {#if clientErrors.registrationNumber}<span id={errorId('registrationNumber')} role="alert" class="block mt-1.5 text-[12px] text-danger">{errorMessage('registrationNumber')}</span>{/if}
               </div>
 
               <fieldset class="mb-5">
@@ -580,59 +660,59 @@
                 </div>
               </fieldset>
 
-              <fieldset>
+              <fieldset aria-describedby={clientErrors.urgency ? errorId('urgency') : undefined}>
                 <legend class="text-[13px] font-semibold mb-2.5">{contact_urgency_label()}</legend>
                 <div class="grid grid-cols-2 gap-2.5 max-xs:grid-cols-1">
                   {#each urgencyOptions as option}
                     <label class="{tileBase} {urgency === option.value ? 'border-accent bg-accent/[.08] text-fg' : 'border-border bg-bg text-fg-muted'}">
-                      <input class="sr-only" type="radio" name="urgency" value={option.value} bind:group={urgency} />
+                      <input class="sr-only" type="radio" name="urgency" value={option.value} bind:group={urgency} required />
                       <span class="w-2 h-2 rounded-full shrink-0 {urgency === option.value ? 'bg-accent' : 'bg-border'}"></span>
                       <span>{option.label()}</span>
                     </label>
                   {/each}
                 </div>
-                {#if errorMessage('urgency')}<span class="block mt-2 text-[12px] text-danger">{errorMessage('urgency')}</span>{/if}
+                {#if clientErrors.urgency}<span id={errorId('urgency')} role="alert" class="block mt-2 text-[12px] text-danger">{errorMessage('urgency')}</span>{/if}
               </fieldset>
             </section>
 
-            <section class:hidden={step !== 3} aria-hidden={step !== 3}>
+            <section hidden={step !== 3} aria-hidden={step !== 3}>
               <h3 class="text-[24px] font-extrabold mb-1">{contact_step_3_title()}</h3>
               <p class="text-[13px] text-fg-muted mb-6">{contact_step_3_hint()}</p>
 
-              <fieldset class="mb-5">
+              <fieldset class="mb-5" aria-describedby={clientErrors.preferredContact ? errorId('preferredContact') : undefined}>
                 <legend class="text-[13px] font-semibold mb-2.5">{contact_preferred_label()}</legend>
                 <div class="grid grid-cols-3 gap-2.5 max-xs:grid-cols-1">
                   {#each contactOptions as option}
                     <label class="{tileBase} justify-center {preferredContact === option.value ? 'border-accent bg-accent/[.08] text-fg' : 'border-border bg-bg text-fg-muted'}">
-                      <input class="sr-only" type="radio" name="preferredContact" value={option.value} bind:group={preferredContact} />
+                      <input class="sr-only" type="radio" name="preferredContact" value={option.value} bind:group={preferredContact} required />
                       <Icon name={option.icon} size={16}/>
                       <span>{option.label()}</span>
                     </label>
                   {/each}
                 </div>
-                {#if errorMessage('preferredContact')}<span class="block mt-2 text-[12px] text-danger">{errorMessage('preferredContact')}</span>{/if}
+                {#if clientErrors.preferredContact}<span id={errorId('preferredContact')} role="alert" class="block mt-2 text-[12px] text-danger">{errorMessage('preferredContact')}</span>{/if}
               </fieldset>
 
               <div class="grid grid-cols-2 gap-3 mb-3 max-xs:grid-cols-1">
                 <div>
                   <label for="contact-name" class="sr-only">{contact_field_name()}</label>
-                  <input id="contact-name" type="text" name="name" bind:value={name} autocomplete="name" placeholder={contact_field_name()} maxlength="100"
-                         class="{inputBase} {errorMessage('name') ? inputError : ''}"/>
-                  {#if errorMessage('name')}<span class="block mt-1.5 text-[12px] text-danger">{errorMessage('name')}</span>{/if}
+                  <input id="contact-name" type="text" name="name" bind:value={name} autocomplete="name" placeholder={contact_field_name()} maxlength="100" required aria-invalid={Boolean(clientErrors.name)} aria-describedby={clientErrors.name ? errorId('name') : undefined}
+                         class="{inputBase} {clientErrors.name ? inputError : ''}"/>
+                  {#if clientErrors.name}<span id={errorId('name')} role="alert" class="block mt-1.5 text-[12px] text-danger">{errorMessage('name')}</span>{/if}
                 </div>
                 <div>
                   <label for="contact-phone" class="sr-only">{contact_field_phone()}</label>
-                  <input id="contact-phone" type="tel" name="phone" bind:value={phone} autocomplete="tel" placeholder={contact_field_phone()} maxlength="40"
-                         class="{inputBase} {errorMessage('phone') ? inputError : ''}"/>
-                  {#if errorMessage('phone')}<span class="block mt-1.5 text-[12px] text-danger">{errorMessage('phone')}</span>{/if}
+                  <input id="contact-phone" type="tel" name="phone" bind:value={phone} autocomplete="tel" placeholder={contact_field_phone()} maxlength="40" required aria-invalid={Boolean(clientErrors.phone)} aria-describedby={clientErrors.phone ? errorId('phone') : undefined}
+                         class="{inputBase} {clientErrors.phone ? inputError : ''}"/>
+                  {#if clientErrors.phone}<span id={errorId('phone')} role="alert" class="block mt-1.5 text-[12px] text-danger">{errorMessage('phone')}</span>{/if}
                 </div>
               </div>
 
               <div class="mb-3">
                 <label for="contact-email" class="sr-only">{contact_field_email()}</label>
-                <input id="contact-email" type="email" name="email" bind:value={email} autocomplete="email" placeholder={contact_field_email()} maxlength="160"
-                       class="{inputBase} {errorMessage('email') ? inputError : ''}"/>
-                {#if errorMessage('email')}<span class="block mt-1.5 text-[12px] text-danger">{errorMessage('email')}</span>{/if}
+                <input id="contact-email" type="email" name="email" bind:value={email} autocomplete="email" placeholder={contact_field_email()} maxlength="160" aria-invalid={Boolean(clientErrors.email)} aria-describedby={clientErrors.email ? errorId('email') : undefined}
+                       class="{inputBase} {clientErrors.email ? inputError : ''}"/>
+                {#if clientErrors.email}<span id={errorId('email')} role="alert" class="block mt-1.5 text-[12px] text-danger">{errorMessage('email')}</span>{/if}
               </div>
 
               <div class="mb-4">
@@ -647,6 +727,9 @@
                   name="privacyAccepted"
                   value="yes"
                   bind:checked={privacyAccepted}
+                  required
+                  aria-invalid={Boolean(clientErrors.privacyAccepted)}
+                  aria-describedby={clientErrors.privacyAccepted ? errorId('privacyAccepted') : undefined}
                   class="mt-0.5 w-4 h-4 shrink-0 accent-accent"
                 />
                 <span>
@@ -657,7 +740,7 @@
                   {contact_privacy_suffix()}
                 </span>
               </label>
-              {#if errorMessage('privacyAccepted')}<span class="block mt-1.5 text-[12px] text-danger">{errorMessage('privacyAccepted')}</span>{/if}
+              {#if clientErrors.privacyAccepted}<span id={errorId('privacyAccepted')} role="alert" class="block mt-1.5 text-[12px] text-danger">{errorMessage('privacyAccepted')}</span>{/if}
             </section>
 
             <div class="flex items-center justify-between gap-3 mt-7 pt-5 border-t border-border">

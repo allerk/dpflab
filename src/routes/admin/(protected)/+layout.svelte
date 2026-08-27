@@ -7,7 +7,6 @@
     admin_nav_pricing,
     admin_nav_certificates,
     admin_nav_contacts,
-    admin_nav_submissions,
     admin_nav_before_after,
     admin_nav_images,
     admin_nav_site_images
@@ -18,12 +17,13 @@
   export let data: LayoutData;
 
   const navLinks = [
+    { href: '/admin/submissions', label: () => 'CRM' },
+    { href: '/admin/expenses', label: () => 'Расходы' },
     { href: '/admin/faq', label: admin_nav_faq },
     { href: '/admin/reviews', label: admin_nav_reviews },
     { href: '/admin/pricing', label: admin_nav_pricing },
     { href: '/admin/certificates', label: admin_nav_certificates },
     { href: '/admin/contacts', label: admin_nav_contacts },
-    { href: '/admin/submissions', label: admin_nav_submissions },
     { href: '/admin/before-after', label: admin_nav_before_after },
     { href: '/admin/images', label: admin_nav_images },
     { href: '/admin/site-images', label: admin_nav_site_images }
@@ -39,7 +39,7 @@
 <div class="min-h-screen bg-bg text-fg">
   <header class="bg-bg-elev border-b border-border px-6 h-14 flex items-center justify-between">
     <a href="/admin" class="font-bold text-base tracking-tight">
-      DPFLAB <span class="text-accent">Admin</span>
+      DPFLAB <span class="text-accent">Workshop CRM</span>
     </a>
     <div class="flex items-center gap-4">
       <span class="text-fg-muted text-sm hidden xs:block">{data.adminEmail}</span>

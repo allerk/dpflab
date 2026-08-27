@@ -12,6 +12,8 @@
   import Footer from '$lib/components/Footer.svelte';
   import CookieConsent from '$lib/components/CookieConsent.svelte';
   import MobileContactDock from '$lib/components/MobileContactDock.svelte';
+  import { buildAutomotiveBusinessJsonLd } from '$lib/seo/local-business';
+  import { renderJsonLdScript } from '$lib/seo/json-ld';
   import { meta_title, meta_description } from '$lib/paraglide/messages';
   import type { PageData, ActionData } from './$types';
 
@@ -22,22 +24,13 @@
   $: canonicalUrl = data.locale === 'ru' ? `${BASE_URL}/` : `${BASE_URL}/${data.locale}`;
   $: ogLocale = data.locale === 'et' ? 'et_EE' : data.locale === 'en' ? 'en_GB' : 'ru_RU';
   $: ogLocaleAlts = ['ru_RU', 'et_EE', 'en_GB'].filter((value) => value !== ogLocale);
-  $: structuredData = JSON.stringify({
-    '@context': 'https://schema.org',
-    '@type': 'AutomotiveBusiness',
-    name: 'DPFLAB',
-    url: canonicalUrl,
-    image: `${BASE_URL}/hero-dpf-1000.webp`,
-    telephone: data.contactsRow?.phone ?? '+372 5555 5014',
-    email: data.contactsRow?.email ?? 'info@dpflab.ee',
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: 'Saha-Loo tee 36',
-      addressLocality: 'Iru',
-      postalCode: '74206',
-      addressCountry: 'EE'
-    }
-  });
+  $: structuredDataTag = renderJsonLdScript(
+    buildAutomotiveBusinessJsonLd({
+      baseUrl: BASE_URL,
+      imageUrl: `${BASE_URL}/hero-dpf-1000.webp`,
+      contacts: data.contactsRow
+    })
+  );
 </script>
 
 <svelte:head>
@@ -69,7 +62,7 @@
   <meta name="twitter:title" content={meta_title()} />
   <meta name="twitter:description" content={meta_description()} />
   <meta name="twitter:image" content="{BASE_URL}/hero-dpf-1000.webp" />
-  <script type="application/ld+json">{structuredData}</script>
+  {@html structuredDataTag}
 </svelte:head>
 
 <Header contactsRow={data.contactsRow} />
@@ -86,4 +79,4 @@
 </main>
 <Footer locale={data.locale} contactsRow={data.contactsRow} />
 <MobileContactDock locale={data.locale} contactsRow={data.contactsRow} />
-<CookieConsent metaPixelId={data.metaPixelId} />
+<CookieConsent metaPixelId={data.metaPixelId} googleMeasurementId={data.googleMeasurementId} />

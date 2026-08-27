@@ -27,14 +27,17 @@ const environmentHeadersHandle: Handle = async ({ event, resolve }) => {
  * Edge-caches public GET pages by URL. Locale is URL-based (`/` ru, `/et` et,
  * strategy ['url','baseLocale']). Advertising identifiers do not affect HTML and
  * are removed from the cache key so each click does not create a separate object.
- * Develop, admin and non-GET requests bypass the cache.
+ * Develop, admin, webhook and non-GET requests bypass the cache. Webhook GET
+ * verification URLs contain secrets and challenges and must never enter cache.
  */
 const edgeCacheHandle: Handle = async ({ event, resolve }) => {
   const pathname = new URL(event.request.url).pathname;
   const isAdmin = pathname.startsWith('/admin') || pathname.startsWith('/et/admin');
+  const isWebhook = pathname.startsWith('/api/webhooks/');
   if (
     event.request.method !== 'GET' ||
     isAdmin ||
+    isWebhook ||
     event.platform?.env?.APP_ENV === 'develop'
   ) {
     return resolve(event);

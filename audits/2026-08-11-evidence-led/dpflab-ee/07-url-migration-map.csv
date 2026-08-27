@@ -1,0 +1,7 @@
+source_url,language,evidence,action,successor_url,target_indexability,recommendation,owner_decision,implemented,tested
+https://dpflab.ee/,ru,"SRC-002|SRC-003",IMPROVE,,INDEXABLE,"Preserve URL; repair JSON-LD and revalidate claims/forms before any production deployment",,false,false
+https://dpflab.ee/et,et,"SRC-002|SRC-003",IMPROVE,,INDEXABLE,"Preserve URL and hreflang; require human localization and claim-scope review",,false,false
+https://dpflab.ee/en,en,"SRC-002|SRC-003",IMPROVE,,INDEXABLE,"Preserve URL and hreflang while English demand/support remains an explicit hypothesis",,false,false
+https://dpflab.ee/privacy,ru,"SRC-002|SRC-003",KEEP,,INDEXABLE,"Preserve current legal destination; legal review and Google disclosure remain separate blockers",,true,true
+https://dpflab.ee/et/privacy,et,"SRC-002|SRC-003",KEEP,,INDEXABLE,"Preserve current localized legal destination pending human review",,true,true
+https://dpflab.ee/en/privacy,en,"SRC-002|SRC-003",KEEP,,INDEXABLE,"Preserve current localized legal destination pending human review",,true,true

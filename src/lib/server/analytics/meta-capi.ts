@@ -5,6 +5,34 @@ export type MetaCapiEnv = {
   META_CAPI_TOKEN?: string;
   META_GRAPH_API_VERSION?: string;
   META_TEST_EVENT_CODE?: string;
+  /** Explicit launch gate for Instant Form CRM lifecycle feedback in the EU. */
+  META_CRM_EVENTS_ENABLED?: string;
+  /** Separate gate for post-submit site CRM stages; keep off without revocation sync. */
+  META_SITE_CRM_EVENTS_ENABLED?: string;
+};
+
+export type MetaCrmDeliveryResult =
+  | { outcome: 'delivered'; acknowledge: true; httpStatus: number }
+  | { outcome: 'skipped'; acknowledge: true; reason: 'consent_denied' | 'unsupported_origin' }
+  | { outcome: 'deferred'; acknowledge: false; reason: 'not_configured' | 'policy_not_enabled' }
+  | { outcome: 'failed'; acknowledge: false; retryable: boolean; httpStatus?: number };
+
+export type MetaCrmEventInput = {
+  stage: 'qualified' | 'booked' | 'completed';
+  eventId: string;
+  occurredAt: Date | string | number;
+  origin: 'site' | 'meta_instant' | 'whatsapp' | 'manual';
+  externalLeadId?: string;
+  landingPage?: string;
+  name: string;
+  phone: string;
+  email: string;
+  locale: string;
+  serviceType: string;
+  fbp?: string;
+  fbc?: string;
+  analyticsConsent: boolean;
+  orderAmountCents: number;
 };
 
 type MetaLeadEventInput = {
@@ -93,10 +121,12 @@ async function deliverMetaEvent(
   env: MetaCapiEnv,
   event: Record<string, unknown>,
   eventName: string
-): Promise<void> {
+): Promise<MetaCrmDeliveryResult> {
   const pixelId = env.META_PIXEL_ID?.trim();
   const token = env.META_CAPI_TOKEN?.trim();
-  if (!pixelId || !token || !isConfigured(env)) return;
+  if (!pixelId || !token || !isConfigured(env)) {
+    return { outcome: 'deferred', acknowledge: false, reason: 'not_configured' };
+  }
 
   const version = /^v\d+\.\d+$/.test(env.META_GRAPH_API_VERSION ?? '')
     ? env.META_GRAPH_API_VERSION
@@ -110,20 +140,62 @@ async function deliverMetaEvent(
 
   try {
     const response = await fetch(
-      `https://graph.facebook.com/${version}/${pixelId}/events?access_token=${encodeURIComponent(token)}`,
+      `https://graph.facebook.com/${version}/${pixelId}/events`,
       {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: {
+          'content-type': 'application/json',
+          authorization: `Bearer ${token}`
+        },
         body: JSON.stringify(payload)
       }
     );
     if (!response.ok) {
+      let graphTransient = false;
+      try {
+        const reader = response.body?.getReader();
+        if (reader) {
+          const chunks: Uint8Array[] = [];
+          let length = 0;
+          while (length <= 32_768) {
+            const item = await reader.read();
+            if (item.done) break;
+            length += item.value.byteLength;
+            if (length > 32_768) {
+              await reader.cancel();
+              break;
+            }
+            chunks.push(item.value);
+          }
+          if (length <= 32_768) {
+            const bytes = new Uint8Array(length);
+            let offset = 0;
+            for (const chunk of chunks) {
+              bytes.set(chunk, offset);
+              offset += chunk.byteLength;
+            }
+            const parsed = JSON.parse(new TextDecoder().decode(bytes)) as {
+              error?: { is_transient?: boolean };
+            };
+            graphTransient = parsed.error?.is_transient === true;
+          }
+        }
+      } catch {
+        graphTransient = false;
+      }
       console.error(`[meta-capi] ${eventName} delivery failed status=${response.status}`);
+      return {
+        outcome: 'failed',
+        acknowledge: false,
+        retryable: graphTransient || response.status === 429 || response.status >= 500,
+        httpStatus: response.status
+      };
     }
-  } catch (error) {
-    console.error(
-      `[meta-capi] ${eventName} delivery failed error=${error instanceof Error ? error.message : String(error)}`
-    );
+    return { outcome: 'delivered', acknowledge: true, httpStatus: response.status };
+  } catch {
+    // Avoid exception messages: fetch implementations may include the credential-bearing request.
+    console.error(`[meta-capi] ${eventName} delivery failed network_error`);
+    return { outcome: 'failed', acknowledge: false, retryable: true };
   }
 }
 
@@ -150,8 +222,87 @@ async function sendMetaLeadEvent(
   );
 }
 
+const occurredAtSeconds = (value: Date | string | number): number => {
+  const milliseconds = value instanceof Date ? value.getTime() : new Date(value).getTime();
+  return Number.isFinite(milliseconds) ? Math.floor(milliseconds / 1_000) : Math.floor(Date.now() / 1_000);
+};
+
+/** Sends a durable CRM stage event after the outbox row has been claimed. */
+export async function sendMetaCrmEvent(
+  input: MetaCrmEventInput,
+  env: MetaCapiEnv
+): Promise<MetaCrmDeliveryResult> {
+  if (!isConfigured(env)) {
+    return { outcome: 'deferred', acknowledge: false, reason: 'not_configured' };
+  }
+
+  const eventNames: Record<MetaCrmEventInput['stage'], string> = {
+    qualified: 'QualifiedLead',
+    booked: 'Schedule',
+    completed: 'Purchase'
+  };
+  const customData: Record<string, string | number> = {
+    content_name: input.serviceType || 'service_request',
+    locale: input.locale
+  };
+  if (input.stage === 'completed') {
+    customData.currency = 'EUR';
+    customData.value = Math.max(0, input.orderAmountCents) / 100;
+  }
+
+  if (input.origin === 'meta_instant') {
+    if (env.META_CRM_EVENTS_ENABLED !== 'true') {
+      return { outcome: 'deferred', acknowledge: false, reason: 'policy_not_enabled' };
+    }
+    if (!/^\d{5,40}$/.test(input.externalLeadId ?? '')) {
+      return { outcome: 'failed', acknowledge: false, retryable: false };
+    }
+    customData.event_source = 'crm';
+    return deliverMetaEvent(
+      env,
+      {
+        event_name: eventNames[input.stage],
+        event_time: occurredAtSeconds(input.occurredAt),
+        event_id: input.eventId,
+        action_source: 'system_generated',
+        user_data: { lead_id: input.externalLeadId },
+        custom_data: customData
+      },
+      eventNames[input.stage]
+    );
+  }
+
+  if (input.origin !== 'site') {
+    return { outcome: 'skipped', acknowledge: true, reason: 'unsupported_origin' };
+  }
+  if (env.META_SITE_CRM_EVENTS_ENABLED !== 'true') {
+    return { outcome: 'deferred', acknowledge: false, reason: 'policy_not_enabled' };
+  }
+  if (!input.analyticsConsent) {
+    return { outcome: 'skipped', acknowledge: true, reason: 'consent_denied' };
+  }
+  return deliverMetaEvent(
+    env,
+    {
+      event_name: eventNames[input.stage],
+      event_time: occurredAtSeconds(input.occurredAt),
+      event_id: input.eventId,
+      action_source: 'system_generated',
+      user_data: await buildUserData({
+        name: input.name,
+        phone: input.phone,
+        email: input.email,
+        fbp: input.fbp ?? '',
+        fbc: input.fbc ?? ''
+      }),
+      custom_data: customData
+    },
+    eventNames[input.stage]
+  );
+}
+
 const schedule = async (
-  task: Promise<void>,
+  task: Promise<unknown>,
   context: ExecutionContext | undefined
 ): Promise<void> => {
   if (context?.waitUntil) {
@@ -188,7 +339,6 @@ export async function scheduleMetaPipelineEvent({
     completed: 'Purchase'
   };
   const eventName = eventNames[stage];
-  const eventSourceUrl = new URL(landingPage || '/', new URL(request.url).origin).toString();
   const customData: Record<string, string | number> = {
     content_name: input.serviceType || 'service_request',
     locale: input.locale
@@ -205,8 +355,7 @@ export async function scheduleMetaPipelineEvent({
         event_name: eventName,
         event_time: Math.floor(Date.now() / 1000),
         event_id: `site-lead-${submissionId}-${stage}`,
-        event_source_url: eventSourceUrl,
-        action_source: 'website',
+        action_source: 'system_generated',
         user_data: await buildUserData(input),
         custom_data: customData
       },

@@ -5,6 +5,18 @@
 # any /admin request is treated as this identity. NEVER set this in production.
 DEV_ADMIN_EMAIL=you@example.com
 META_PIXEL_ID=
+META_APP_SECRET=
+META_LEADS_ACCESS_TOKEN=
+META_LEADS_VERIFY_TOKEN=
+META_MARKETING_ACCESS_TOKEN=
+META_CAPI_TOKEN=
+META_CRM_EVENTS_ENABLED=false
+META_SITE_CRM_EVENTS_ENABLED=false
+GOOGLE_ANALYTICS_MEASUREMENT_ID=
+GOOGLE_ANALYTICS_API_SECRET=
+GOOGLE_ANALYTICS_PSEUDONYM_KEY=
+GOOGLE_CRM_EVENTS_ENABLED=false
+CRM_CRON_TOKEN=
 
 # Production admin auth is handled by Cloudflare Access (no secrets in code).
 # These are set as Worker vars in production (wrangler.jsonc / dashboard), not here:
