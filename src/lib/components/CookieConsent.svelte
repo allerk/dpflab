@@ -8,6 +8,7 @@
   } from '$lib/paraglide/messages';
   import {
     getConsentChoice,
+    initGoogleAnalytics,
     initMetaPixel,
     openConsentEventName,
     setConsentChoice,
@@ -15,12 +16,14 @@
   } from '$lib/analytics';
 
   export let metaPixelId: string | undefined = undefined;
+  export let googleMeasurementId: string | undefined = undefined;
 
   let visible = false;
 
   onMount(() => {
     visible = getConsentChoice() === null;
     initMetaPixel(metaPixelId);
+    initGoogleAnalytics(googleMeasurementId);
 
     const open = () => (visible = true);
     window.addEventListener(openConsentEventName(), open);
@@ -30,13 +33,16 @@
   function choose(choice: ConsentChoice) {
     setConsentChoice(choice);
     visible = false;
-    if (choice === 'accepted') initMetaPixel(metaPixelId);
+    if (choice === 'accepted') {
+      initMetaPixel(metaPixelId);
+      initGoogleAnalytics(googleMeasurementId);
+    }
   }
 </script>
 
 {#if visible}
   <aside
-    class="fixed z-[100] left-5 bottom-5 w-[min(430px,calc(100vw-40px))] bg-bg-elev border border-border rounded-card shadow-[0_18px_60px_rgba(0,0,0,.55)] p-5 max-md:bottom-[76px] max-xs:left-3 max-xs:w-[calc(100vw-24px)]"
+    class="fixed z-[100] right-5 bottom-5 w-[min(430px,calc(100vw-40px))] bg-bg-elev border border-border rounded-card shadow-[0_18px_60px_rgba(0,0,0,.55)] p-5 max-md:bottom-[76px] max-xs:right-3 max-xs:w-[calc(100vw-24px)]"
     aria-labelledby="cookie-consent-title"
   >
     <div class="h-1 w-16 bg-accent rounded-full mb-4"></div>

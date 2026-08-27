@@ -1,0 +1,10 @@
+channel,metric,value,period,segment,source_id,truth_type
+production_web,public_urls_http_200,6,2026-08-11,"ru|et|en landing and privacy",SRC-002,DIAGNOSTIC
+production_web,sitemap_urls,6,2026-08-11,"public indexable inventory",SRC-003,DIAGNOSTIC
+production_web,language_variants,3,2026-08-11,"ru|et|en",SRC-002,DIAGNOSTIC
+production_web,valid_jsonld_blocks,0,2026-08-11,homepage,SRC-002,DIAGNOSTIC
+develop_d1,pending_migrations,0,2026-08-11,dpflab-develop,SRC-004,DIAGNOSTIC
+repository,automated_tests_passed,128,2026-08-11,"26 test files",SRC-001,DIAGNOSTIC
+commercial,paid_jobs,UNKNOWN,not_available,all,SRC-005,COMMERCIAL_TRUTH
+commercial,revenue,UNKNOWN,not_available,all,SRC-005,COMMERCIAL_TRUTH
+commercial,operating_contribution,UNKNOWN,not_available,all,SRC-005,COMMERCIAL_TRUTH

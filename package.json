@@ -9,6 +9,8 @@
     "preview:local": "npm run build && wrangler dev --env local",
     "deploy": "npm run build && wrangler deploy --env prod",
     "deploy:develop": "npm run build && wrangler deploy --env develop",
+    "deploy:crm-cron": "wrangler deploy --config wrangler.crm-cron.jsonc --env prod",
+    "deploy:crm-cron:develop": "wrangler deploy --config wrangler.crm-cron.jsonc --env develop",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -1,5 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dpflab",
+  "account_id": "9e663c2c2dd30454034da7d0da1cf926",
   "compatibility_date": "2026-06-21",
   "compatibility_flags": ["nodejs_compat"],
   "main": ".svelte-kit/cloudflare/_worker.js",
@@ -16,7 +18,10 @@
       "workers_dev": false,
       "vars": {
         "CF_ACCESS_TEAM_DOMAIN": "dpflab",
-        "CF_ACCESS_AUD": "b9c326b4ef29fca0bcf77b4d3847b9121e6a414e438865e896c5c5cfa559cf46"
+        "CF_ACCESS_AUD": "b9c326b4ef29fca0bcf77b4d3847b9121e6a414e438865e896c5c5cfa559cf46",
+        "META_LEADS_PAGE_ID": "1205337539326627",
+        "META_LEADS_FORM_LOCALES": "{\"1514307796630470\":\"ru\",\"27980848328265828\":\"ru\",\"1293909486000385\":\"et\",\"1395333806136980\":\"et\",\"1570981471069414\":\"en\",\"27487810977557355\":\"en\"}",
+        "META_AD_ACCOUNT_ID": "act_1488895229206352"
       },
       "d1_databases": [
         {
@@ -45,6 +50,12 @@
         "APP_ENV": "prod",
         "META_PIXEL_ID": "1358232535765480",
         "META_GRAPH_API_VERSION": "v25.0",
+        "META_CRM_EVENTS_ENABLED": "false",
+        "META_SITE_CRM_EVENTS_ENABLED": "false",
+        "GOOGLE_CRM_EVENTS_ENABLED": "false",
+        "META_LEADS_PAGE_ID": "1205337539326627",
+        "META_LEADS_FORM_LOCALES": "{\"1514307796630470\":\"ru\",\"27980848328265828\":\"ru\",\"1293909486000385\":\"et\",\"1395333806136980\":\"et\",\"1570981471069414\":\"en\",\"27487810977557355\":\"en\"}",
+        "META_AD_ACCOUNT_ID": "act_1488895229206352",
         "NOTIFICATION_FROM_EMAIL": "info@dpflab.ee",
         "NOTIFICATION_RECIPIENT_EMAIL": "info@dpflab.ee"
       },
@@ -74,8 +85,14 @@
         "CF_ACCESS_TEAM_DOMAIN": "dpflab",
         "CF_ACCESS_AUD": "b9c326b4ef29fca0bcf77b4d3847b9121e6a414e438865e896c5c5cfa559cf46",
         "APP_ENV": "develop",
-        "META_PIXEL_ID": "1358232535765480",
         "META_GRAPH_API_VERSION": "v25.0",
+        // Never point staging at the production Meta dataset.
+        "META_CRM_EVENTS_ENABLED": "false",
+        "META_SITE_CRM_EVENTS_ENABLED": "false",
+        "GOOGLE_CRM_EVENTS_ENABLED": "false",
+        "META_LEADS_PAGE_ID": "1205337539326627",
+        "META_LEADS_FORM_LOCALES": "{\"1514307796630470\":\"ru\",\"27980848328265828\":\"ru\",\"1293909486000385\":\"et\",\"1395333806136980\":\"et\",\"1570981471069414\":\"en\",\"27487810977557355\":\"en\"}",
+        "META_AD_ACCOUNT_ID": "act_1488895229206352",
         "NOTIFICATION_FROM_EMAIL": "info@dpflab.ee",
         "NOTIFICATION_RECIPIENT_EMAIL": "alexandr.lerko@gmail.com"
       },

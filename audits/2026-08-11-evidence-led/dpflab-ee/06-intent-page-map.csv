@@ -1,0 +1,6 @@
+language,market,primary_intent,page_role,owner_url,indexability,evidence,recommendation,owner_decision
+ru,Estonia,"DPF/FAP cleaning diagnosis and next-step request","primary commercial service owner",https://dpflab.ee/,INDEXABLE,"SRC-002|SRC-003","Keep as current owner pending GSC/ad/claim evidence; do not create service permutations yet",
+et,Estonia,"DPF/FAP cleaning diagnosis and next-step request","primary localized commercial service owner",https://dpflab.ee/et,INDEXABLE,"SRC-002|SRC-003","Keep as current owner pending GSC/ad/claim evidence and human localization review",
+en,Estonia,"DPF/FAP cleaning diagnosis and next-step request","primary localized commercial service owner",https://dpflab.ee/en,INDEXABLE,"SRC-002|SRC-003","Keep technically available; acquisition value and English support remain unproven",
+ru|et|en,Estonia,"data processing terms for lead submission","purposeful legal journey page",https://dpflab.ee/privacy,INDEXABLE,"SRC-002|SRC-003","Keep localized legal routes; legal and translation approval remain separate",
+ru|et|en,Estonia,"standalone diagnostics partner removal or catalyst service intent",unresolved,PENDING,PENDING,"SRC-001|SRC-005","No new indexable page until distinct demand operational capability claims and owner approval are evidenced",

@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dpflab-crm-cron",
+  "account_id": "9e663c2c2dd30454034da7d0da1cf926",
+  "compatibility_date": "2026-06-21",
+  "main": "src/cron-worker.ts",
+  "observability": { "enabled": true },
+  "env": {
+    "prod": {
+      "name": "dpflab-crm-cron",
+      "workers_dev": false,
+      "triggers": { "crons": ["*/15 * * * *"] },
+      "services": [{ "binding": "CRM_SERVICE", "service": "dpflab" }]
+    },
+    "develop": {
+      "name": "dpflab-crm-cron-develop",
+      "workers_dev": false,
+      "triggers": { "crons": ["*/30 * * * *"] },
+      "services": [{ "binding": "CRM_SERVICE", "service": "dpflab-develop" }]
+    }
+  }
+}
